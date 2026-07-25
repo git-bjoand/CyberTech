@@ -10,12 +10,11 @@ export default function Gallery() {
   const { t } = useLang();
   const [filter, setFilter] = useState<GalleryCategory | 'all'>('all');
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
-  const [currentIndex, setCurrentIndex] = useState(0);
   const [isPaused, setIsPaused] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
-  const trackRef = useRef<HTMLDivElement>(null);
   const sectionRef = useRef<HTMLElement>(null);
 
+  // Entrance intersection observer
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
@@ -35,28 +34,6 @@ export default function Gallery() {
   const filteredPhotos = photos.filter(
     (photo) => filter === 'all' || photo.category === filter
   );
-
-  // Auto-slide effect every 3.5 seconds
-  useEffect(() => {
-    if (isPaused || filteredPhotos.length <= 1) return;
-    const interval = setInterval(() => {
-      setCurrentIndex((prev) => (prev + 1) % filteredPhotos.length);
-    }, 3500);
-    return () => clearInterval(interval);
-  }, [isPaused, filteredPhotos.length]);
-
-  // Reset index on filter change
-  useEffect(() => {
-    setCurrentIndex(0);
-  }, [filter]);
-
-  const slidePrev = () => {
-    setCurrentIndex((prev) => (prev - 1 + filteredPhotos.length) % filteredPhotos.length);
-  };
-
-  const slideNext = () => {
-    setCurrentIndex((prev) => (prev + 1) % filteredPhotos.length);
-  };
 
   // Lightbox handlers
   const openLightbox = (index: number) => {
@@ -81,7 +58,7 @@ export default function Gallery() {
     }
   }, [lightboxIndex, filteredPhotos.length]);
 
-  // Keyboard navigation
+  // Keyboard navigation for Lightbox
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (lightboxIndex === null) return;
@@ -93,7 +70,7 @@ export default function Gallery() {
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [lightboxIndex, showPrevLightbox, showNextLightbox]);
 
-  // Prevent scroll when lightbox is open
+  // Prevent background scroll when Lightbox is open
   useEffect(() => {
     if (lightboxIndex !== null) {
       document.body.style.overflow = 'hidden';
@@ -112,24 +89,27 @@ export default function Gallery() {
     }
   };
 
-  // Split photos into 3 masonry columns
+  // Split filtered photos into 3 masonry columns
   const col1 = filteredPhotos.filter((_, i) => i % 3 === 0);
   const col2 = filteredPhotos.filter((_, i) => i % 3 === 1);
   const col3 = filteredPhotos.filter((_, i) => i % 3 === 2);
 
-  // Duplicate arrays for infinite seamless marquee loop
+  // Duplicate columns for seamless infinite auto-scrolling marquee loop
   const dupCol1 = [...col1, ...col1, ...col1];
   const dupCol2 = [...col2, ...col2, ...col2];
   const dupCol3 = [...col3, ...col3, ...col3];
 
   return (
     <section id="gallery" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
+      {/* Header */}
       <div className={styles.header}>
         <h2 className={styles.title}>
           {t?.gallery?.title || 'Galeri'} <span style={{ color: 'var(--accent-royal-blue)' }}>{t?.gallery?.titleAccent || ''}</span>
         </h2>
+        <p className={styles.subtitle}>{t?.gallery?.subtitle || 'Dokumentasi kegiatan UKM CyberTech PNP'}</p>
       </div>
 
+      {/* Filter Tabs */}
       <div className={styles.filters}>
         <button
           className={`${styles.filterBtn} ${filter === 'all' ? styles.active : ''}`}
@@ -157,13 +137,13 @@ export default function Gallery() {
         </button>
       </div>
 
-      {/* Infinite Auto-Scrolling Masonry Gallery */}
+      {/* Auto-Slide Masonry Gallery Marquee Wrapper */}
       <div 
         className={styles.masonryScrollWrapper}
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
       >
-        {/* Column 1 - Scroll Up */}
+        {/* Column 1 - Auto-Scroll Up */}
         <div className={`${styles.masonryColumn} ${styles.scrollUp} ${isPaused ? styles.paused : ''}`}>
           {dupCol1.map((photo, index) => (
             <div
@@ -193,7 +173,7 @@ export default function Gallery() {
           ))}
         </div>
 
-        {/* Column 2 - Scroll Down */}
+        {/* Column 2 - Auto-Scroll Down */}
         <div className={`${styles.masonryColumn} ${styles.scrollDown} ${isPaused ? styles.paused : ''}`}>
           {dupCol2.map((photo, index) => (
             <div
@@ -223,7 +203,7 @@ export default function Gallery() {
           ))}
         </div>
 
-        {/* Column 3 - Scroll Up */}
+        {/* Column 3 - Auto-Scroll Up */}
         <div className={`${styles.masonryColumn} ${styles.scrollUp} ${isPaused ? styles.paused : ''}`}>
           {dupCol3.map((photo, index) => (
             <div
@@ -254,7 +234,7 @@ export default function Gallery() {
         </div>
       </div>
 
-      {/* Lightbox */}
+      {/* Fullscreen Lightbox Modal */}
       {lightboxIndex !== null && (
         <div className={styles.lightbox} onClick={closeLightbox}>
           <button className={styles.closeBtn} onClick={closeLightbox}>×</button>
@@ -290,4 +270,3 @@ export default function Gallery() {
     </section>
   );
 }
-

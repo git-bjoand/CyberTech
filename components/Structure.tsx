@@ -20,22 +20,21 @@ const StructureCard = ({ member, isKetua = false, index = 0 }: { member: Member;
 
   return (
     <div
-      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isActive ? styles.activeHackState : ''}`}
+      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isActive ? styles.activeState : ''}`}
       onMouseEnter={() => setIsHovered(true)}
       onMouseLeave={() => setIsHovered(false)}
       onClick={handleClick}
       tabIndex={0}
       role="button"
       aria-label={`View ${member.name}`}
-      style={{ transitionDelay: `${0.15 + index * 0.18}s` }}
+      style={{ transitionDelay: `${0.08 + index * 0.06}s` }}
     >
-      {/* Glitch Overlay Layers */}
+      {/* Heavy Transient Glitch Burst Overlay (Flashes for ~0.35s on transition) */}
       {isActive && (
         <>
-          <div className={styles.glitchLayerCyan} />
-          <div className={styles.glitchLayerRed} />
-          <div className={styles.glitchNoiseOverlay} />
-          <div className={styles.glitchScanline} />
+          <div className={styles.glitchBurstCyan} />
+          <div className={styles.glitchBurstRed} />
+          <div className={styles.glitchNoiseBurst} />
         </>
       )}
 
@@ -44,18 +43,20 @@ const StructureCard = ({ member, isKetua = false, index = 0 }: { member: Member;
         <img
           src={isActive ? fullPhoto : primaryPhoto}
           alt={member.name}
-          className={`${styles.photo} ${isActive ? styles.glitchPhotoActive : ''}`}
+          className={`${styles.photo} ${isActive ? styles.photoFull : ''}`}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/primary/cyberlogo.png';
           }}
         />
-        {isActive && <div className={styles.hackedStatusBadge}>[SYS.HACKED]</div>}
       </div>
 
-      <div className={styles.info}>
-        <h3 className={styles.name}>{member.name}</h3>
-        <p className={styles.role}>{member.role}</p>
-      </div>
+      {/* Card Info text (Shown ONLY in Normal state; disappears on hover for pure photo) */}
+      {!isActive && (
+        <div className={styles.info}>
+          <h3 className={styles.name}>{member.name}</h3>
+          <p className={styles.role}>{member.role}</p>
+        </div>
+      )}
     </div>
   );
 };

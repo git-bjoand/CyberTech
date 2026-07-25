@@ -62,34 +62,18 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 215px;
 }
 
-.verticalStem {
-  width: 2px;
-  height: 36px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
-}
-
-.verticalStemTop {
-  width: 2px;
-  height: 36px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
-}
-
-.verticalStemBottom {
-  width: 2px;
-  height: 36px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
-}
-
+.verticalStem,
+.verticalStemTop,
+.verticalStemBottom,
 .verticalStemCenterL2 {
   width: 2px;
-  height: 36px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
+  height: 32px;
+  background: linear-gradient(180deg, rgba(0, 212, 255, 0.75) 0%, rgba(59, 130, 246, 0.65) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.2);
+  border-radius: 1px;
 }
 
 .branchContainerL2 {
@@ -101,9 +85,10 @@
 
 .horizontalBarL2 {
   height: 2px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.5) 0%, rgba(0, 212, 255, 0.8) 50%, rgba(59, 130, 246, 0.5) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.2);
   width: calc(100% - (100% / 3));
+  border-radius: 1px;
 }
 
 .level2Grid {
@@ -123,9 +108,10 @@
 
 .horizontalBarL3 {
   height: 2px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.5) 0%, rgba(0, 212, 255, 0.8) 50%, rgba(59, 130, 246, 0.5) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.2);
   width: calc(100% - (100% / 4));
+  border-radius: 1px;
 }
 
 .level3Grid {
@@ -147,9 +133,10 @@
 
 .horizontalBarL4 {
   height: 2px;
-  background: var(--accent-cyan);
-  box-shadow: var(--shadow-glow-cyan);
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.5) 0%, rgba(0, 212, 255, 0.8) 50%, rgba(59, 130, 246, 0.5) 100%);
+  box-shadow: 0 0 5px rgba(0, 212, 255, 0.2);
   width: calc(62% - (62% / 3));
+  border-radius: 1px;
 }
 
 .level4Grid {
@@ -166,15 +153,15 @@
   width: 100%;
 }
 
-/* Card Styling & Hover Glitch Sequence */
+/* Card Styling & Stagger Entrance */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
   border-radius: 12px;
   padding: 0.85rem 0.65rem;
-  width: 100%;
+  width: 215px;
   max-width: 215px;
-  min-width: 150px;
+  min-width: 215px;
   height: 165px;
   display: flex;
   flex-direction: column;
@@ -184,7 +171,7 @@
   box-shadow: var(--shadow-card);
   opacity: 0;
   transform: translateY(30px) scale(0.95);
-  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.4s ease, box-shadow 0.4s ease;
+  transition: opacity 0.85s cubic-bezier(0.16, 1, 0.3, 1), transform 0.85s cubic-bezier(0.16, 1, 0.3, 1), height 0.4s ease, border-color 0.3s ease, box-shadow 0.3s ease;
   cursor: pointer;
   user-select: none;
   overflow: hidden;
@@ -197,50 +184,94 @@
 }
 
 .card:hover {
-  border-color: var(--accent-cyan) !important;
-  box-shadow: var(--shadow-glow-cyan) !important;
+  border-color: var(--accent-cyan);
+  box-shadow: var(--shadow-glow-cyan);
 }
 
-/* Active Hack State: Text Vanishes -> Glitch -> Full Photo Mode */
-.activeHackState {
+/* Active Foto 2 Mode (Pure Photo Only) */
+.activeState {
   border-color: var(--accent-cyan) !important;
-  box-shadow: var(--shadow-glow-cyan) !important;
-  transform: translateY(-6px) scale(1.05);
+  box-shadow: var(--shadow-glow-cyan), 0 0 30px rgba(0, 212, 255, 0.4) !important;
+  transform: translateY(-4px) scale(1.04);
   background: #030814 !important;
-  padding: 0.4rem;
-  height: 240px;
+  padding: 0 !important;
+  height: 230px;
   z-index: 20;
 }
 
-.activeHackState .imageContainer {
+.activeState .imageContainer {
   width: 100%;
   height: 100%;
-  border-radius: 8px;
-  border-color: var(--accent-cyan);
+  border-radius: 12px;
+  border: none;
   margin-bottom: 0;
 }
 
-.activeHackState .info {
-  opacity: 0;
-  max-height: 0;
-  overflow: hidden;
-  padding: 0;
-  margin: 0;
+.activeState .photoFull {
+  width: 100%;
+  height: 100%;
+  border-radius: 12px;
+  object-fit: cover;
+  display: block;
+}
+
+/* Heavy Glitch Burst Layers (Flashes intensely for ~0.35s on transition then vanishes) */
+.glitchBurstCyan {
+  position: absolute;
+  inset: 0;
+  background: rgba(0, 212, 255, 0.4);
+  mix-blend-mode: screen;
+  z-index: 25;
   pointer-events: none;
-  transform: scale(0.8);
-  transition: all 0.4s cubic-bezier(0.22, 1, 0.36, 1);
+  animation: heavyGlitchCyan 0.35s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-.activeHackState .name {
-  color: var(--accent-cyan);
-  font-size: 0.85rem;
-  text-shadow: 0 0 8px var(--accent-cyan-glow);
+.glitchBurstRed {
+  position: absolute;
+  inset: 0;
+  background: rgba(239, 68, 68, 0.4);
+  mix-blend-mode: screen;
+  z-index: 26;
+  pointer-events: none;
+  animation: heavyGlitchRed 0.35s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
 }
 
-.activeHackState .role {
-  color: #ffffff;
-  font-size: 0.75rem;
-  font-weight: 700;
+.glitchNoiseBurst {
+  position: absolute;
+  inset: 0;
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 212, 255, 0.8),
+    rgba(0, 212, 255, 0.8) 2px,
+    transparent 2px,
+    transparent 4px
+  );
+  z-index: 27;
+  pointer-events: none;
+  animation: heavyNoiseBurst 0.35s cubic-bezier(0.1, 0.9, 0.2, 1) forwards;
+}
+
+@keyframes heavyGlitchCyan {
+  0% { opacity: 1; transform: translate(-8px, 4px) scale(1.05); clip-path: inset(10% 0 40% 0); }
+  25% { opacity: 0.9; transform: translate(10px, -6px) scale(1.02); clip-path: inset(60% 0 5% 0); }
+  50% { opacity: 0.7; transform: translate(-6px, 3px); clip-path: inset(25% 0 50% 0); }
+  75% { opacity: 0.4; transform: translate(4px, -2px); clip-path: inset(5% 0 75% 0); }
+  100% { opacity: 0; transform: translate(0, 0); clip-path: inset(0 0 0 0); }
+}
+
+@keyframes heavyGlitchRed {
+  0% { opacity: 1; transform: translate(8px, -4px) scale(1.05); clip-path: inset(50% 0 10% 0); }
+  25% { opacity: 0.9; transform: translate(-10px, 6px) scale(1.02); clip-path: inset(15% 0 65% 0); }
+  50% { opacity: 0.7; transform: translate(6px, -3px); clip-path: inset(70% 0 10% 0); }
+  75% { opacity: 0.4; transform: translate(-4px, 2px); clip-path: inset(30% 0 40% 0); }
+  100% { opacity: 0; transform: translate(0, 0); clip-path: inset(0 0 0 0); }
+}
+
+@keyframes heavyNoiseBurst {
+  0% { opacity: 0.85; transform: scale(1.08); }
+  40% { opacity: 0.6; transform: scale(1.04); }
+  70% { opacity: 0.3; transform: scale(1.01); }
+  100% { opacity: 0; transform: scale(1); }
 }
 
 /* Glitch Noise Layers (Smoother & Relaxed Speeds) */
@@ -417,10 +448,42 @@
   }
 }
 
-@media (max-width: 576px) {
+@media (max-width: 640px) {
   .level2Grid, .level3Grid, .level4Grid {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.5rem;
     width: 100% !important;
+  }
+
+  .treeLevel1 {
+    width: 100%;
+    max-width: 160px;
+  }
+
+  .card {
+    width: 100% !important;
+    max-width: 160px !important;
+    min-width: 120px !important;
+    height: 142px !important;
+    padding: 0.5rem 0.35rem !important;
+  }
+
+  .activeState {
+    height: 185px !important;
+  }
+
+  .imageContainer {
+    width: 52px !important;
+    height: 52px !important;
+    margin-bottom: 0.35rem !important;
+  }
+
+  .name {
+    font-size: 0.76rem !important;
+  }
+
+  .role {
+    font-size: 0.68rem !important;
   }
 }
 
