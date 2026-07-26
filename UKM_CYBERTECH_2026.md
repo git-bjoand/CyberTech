@@ -53,8 +53,8 @@ graph TD
     DivMulti["<b>Ka. Divisi Multimedia</b><br/>Zahwa Rahmadhania"]:::kadiv
 
     Pembina --> Ketum
-    Ketum --> Waketum
     Ketum --> Sekretaris
+    Ketum --> Waketum
     Ketum --> Bendahara
     Waketum --> DeptHRD
     Waketum --> DeptPR
@@ -66,35 +66,6 @@ graph TD
 ```
 
 ---
-
-### 🌳 Grafiks Pohon Hierarki (ASCII Tree Graph)
-
-```
-                            [ Pembina UKM CyberTech ]
-                               Fazrol Rozi, M.Cs.
-                                       │
-                               [ Ketua Umum ]
-                              Rayhan Ramadhan
-                                       │
-                             [ Wakil Ketua Umum ]
-                              Farel Al Furqan
-                                       │
-         ┌─────────────────────────────┼─────────────────────────────┐
-         │                             │                             │
-[ Sekretaris Umum ]           [ Bendahara Umum ]           [ 4 Kepala Departemen ]
-    Dhannisya                   Sukra Sriwita             ├─ HRD : Rayfo Huda
-                                                          ├─ PR  : M. Raihan Pramana W.
-                                                          ├─ CIM : M. Hafizh Boyensa
-                                                          └─ IT  : M. Rofiqul Islamy
-                                                                     │
-                                                           [ 3 Kepala Divisi ]
-                                                          ├─ Programming : Bagastio P. Joandri
-                                                          ├─ Networking  : Muhammad Luthfi
-                                                          └─ Multimedia  : Zahwa Rahmadhania
-```
-
----
-
 ## 💻 Divisi Spesialisasi
 
 ### 1. ⚡ Programming
