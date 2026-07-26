@@ -4,14 +4,24 @@ export interface Member {
   role: string;
   photo: string; // primary portrait/logo
   photo2?: string; // hover swap photo
-  level: 'ketua' | 'wakil' | 'sekretaris_bendahara' | 'departemen' | 'divisi';
+  level: 'pembina' | 'ketua' | 'wakil' | 'sekretaris_bendahara' | 'departemen' | 'divisi';
 }
 
 // DPH Tree structure for rendering
+// Level 0: Pembina UKM CyberTech
 // Level 1: Ketua Umum
 // Level 2: Sekretaris Umum, Wakil Ketua Umum, Bendahara Umum
-// Level 3: 4 Kepala Departemen (under Wakil)
-// Level 4: 3 Kepala Divisi (under Ka. Dept IT)
+// Level 3: 4 Kepala Departemen
+// Level 4: 3 Kepala Divisi
+
+export const pembina: Member = {
+  id: 0,
+  name: 'Fazrol Rozi, M.Cs.',
+  role: 'Pembina UKM CyberTech',
+  photo: '/images/primary/cyberlogo.png',
+  photo2: '/images/primary/maskot.png',
+  level: 'pembina',
+};
 
 export const ketuaUmum: Member = {
   id: 1,

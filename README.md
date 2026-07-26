@@ -9,7 +9,7 @@
 Aplikasi web resmi **UKM CyberTech Politeknik Negeri Padang (PNP)**. Dibangun menggunakan Next.js App Router, desain visual Vanilla CSS futuristik, sistem transisi tema GPU-accelerated, serta Asisten AI Virtual pintar berbasis Groq Llama 3.1 8B Instant.
 
 > 📖 **Ingin mengenal lebih dekat tentang UKM CyberTech PNP?**  
-> Baca profil lengkap, divisi, pengurus, dan program kerja di file **[UKM_CYBERTECH.md](UKM_CYBERTECH.md)**.
+> Baca profil lengkap, visi, misi, diagram grafik struktur pengurus, dan program kerja di **[UKM_CYBERTECH_2026.md](UKM_CYBERTECH_2026.md)**.
 
 > *"Technology Can Unite Anything"* — UKM CyberTech PNP (Berdiri 14 Mei 2009)
 
@@ -29,7 +29,7 @@ Aplikasi web resmi **UKM CyberTech Politeknik Negeri Padang (PNP)**. Dibangun me
 - **UI Form Input Melayang**: Input berbentuk *floating pill* dengan pendaran neon cyan serta *custom slim scrollbar*.
 
 ### 🏛️ 3. Bagan Struktur Organisasi Interaktif (DPH 2026/2027)
-- **Hierarki 3 Tingkat**: Menampilkan Pembina, Pengurus Harian (DPH), serta Kepala Departemen & Divisi.
+- **Hierarki 4 Tingkat**: Menampilkan Pembina (Fazrol Rozi, M.Cs.), Ketua Umum, Pengurus Harian (DPH), serta Kepala Departemen & Divisi.
 - **Animasi Ekspansi Kartu DPH**: Saat kursor diarahkan (*hover*) ke kartu anggota DPH, foto profil bulat secara organik mengembang menjadi kartu persegi melengkung besar sambil menyembunyikan teks.
 - **Container Drag-Scroll**: Dapat digeser secara mulus baik pada desktop maupun perangkat seluler.
 
@@ -112,7 +112,7 @@ cybertech/
 ├── lib/
 │   ├── context/                  # Context Provider (Theme & Lang)
 │   └── data/                     # Data Struktur Pengurus & Konfigurasi AI
-├── UKM_CYBERTECH.md              # Profil Lengkap & Sejarah UKM CyberTech PNP
+├── UKM_CYBERTECH_2026.md         # Profil Lengkap, Diagram Graph DPH & Sejarah UKM
 └── public/
     └── images/                   # Asset Foto & Logo Resmi CyberTech
 ```

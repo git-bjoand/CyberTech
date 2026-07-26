@@ -15,7 +15,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
   const [photoMode, setPhotoMode] = useState<'default' | 'hover'>('default');
   const [isGlitching, setIsGlitching] = useState(false);
-  
+
   const swapTimerRef = useRef<NodeJS.Timeout | null>(null);
   const finishTimerRef = useRef<NodeJS.Timeout | null>(null);
 
@@ -158,7 +158,7 @@ export default function Structure() {
 
       <div className={styles.treeScrollContainer}>
         <div className={styles.treeOuter}>
-          
+
           {/* Level 1: Root Node (Ketua Umum) */}
           <div className={styles.treeLevel1}>
             <StructureCard member={ketuaUmum} isKetua={true} index={0} />
@@ -184,7 +184,7 @@ export default function Structure() {
                 <StructureCard member={benUm} index={3} />
               </div>
             </div>
-            
+
             <div className={styles.verticalStemCenterL2} />
           </div>
 

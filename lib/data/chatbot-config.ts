@@ -51,6 +51,7 @@ Event Utama:
 - Workshop, Seminar, Webinar TI.
 
 Pengurus Harian 2026/2027:
+- Pembina UKM: Fazrol Rozi, M.Cs.
 - Ketua Umum: Rayhan Ramadhan
 - Wakil Ketua Umum: Farel Al Furqan
 - Sekretaris Umum: Dhannisya
