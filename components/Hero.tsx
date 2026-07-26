@@ -190,12 +190,12 @@ export default function Hero() {
       id: 'Unite Anything',
     },
     subtitle: {
-      en: 'Empowering students through innovation, collaboration, and cutting-edge technology at Politeknik Negeri Padang.',
-      id: 'Memberdayakan mahasiswa melalui inovasi, kolaborasi, dan teknologi terkini di Politeknik Negeri Padang.',
+      en: 'Serving as a venue for creative expression, collaboration, and technological innovation at Politeknik Negeri Padang.',
+      id: 'Menjadi wadah untuk berkarya, berkolaborasi, dan berinovasi dalam teknologi di Politeknik Negeri Padang.',
     },
     btnPrimary: {
-      en: 'Explore Projects',
-      id: 'Jelajahi Proyek',
+      en: 'Join now',
+      id: 'Daftar sekarang',
     },
     btnSecondary: {
       en: 'About Us',
@@ -215,11 +215,6 @@ export default function Hero() {
 
       <div className={styles.container}>
         <div className={styles.content}>
-          <div className={styles.badge}>
-            <span className={styles.badgeDot}></span>
-            {content.badge[lang as keyof typeof content.badge]}
-          </div>
-
           <h1 className={styles.title}>
             <span className={styles.titleLine1}>{content.title1[lang as keyof typeof content.title1]}</span>
             <br />

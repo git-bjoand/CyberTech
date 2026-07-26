@@ -88,8 +88,8 @@ export default function Events() {
             return (
               <div 
                 key={event.id} 
-                className={styles.card}
-                style={{ animationDelay: `${0.3 + index * 0.22}s` }}
+                className={`${styles.card} ${isVisible ? styles.cardRevealed : ''}`}
+                style={{ transitionDelay: `${0.8 + index * 0.3}s` }}
               >
                 {event.image && (
                   <div className={styles.cardImageContainer}>

@@ -70,7 +70,12 @@ export default function Portfolio() {
     <section id="portfolio" ref={sectionRef} className={`${styles.portfolio} ${isVisible ? styles.visible : ''}`}>
       <div className={styles.container}>
         <div className={styles.header}>
-          <span className={styles.label}>{t?.portfolio?.label || 'Portofolio'}</span>
+          <div className={styles.labelWrapper}>
+            <span className={styles.label}>{t?.portfolio?.label || 'Portofolio'}</span>
+            <span className={styles.countBadge}>
+              {portfolios.filter((item) => filter === 'all' || item.division === filter).length} Proyek
+            </span>
+          </div>
           <h2 className={styles.title}>{t?.portfolio?.title || 'Karya & Proyek Kami'}</h2>
           <p className={styles.subtitle}>{t?.portfolio?.subtitle || 'Jelajahi berbagai proyek inovatif dari anggota CyberTech.'}</p>
         </div>
@@ -109,15 +114,13 @@ export default function Portfolio() {
         </div>
 
         <div className={styles.grid}>
-          {portfolios.map((item, index) => {
-            const isVisible = filter === 'all' || item.division === filter;
-            if (!isVisible) return null;
-            
-            return (
+          {portfolios
+            .filter((item) => filter === 'all' || item.division === filter)
+            .map((item, index) => (
               <div 
                 key={item.id} 
-                className={`${styles.card} ${styles.visible}`}
-                style={{ animationDelay: `${0.2 + index * 0.22}s` }}
+                className={`${styles.card} ${isVisible ? styles.cardRevealed : ''}`}
+                style={{ transitionDelay: `${0.25 + index * 0.15}s` }}
               >
                 <div className={styles.imageArea}>
                   {item.image ? (
@@ -128,21 +131,29 @@ export default function Portfolio() {
                       className={styles.image}
                     />
                   ) : (
-                    getDivisionIcon(item.division)
+                    <div className={styles.placeholderBox}>
+                      {getDivisionIcon(item.division)}
+                      <span className={styles.placeholderLabel}>{item.division}</span>
+                    </div>
                   )}
 
-                  {item.isPartnership && item.partner && (
+                  {/* Image Hover CTA Overlay */}
+                  <div className={styles.imageOverlay}>
+                    <span className={styles.viewBtn}>
+                      Lihat Proyek ↗
+                    </span>
+                  </div>
+
+                  {/* Collaboration Badge (Only Shown for Partnerships/Collaborations) */}
+                  {(item.isPartnership || item.division === 'partnership') && (
                     <span className={styles.partnerBadge}>
-                      Partner: {item.partner}
+                      {item.partner ? `Partner: ${item.partner}` : 'Kolaborasi'}
                     </span>
                   )}
                 </div>
 
                 <div className={styles.content}>
                   <div className={styles.cardMeta}>
-                    <span className={styles.divisionTag}>
-                      {item.division.charAt(0).toUpperCase() + item.division.slice(1)}
-                    </span>
                     <span className={styles.yearTag}>{item.year}</span>
                   </div>
 
@@ -151,13 +162,12 @@ export default function Portfolio() {
 
                   <div className={styles.tags}>
                     {item.tags.map((tag, i) => (
-                      <span key={i} className={styles.tag}>{tag}</span>
+                      <span key={i} className={styles.tag}>#{tag}</span>
                     ))}
                   </div>
                 </div>
               </div>
-            );
-          })}
+            ))}
         </div>
       </div>
     </section>

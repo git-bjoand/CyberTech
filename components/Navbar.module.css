@@ -50,7 +50,7 @@
   font-weight: 700;
   font-size: 1.2rem;
   letter-spacing: 1px;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
 }
 
 .center {
@@ -70,7 +70,7 @@
 .navLink {
   background: none;
   border: none;
-  color: var(--text-secondary, #a0aec0);
+  color: var(--text-muted);
   font-size: 0.95rem;
   font-weight: 500;
   cursor: pointer;
@@ -80,11 +80,11 @@
 }
 
 .navLink:hover {
-  color: var(--accent-blue-bright, #00d4ff);
+  color: var(--accent-royal-blue);
 }
 
 .navLink.active {
-  color: var(--accent-blue-bright, #00d4ff);
+  color: var(--accent-royal-blue);
 }
 
 .navLink.active::after {
@@ -94,15 +94,15 @@
   left: 0;
   width: 100%;
   height: 2px;
-  background-color: var(--accent-blue-bright, #00d4ff);
-  box-shadow: 0 0 10px rgba(0, 212, 255, 0.6);
+  background-color: var(--accent-royal-blue);
+  box-shadow: 0 0 10px rgba(59, 130, 246, 0.6);
   border-radius: 2px;
 }
 
 .iconBtn {
   background: none;
   border: none;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -115,8 +115,42 @@
 }
 
 .iconBtn:hover {
-  background-color: rgba(0, 180, 255, 0.15);
-  color: #00d4ff;
+  background-color: rgba(59, 130, 246, 0.15);
+  color: var(--accent-royal-blue);
+}
+
+/* Interactive Theme Toggle Button with Spring Rotation */
+.themeToggleBtn {
+  background: none;
+  border: none;
+  color: var(--text-primary);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.55rem;
+  border-radius: 50%;
+  transition: background-color 0.25s ease, transform 0.25s ease, color 0.25s ease;
+  outline: none;
+}
+
+.themeToggleBtn:hover {
+  background-color: rgba(59, 130, 246, 0.15);
+  color: var(--accent-cyan);
+  transform: scale(1.12) rotate(15deg);
+}
+
+.themeToggleBtn:active {
+  transform: scale(0.92) rotate(-15deg);
+}
+
+.themeIcon {
+  transition: transform 0.45s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+
+.themeToggleBtn:hover .themeIcon {
+  transform: rotate(180deg);
 }
 
 .joinBtn {
@@ -140,7 +174,7 @@
   display: none;
   background: none;
   border: none;
-  color: var(--text-primary, #ffffff);
+  color: var(--text-primary);
   cursor: pointer;
   padding: 0.5rem;
 }
@@ -160,6 +194,40 @@
   transition: width 0.1s ease;
 }
 
+/* Light Mode Overrides */
+[data-theme="light"] .navbar {
+  background-color: rgba(255, 255, 255, 0.92);
+  border-bottom-color: rgba(0, 0, 0, 0.08);
+}
+
+[data-theme="light"] .navbar.scrolled {
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+}
+
+[data-theme="light"] .brandText {
+  color: #0f172a;
+}
+
+[data-theme="light"] .navLink {
+  color: #334155;
+}
+
+[data-theme="light"] .navLink:hover,
+[data-theme="light"] .navLink.active {
+  color: #2563eb;
+}
+
+[data-theme="light"] .iconBtn,
+[data-theme="light"] .themeToggleBtn {
+  color: #0f172a;
+}
+
+[data-theme="light"] .iconBtn:hover,
+[data-theme="light"] .themeToggleBtn:hover {
+  background-color: rgba(37, 99, 235, 0.1);
+  color: #2563eb;
+}
+
 /* Mobile Styles */
 @media (max-width: 992px) {
   .center {
@@ -167,8 +235,8 @@
     top: 68px;
     left: 0;
     width: 100%;
-    background-color: var(--bg-secondary, #0a1122);
-    border-bottom: 1px solid var(--border-subtle, rgba(255, 255, 255, 0.1));
+    background-color: var(--bg-secondary);
+    border-bottom: 1px solid var(--border-subtle);
     flex-direction: column;
     padding: 1rem 0;
     clip-path: polygon(0 0, 100% 0, 100% 0, 0 0);

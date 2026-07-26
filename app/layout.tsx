@@ -45,10 +45,11 @@ export default function RootLayout({
   return (
     <html
       lang="id"
+      data-theme="dark"
       suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${inter.variable}`}
     >
-      <body>
+      <body suppressHydrationWarning>
         <ThemeProvider>
           <LangProvider>
             {children}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
 import { useLang } from '@/lib/context/LangContext';
 import styles from './Chatbot.module.css';
@@ -102,6 +102,26 @@ export default function Chatbot() {
     }
   };
 
+  // Helper to render bolding (**text**) and line breaks cleanly
+  const renderFormattedText = (content: string) => {
+    return content.split('\n').map((line, lineIdx) => {
+      const parts = line.split(/(\*\*.*?\*\*)/g);
+      const formattedLine = parts.map((part, partIdx) => {
+        if (part.startsWith('**') && part.endsWith('**')) {
+          return <strong key={partIdx}>{part.slice(2, -2)}</strong>;
+        }
+        return part;
+      });
+
+      return (
+        <React.Fragment key={lineIdx}>
+          {formattedLine}
+          {lineIdx < content.split('\n').length - 1 && <br />}
+        </React.Fragment>
+      );
+    });
+  };
+
   return (
     <div className={styles.wrapper}>
       {/* Speech bubble */}
@@ -142,7 +162,7 @@ export default function Chatbot() {
                   alt="CytechAI"
                   width={32}
                   height={32}
-                  style={{ objectFit: 'contain' }}
+                  style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
                 />
               </div>
               <div>
@@ -175,17 +195,12 @@ export default function Chatbot() {
                       alt="CytechAI"
                       width={28}
                       height={28}
-                      style={{ objectFit: 'contain' }}
+                      style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
                     />
                   </div>
                 )}
                 <div className={styles.bubble2}>
-                  {msg.content.split('\n').map((line, i) => (
-                    <span key={i}>
-                      {line}
-                      {i < msg.content.split('\n').length - 1 && <br />}
-                    </span>
-                  ))}
+                  {renderFormattedText(msg.content)}
                 </div>
               </div>
             ))}
@@ -198,67 +213,57 @@ export default function Chatbot() {
                     alt="CytechAI"
                     width={28}
                     height={28}
-                    style={{ objectFit: 'contain' }}
-                    className={styles.blinking}
+                    style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
                   />
                 </div>
                 <div className={styles.bubble2}>
-                  <div className={styles.typingDots}>
-                    <span /><span /><span />
-                  </div>
+                  <div className={styles.typingDot} />
+                  <div className={styles.typingDot} />
+                  <div className={styles.typingDot} />
                 </div>
               </div>
             )}
-
             <div ref={messagesEndRef} />
           </div>
 
           {/* Input */}
-          <div className={styles.inputArea}>
+          <div className={styles.inputBox}>
             <input
               ref={inputRef}
               type="text"
+              className={styles.inputField}
+              placeholder={t.chatbot.placeholder}
               value={input}
               onChange={e => setInput(e.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder={t.chatbot.placeholder}
-              className={styles.input}
               disabled={isLoading}
-              maxLength={500}
             />
             <button
               className={styles.sendBtn}
               onClick={handleSend}
-              disabled={!input.trim() || isLoading}
-              aria-label={t.chatbot.send}
+              disabled={isLoading || !input.trim()}
+              aria-label="Send message"
             >
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                <line x1="22" y1="2" x2="11" y2="13" />
+                <polygon points="22 2 15 22 11 13 2 9 22 2" />
               </svg>
             </button>
           </div>
         </div>
       )}
 
-      {/* Floating trigger button */}
+      {/* Floating launcher button */}
       {!isOpen && (
-        <button
-          className={styles.trigger}
-          onClick={handleOpen}
-          aria-label="Open CytechAI chat"
-        >
-          <div className={styles.triggerInner}>
-            <Image
-              src="/images/primary/maskot.png"
-              alt="CytechAI"
-              width={44}
-              height={44}
-              style={{ objectFit: 'contain' }}
-            />
-          </div>
-          {/* Pulse rings */}
-          <div className={styles.pulse1} />
-          <div className={styles.pulse2} />
+        <button className={styles.launcher} onClick={handleOpen} aria-label="Open chat">
+          <Image
+            src="/images/primary/maskot.png"
+            alt="CytechAI"
+            width={40}
+            height={40}
+            style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
+          />
+          <span className={styles.badgePulse} />
         </button>
       )}
     </div>
