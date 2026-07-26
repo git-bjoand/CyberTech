@@ -30,10 +30,16 @@ export const metadata: Metadata = {
     'Networking',
     'Multimedia',
   ],
+  icons: {
+    icon: '/images/primary/cyberlogo.png',
+    shortcut: '/images/primary/cyberlogo.png',
+    apple: '/images/primary/cyberlogo.png',
+  },
   openGraph: {
     title: 'UKM Cybertech PNP',
     description: 'Technology Can Unite Anything — UKM TI Politeknik Negeri Padang',
     type: 'website',
+    images: ['/images/primary/cyberlogo.png'],
   },
 };
 
