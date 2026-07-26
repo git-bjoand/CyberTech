@@ -122,9 +122,6 @@ export default function Portfolio() {
                 className={`${styles.card} ${isVisible ? styles.cardRevealed : ''}`}
                 style={{ transitionDelay: `${0.25 + index * 0.15}s` }}
               >
-                {/* Top Accent Strip */}
-                <div className={`${styles.cardTopAccent} ${styles[item.division]}`} />
-
                 <div className={styles.imageArea}>
                   {item.image ? (
                     <Image
@@ -147,18 +144,16 @@ export default function Portfolio() {
                     </span>
                   </div>
 
-                  {item.isPartnership && item.partner && (
+                  {/* Collaboration Badge (Only Shown for Partnerships/Collaborations) */}
+                  {(item.isPartnership || item.division === 'partnership') && (
                     <span className={styles.partnerBadge}>
-                      Partner: {item.partner}
+                      {item.partner ? `Partner: ${item.partner}` : 'Kolaborasi'}
                     </span>
                   )}
                 </div>
 
                 <div className={styles.content}>
                   <div className={styles.cardMeta}>
-                    <span className={`${styles.divisionTag} ${styles[item.division]}`}>
-                      {item.division.charAt(0).toUpperCase() + item.division.slice(1)}
-                    </span>
                     <span className={styles.yearTag}>{item.year}</span>
                   </div>
 

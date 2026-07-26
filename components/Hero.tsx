@@ -194,8 +194,8 @@ export default function Hero() {
       id: 'Menjadi wadah untuk berkarya, berkolaborasi, dan berinovasi dalam teknologi di Politeknik Negeri Padang.',
     },
     btnPrimary: {
-      en: 'Explore Projects',
-      id: 'Jelajahi Proyek',
+      en: 'Join now',
+      id: 'Daftar sekarang',
     },
     btnSecondary: {
       en: 'About Us',

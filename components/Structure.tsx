@@ -5,32 +5,88 @@ import styles from './Structure.module.css';
 import { useLang } from '@/lib/context/LangContext';
 import { ketuaUmum, level2, level3, level4, Member } from '@/lib/data/structure';
 
-const StructureCard = ({ member, isKetua = false, index = 0 }: { member: Member; isKetua?: boolean; index?: number }) => {
+interface StructureCardProps {
+  member: Member;
+  isKetua?: boolean;
+  index?: number;
+}
+
+const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   const [isHovered, setIsHovered] = useState(false);
-  const [isClicked, setIsClicked] = useState(false);
-
-  const isActive = isHovered || isClicked;
-
-  const handleClick = () => {
-    setIsClicked((prev) => !prev);
-  };
+  const [photoMode, setPhotoMode] = useState<'default' | 'hover'>('default');
+  const [isGlitching, setIsGlitching] = useState(false);
+  
+  const swapTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const finishTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const primaryPhoto = member.photo || '/images/primary/cyberlogo.png';
   const fullPhoto = member.photo2 || primaryPhoto;
 
+  const clearTimers = () => {
+    if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
+    if (finishTimerRef.current) clearTimeout(finishTimerRef.current);
+  };
+
+  const handleMouseEnter = () => {
+    clearTimers();
+    setIsHovered(true);
+    setPhotoMode('hover');
+    setIsGlitching(true);
+  };
+
+  const handleMouseLeave = () => {
+    setIsHovered(false);
+    clearTimers();
+
+    // 1. Start glitch burst while STILL showing the hover photo
+    setIsGlitching(true);
+
+    // 2. Midway through glitch burst (150ms), swap photo back to default
+    swapTimerRef.current = setTimeout(() => {
+      setPhotoMode('default');
+    }, 150);
+
+    // 3. Complete glitch animation (350ms) and settle on clean default state
+    finishTimerRef.current = setTimeout(() => {
+      setIsGlitching(false);
+    }, 350);
+  };
+
+  const handleClickToggle = () => {
+    clearTimers();
+    setIsGlitching(true);
+    if (photoMode === 'default') {
+      setIsHovered(true);
+      setPhotoMode('hover');
+    } else {
+      setIsHovered(false);
+      swapTimerRef.current = setTimeout(() => {
+        setPhotoMode('default');
+      }, 150);
+    }
+    finishTimerRef.current = setTimeout(() => {
+      setIsGlitching(false);
+    }, 350);
+  };
+
+  useEffect(() => {
+    return () => clearTimers();
+  }, []);
+
+  const displayedPhoto = photoMode === 'hover' ? fullPhoto : primaryPhoto;
+
   return (
     <div
-      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isActive ? styles.activeState : ''}`}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
-      onClick={handleClick}
+      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isHovered ? styles.activeState : ''}`}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
+      onClick={handleClickToggle}
       tabIndex={0}
-      role="button"
-      aria-label={`View ${member.name}`}
-      style={{ transitionDelay: `${0.08 + index * 0.06}s` }}
+      role="article"
+      aria-label={`Member ${member.name}`}
     >
-      {/* Heavy Transient Glitch Burst Overlay (Flashes for ~0.35s on transition) */}
-      {isActive && (
+      {/* Glitch Burst Overlay Effect on Hover & Unhover */}
+      {isGlitching && (
         <>
           <div className={styles.glitchBurstCyan} />
           <div className={styles.glitchBurstRed} />
@@ -38,25 +94,23 @@ const StructureCard = ({ member, isKetua = false, index = 0 }: { member: Member;
         </>
       )}
 
-      {/* Photo Container */}
+      {/* Photo Container with Controlled Photo Mode */}
       <div className={styles.imageContainer}>
         <img
-          src={isActive ? fullPhoto : primaryPhoto}
+          src={displayedPhoto}
           alt={member.name}
-          className={`${styles.photo} ${isActive ? styles.photoFull : ''}`}
+          className={`${styles.photo} ${photoMode === 'hover' ? styles.photoFull : ''}`}
           onError={(e) => {
             (e.target as HTMLImageElement).src = '/images/primary/cyberlogo.png';
           }}
         />
       </div>
 
-      {/* Card Info text (Shown ONLY in Normal state; disappears on hover for pure photo) */}
-      {!isActive && (
-        <div className={styles.info}>
-          <h3 className={styles.name}>{member.name}</h3>
-          <p className={styles.role}>{member.role}</p>
-        </div>
-      )}
+      {/* Card Info Text */}
+      <div className={styles.info}>
+        <h3 className={styles.name}>{member.name}</h3>
+        <p className={styles.role}>{member.role}</p>
+      </div>
     </div>
   );
 };
@@ -71,7 +125,7 @@ export default function Structure() {
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) {
@@ -104,36 +158,33 @@ export default function Structure() {
 
       <div className={styles.treeScrollContainer}>
         <div className={styles.treeOuter}>
-          {/* Level 1: Ketua Umum */}
+          
+          {/* Level 1: Root Node (Ketua Umum) */}
           <div className={styles.treeLevel1}>
             <StructureCard member={ketuaUmum} isKetua={true} index={0} />
             <div className={styles.verticalStem} />
           </div>
 
-          {/* Branch Bar to Level 2 */}
+          {/* Branch Bar to Level 2 (Executive Core) */}
           <div className={styles.branchContainerL2}>
             <div className={styles.horizontalBarL2} />
             <div className={styles.level2Grid}>
-              {/* SekUm */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={sekUm} index={1} />
               </div>
 
-              {/* Wakil Ketua */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={wakil} index={2} />
               </div>
 
-              {/* BenUm */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={benUm} index={3} />
               </div>
             </div>
             
-            {/* Stem down from Wakil (Center of Level 2) to Level 3 */}
             <div className={styles.verticalStemCenterL2} />
           </div>
 
@@ -141,25 +192,21 @@ export default function Structure() {
           <div className={styles.branchContainerL3}>
             <div className={styles.horizontalBarL3} />
             <div className={styles.level3Grid}>
-              {/* Dept HRD */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={deptHRD} index={4} />
               </div>
 
-              {/* Dept PR */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={deptPR} index={5} />
               </div>
 
-              {/* Dept CIM */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={deptCIM} index={6} />
               </div>
 
-              {/* Dept IT */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={deptIT} index={7} />
@@ -168,32 +215,29 @@ export default function Structure() {
             </div>
           </div>
 
-          {/* Branch Bar to Level 4 (3 Divisions) */}
+          {/* Branch Bar to Level 4 (3 Technical Divisions) - Connected under Rofiqul (Dept IT) */}
           <div className={styles.branchContainerL4}>
             <div className={styles.horizontalBarL4} />
             <div className={styles.level4Grid}>
-              {/* Div Networking */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={divNet} index={8} />
               </div>
 
-              {/* Div Programming */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={divProg} index={9} />
               </div>
 
-              {/* Div Multimedia */}
               <div className={styles.treeNode}>
                 <div className={styles.verticalStemTop} />
                 <StructureCard member={divMulti} index={10} />
               </div>
             </div>
           </div>
+
         </div>
       </div>
     </section>
   );
 }
-
