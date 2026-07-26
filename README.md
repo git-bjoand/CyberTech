@@ -8,6 +8,9 @@
 
 Aplikasi web resmi **UKM CyberTech Politeknik Negeri Padang (PNP)**. Dibangun menggunakan Next.js App Router, desain visual Vanilla CSS futuristik, sistem transisi tema GPU-accelerated, serta Asisten AI Virtual pintar berbasis Groq Llama 3.1 8B Instant.
 
+> 📖 **Ingin mengenal lebih dekat tentang UKM CyberTech PNP?**  
+> Baca profil lengkap, divisi, pengurus, dan program kerja di file **[UKM_CYBERTECH.md](UKM_CYBERTECH.md)**.
+
 > *"Technology Can Unite Anything"* — UKM CyberTech PNP (Berdiri 14 Mei 2009)
 
 ---
@@ -21,8 +24,8 @@ Aplikasi web resmi **UKM CyberTech Politeknik Negeri Padang (PNP)**. Dibangun me
 
 ### 🤖 2. CytechAI — Asisten Virtual Pintar
 - **Ditenagai Groq LLM (`llama-3.1-8b-instant`)**: Respons instan (~1.000 token/detik) dan super hemat kuota.
-- **Proteksi Anti-Jailbreak Deterministik**: Memicu balasan pengingat Surat Al-Baqarah Ayat 9 secara otomatis apabila ada upaya peretasan prompt (*prompt injection/jailbreak*).
-- **Fitur Easter Egg & Filter Topik**: Membalas pertanyaan seputar orang terganteng dan menolak pertanyaan di luar topik CyberTech/IT secara ramah.
+- **Proteksi Anti-Jailbreak Deterministik**: Memicu balasan pengingat secara otomatis apabila ada upaya peretasan prompt (*prompt injection/jailbreak*).
+- **Filter Topik**: Menolak pertanyaan di luar topik CyberTech/IT secara ramah.
 - **UI Form Input Melayang**: Input berbentuk *floating pill* dengan pendaran neon cyan serta *custom slim scrollbar*.
 
 ### 🏛️ 3. Bagan Struktur Organisasi Interaktif (DPH 2026/2027)
@@ -109,6 +112,7 @@ cybertech/
 ├── lib/
 │   ├── context/                  # Context Provider (Theme & Lang)
 │   └── data/                     # Data Struktur Pengurus & Konfigurasi AI
+├── UKM_CYBERTECH.md              # Profil Lengkap & Sejarah UKM CyberTech PNP
 └── public/
     └── images/                   # Asset Foto & Logo Resmi CyberTech
 ```
