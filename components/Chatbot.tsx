@@ -162,7 +162,7 @@ export default function Chatbot() {
                   alt="CytechAI"
                   width={32}
                   height={32}
-                  style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
+                  style={{ objectFit: 'contain' }}
                 />
               </div>
               <div>
@@ -195,7 +195,7 @@ export default function Chatbot() {
                       alt="CytechAI"
                       width={28}
                       height={28}
-                      style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
+                      style={{ objectFit: 'contain' }}
                     />
                   </div>
                 )}
@@ -213,7 +213,7 @@ export default function Chatbot() {
                     alt="CytechAI"
                     width={28}
                     height={28}
-                    style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
+                    style={{ objectFit: 'contain' }}
                   />
                 </div>
                 <div className={styles.bubble2}>
@@ -261,7 +261,7 @@ export default function Chatbot() {
             alt="CytechAI"
             width={40}
             height={40}
-            style={{ objectFit: 'contain', width: 'auto', height: 'auto' }}
+            style={{ objectFit: 'contain' }}
           />
           <span className={styles.badgePulse} />
         </button>

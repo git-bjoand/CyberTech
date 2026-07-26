@@ -48,8 +48,8 @@ graph TD
     DeptCIM["<b>Ka. Dept. CIM</b><br/>Muhammad Hafizh Boyensa"]:::kadep
     DeptIT["<b>Ka. Dept. IT</b><br/>Muhammad Rofiqul Islamy"]:::kadep
 
-    DivProg["<b>Ka. Divisi Programming</b><br/>Bagastio Putra Joandri<br/>"]:::kadiv
     DivNet["<b>Ka. Divisi Networking</b><br/>Muhammad Luthfi"]:::kadiv
+    DivProg["<b>Ka. Divisi Programming</b><br/>Bagastio Putra Joandri<br/>"]:::kadiv
     DivMulti["<b>Ka. Divisi Multimedia</b><br/>Zahwa Rahmadhania"]:::kadiv
 
     Pembina --> Ketum

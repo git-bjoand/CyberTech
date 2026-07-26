@@ -2,9 +2,9 @@
 
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
+import { ArrowClockwise, Code, Globe, Palette } from '@phosphor-icons/react';
 import styles from './Division.module.css';
 import { useLang } from '@/lib/context/LangContext';
-import { Sparkle, ArrowClockwise, ArrowRight } from '@phosphor-icons/react';
 
 interface CardProps {
   id: string;
@@ -12,122 +12,23 @@ interface CardProps {
   nameId: string;
   descEn: string;
   descId: string;
-  icon: string;
+  icon: React.ReactNode;
   image: string;
   tags: string[];
 }
 
-const DivisionCard = ({
-  card,
-  lang,
-}: {
-  card: CardProps;
-  lang: string;
-}) => {
-  const [isFlipped, setIsFlipped] = useState(false);
-
-  const toggleFlip = () => {
-    setIsFlipped(!isFlipped);
-  };
-
-  return (
-    <div
-      className={`${styles.cardWrapper} ${isFlipped ? styles.flipped : ''}`}
-      onClick={toggleFlip}
-      tabIndex={0}
-      role="button"
-      aria-label={`Flip card for Division ${lang === 'id' ? card.nameId : card.nameEn}`}
-    >
-      <div className={styles.flipCardInner}>
-
-        {/* CARD FRONT SIDE */}
-        <div className={styles.cardFront}>
-          <div className={styles.accentBorderTop} />
-          <div className={styles.accentBorderLeft} />
-
-          <div className={styles.cardTop}>
-            <div className={styles.cardHeaderRow}>
-              <span className={styles.iconBadge}>{card.icon}</span>
-              <h3 className={styles.cardTitle}>{lang === 'id' ? card.nameId : card.nameEn}</h3>
-            </div>
-          </div>
-
-          <div className={styles.imageContainer}>
-            <Image
-              src={card.image}
-              alt={card.nameEn}
-              fill
-              sizes="(max-width: 768px) 85vw, (max-width: 1200px) 33vw, 400px"
-              className={styles.image}
-              style={{ objectFit: 'contain' }}
-              unoptimized
-            />
-          </div>
-
-          <div className={styles.cardBottomFront}>
-            <p className={styles.shortDesc}>
-              {lang === 'id' ? card.descId : card.descEn}
-            </p>
-
-            <div className={styles.flipHint}>
-              <span>{lang === 'id' ? 'Detail Keahlian' : 'Specialization Detail'}</span>
-              <ArrowClockwise size={16} weight="bold" />
-            </div>
-          </div>
-        </div>
-
-        {/* CARD BACK SIDE */}
-        <div className={styles.cardBack}>
-          <div className={styles.cardBackHeader}>
-            <span className={styles.iconBadge}>{card.icon}</span>
-            <div>
-              <h3 className={styles.cardBackTitle}>{lang === 'id' ? card.nameId : card.nameEn}</h3>
-              <p className={styles.cardBackSub}>Specialization Track</p>
-            </div>
-          </div>
-
-          <p className={styles.cardBackDesc}>
-            {lang === 'id' ? card.descId : card.descEn}
-          </p>
-
-          <div className={styles.subfieldsSection}>
-            <span className={styles.subfieldsLabel}>
-              {lang === 'id' ? 'Fokus Keahlian Utama' : 'Key Focus Areas'}
-            </span>
-            <div className={styles.tagsGrid}>
-              {card.tags.map((tag, i) => (
-                <div key={i} className={styles.tagBadge}>
-                  <Sparkle size={12} weight="fill" />
-                  <span>{tag}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className={styles.flipBackHint}>
-            <span>{lang === 'id' ? 'Kembali ke Depan' : 'Flip Back'}</span>
-            <ArrowRight size={16} weight="bold" />
-          </div>
-        </div>
-
-      </div>
-    </div>
-  );
-};
-
 export default function Division() {
   const { lang } = useLang();
+  const [flippedCards, setFlippedCards] = useState<{ [key: string]: boolean }>({});
   const [isVisible, setIsVisible] = useState(false);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
   const sectionRef = useRef<HTMLElement>(null);
-  const gridRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
       },
-      { threshold: 0.15 }
+      { threshold: 0.1 }
     );
 
     if (sectionRef.current) {
@@ -137,12 +38,11 @@ export default function Division() {
     return () => observer.disconnect();
   }, []);
 
-  const handleScroll = () => {
-    if (!gridRef.current) return;
-    const scrollLeft = gridRef.current.scrollLeft;
-    const width = gridRef.current.offsetWidth;
-    const newIndex = Math.round(scrollLeft / (width * 0.8));
-    setActiveCardIndex(Math.min(Math.max(newIndex, 0), 2));
+  const handleCardClick = (id: string) => {
+    setFlippedCards((prev) => ({
+      ...prev,
+      [id]: !prev[id],
+    }));
   };
 
   const divisions: CardProps[] = [
@@ -152,7 +52,7 @@ export default function Division() {
       nameId: 'Programming',
       descEn: 'Building software, mobile apps, and web platforms with modern technologies.',
       descId: 'Membangun perangkat lunak, aplikasi seluler, dan platform web dengan teknologi modern.',
-      icon: '</>',
+      icon: <Code size={22} weight="bold" />,
       image: '/images/primary/programming.png?v=2',
       tags: ['Mobile Programming', 'Web Programming', 'Machine Learning', 'Game Development'],
     },
@@ -162,7 +62,7 @@ export default function Division() {
       nameId: 'Networking',
       descEn: 'Designing, configuring, and securing computer networks and cloud infrastructure.',
       descId: 'Merancang, mengkonfigurasi, dan mengamankan jaringan komputer serta infrastruktur cloud.',
-      icon: '🌐',
+      icon: <Globe size={22} weight="bold" />,
       image: '/images/primary/networking.png?v=2',
       tags: ['Network Architecture', 'Cloud Infrastructure', 'Cyber Security'],
     },
@@ -170,17 +70,17 @@ export default function Division() {
       id: 'multimedia',
       nameEn: 'Multimedia',
       nameId: 'Multimedia',
-      descEn: 'Creating stunning visuals, UI/UX designs, and engaging digital content.',
-      descId: 'Membuat visual menawan, desain UI/UX, dan konten digital yang interaktif.',
-      icon: '🎨',
+      descEn: 'Crafting UI/UX designs, motion graphics, and creative visual experiences.',
+      descId: 'Merancang desain UI/UX, motion graphics, dan pengalaman visual yang kreatif.',
+      icon: <Palette size={22} weight="bold" />,
       image: '/images/primary/multimedia.png?v=2',
-      tags: ['UI/UX Design', 'Graphic & Motion Design', 'Video Production'],
-    }
+      tags: ['UI/UX Design', 'Graphic Design', 'Motion Graphics', 'Video Editing'],
+    },
   ];
 
   return (
-    <section id="division" ref={sectionRef} className={`${styles.division} ${isVisible ? styles.visible : ''}`}>
-      <div className={styles.container}>
+    <section id="division" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
+      <div className={styles.inner}>
         <div className={styles.header}>
           <span className={styles.badge}>{lang === 'id' ? 'Divisi Kami' : 'Our Divisions'}</span>
           <h2 className={styles.title}>{lang === 'id' ? 'Area Keahlian' : 'Areas of Expertise'}</h2>
@@ -191,20 +91,101 @@ export default function Division() {
           </p>
         </div>
 
-        <div className={styles.grid} ref={gridRef} onScroll={handleScroll}>
-          {divisions.map((div, i) => (
-            <DivisionCard key={i} card={div} lang={lang as string} />
-          ))}
-        </div>
+        <div className={styles.grid}>
+          {divisions.map((card) => {
+            const isFlipped = !!flippedCards[card.id];
 
-        {/* Mobile Swipe Dots Indicator */}
-        <div className={styles.mobileSwipeIndicator}>
-          {divisions.map((_, i) => (
-            <span
-              key={i}
-              className={`${styles.swipeDot} ${activeCardIndex === i ? styles.activeDot : ''}`}
-            />
-          ))}
+            return (
+              <div
+                key={card.id}
+                className={`${styles.flipCard} ${isFlipped ? styles.isFlipped : ''}`}
+                onClick={() => handleCardClick(card.id)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    handleCardClick(card.id);
+                  }
+                }}
+                aria-label={`Flip card for Division ${lang === 'id' ? card.nameId : card.nameEn}`}
+              >
+                <div className={styles.flipCardInner}>
+
+                  {/* CARD FRONT SIDE */}
+                  <div className={styles.cardFront}>
+                    <div className={styles.accentBorderTop} />
+                    <div className={styles.accentBorderLeft} />
+
+                    <div className={styles.cardTop}>
+                      <div className={styles.cardHeaderRow}>
+                        <span className={styles.iconBadge}>{card.icon}</span>
+                        <h3 className={styles.cardTitle}>{lang === 'id' ? card.nameId : card.nameEn}</h3>
+                      </div>
+                    </div>
+
+                    <div className={styles.imageContainer}>
+                      <Image
+                        src={card.image}
+                        alt={card.nameEn}
+                        fill
+                        priority
+                        loading="eager"
+                        sizes="(max-width: 768px) 85vw, (max-width: 1200px) 33vw, 400px"
+                        className={styles.image}
+                        style={{ objectFit: 'contain' }}
+                        unoptimized
+                      />
+                    </div>
+
+                    <div className={styles.cardBottomFront}>
+                      <p className={styles.shortDesc}>
+                        {lang === 'id' ? card.descId : card.descEn}
+                      </p>
+
+                      <div className={styles.flipHint}>
+                        <span>{lang === 'id' ? 'Detail Keahlian' : 'Specialization Detail'}</span>
+                        <ArrowClockwise size={16} weight="bold" />
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* CARD BACK SIDE */}
+                  <div className={styles.cardBack}>
+                    <div className={styles.cardBackContent}>
+                      <div className={styles.cardBackHeader}>
+                        <span className={styles.iconBadgeBack}>{card.icon}</span>
+                        <h3 className={styles.cardBackTitle}>{lang === 'id' ? card.nameId : card.nameEn}</h3>
+                      </div>
+
+                      <p className={styles.cardBackDesc}>
+                        {lang === 'id' ? card.descId : card.descEn}
+                      </p>
+
+                      <div className={styles.tagSection}>
+                        <h4 className={styles.tagTitle}>
+                          {lang === 'id' ? 'Fokus Keahlian & Spesialisasi:' : 'Core Competencies:'}
+                        </h4>
+                        <div className={styles.tagsContainer}>
+                          {card.tags.map((tag, i) => (
+                            <span key={i} className={styles.tagBadge}>
+                              {tag}
+                            </span>
+                          ))}
+                        </div>
+                      </div>
+
+                      <div className={styles.flipHintBack}>
+                        <ArrowClockwise size={16} weight="bold" />
+                        <span>{lang === 'id' ? 'Kembali ke Gambar' : 'Back to Preview'}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                </div>
+              </div>
+            );
+          })}
         </div>
       </div>
     </section>
