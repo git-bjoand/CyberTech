@@ -38,9 +38,9 @@ graph TD
 
     Pembina["<b>Pembina UKM CyberTech</b><br/>Fazrol Rozi, M.Cs."]:::pembina
     Ketum["<b>Ketua Umum</b><br/>Rayhan Ramadhan"]:::ketum
-    Waketum["<b>Wakil Ketua Umum</b><br/>Farel Al Furqan"]:::ketum
 
     Sekretaris["<b>Sekretaris Umum</b><br/>Dhannisya"]:::dph
+    Waketum["<b>Wakil Ketua Umum</b><br/>Farel Al Furqan"]:::ketum
     Bendahara["<b>Bendahara Umum</b><br/>Sukra Sriwita"]:::dph
 
     DeptHRD["<b>Ka. Dept. HRD</b><br/>Rayfo Huda"]:::kadep
