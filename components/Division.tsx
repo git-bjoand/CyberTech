@@ -79,8 +79,8 @@ export default function Division() {
   ];
 
   return (
-    <section id="division" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
-      <div className={styles.inner}>
+    <section id="division" ref={sectionRef} className={`${styles.division} ${isVisible ? styles.visible : ''}`}>
+      <div className={styles.container}>
         <div className={styles.header}>
           <span className={styles.badge}>{lang === 'id' ? 'Divisi Kami' : 'Our Divisions'}</span>
           <h2 className={styles.title}>{lang === 'id' ? 'Area Keahlian' : 'Areas of Expertise'}</h2>
@@ -98,7 +98,7 @@ export default function Division() {
             return (
               <div
                 key={card.id}
-                className={`${styles.flipCard} ${isFlipped ? styles.isFlipped : ''}`}
+                className={`${styles.cardWrapper} ${isFlipped ? styles.flipped : ''}`}
                 onClick={() => handleCardClick(card.id)}
                 role="button"
                 tabIndex={0}
