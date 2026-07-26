@@ -48,21 +48,21 @@ graph TD
     DeptCIM["<b>Ka. Dept. CIM</b><br/>Muhammad Hafizh Boyensa"]:::kadep
     DeptIT["<b>Ka. Dept. IT</b><br/>Muhammad Rofiqul Islamy"]:::kadep
 
-    DivProg["<b>Ka. Divisi Programming</b><br/>Bagastio Putra Joandri<br/><i>(Fineshit Kota Padang)</i>"]:::kadiv
+    DivProg["<b>Ka. Divisi Programming</b><br/>Bagastio Putra Joandri<br/>"]:::kadiv
     DivNet["<b>Ka. Divisi Networking</b><br/>Muhammad Luthfi"]:::kadiv
     DivMulti["<b>Ka. Divisi Multimedia</b><br/>Zahwa Rahmadhania"]:::kadiv
 
     Pembina --> Ketum
     Ketum --> Waketum
-    Waketum --> Sekretaris
-    Waketum --> Bendahara
+    Ketum --> Sekretaris
+    Ketum --> Bendahara
     Waketum --> DeptHRD
     Waketum --> DeptPR
     Waketum --> DeptCIM
     Waketum --> DeptIT
-    Waketum --> DivProg
-    Waketum --> DivNet
-    Waketum --> DivMulti
+    DeptIT --> DivProg
+    DeptIT --> DivNet
+    DeptIT --> DivMulti
 ```
 
 ---
