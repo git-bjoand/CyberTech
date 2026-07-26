@@ -1,139 +1,136 @@
-# ⚡ CyberTech PNP — Official Website v1.0
+# ⚡ CyberTech PNP — Web Portal Resmi v1.0
 
 [![Next.js](https://img.shields.io/badge/Next.js-15.2-black?style=for-the-badge&logo=next.js)](https://nextjs.org/)
 [![React](https://img.shields.io/badge/React-19.0-61DAFB?style=for-the-badge&logo=react)](https://react.dev/)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.0-3178C6?style=for-the-badge&logo=typescript)](https://www.typescriptlang.org/)
 [![Groq AI](https://img.shields.io/badge/Groq_AI-Llama_3.1-f05023?style=for-the-badge)](https://groq.com/)
-[![License](https://img.shields.io/badge/License-MIT-green.style=for-the-badge)]()
+[![Lisensi](https://img.shields.io/badge/Lisensi-MIT-green.style=for-the-badge)]()
 
-Official web portal of **UKM CyberTech Politeknik Negeri Padang (PNP)**. A high-end, modern, ultra-responsive web application crafted with Next.js App Router, custom Vanilla CSS design tokens, GPU-accelerated View Transitions, and an integrated AI Virtual Assistant powered by Groq Llama 3.1 8B Instant.
+Aplikasi web resmi **UKM CyberTech Politeknik Negeri Padang (PNP)**. Dibangun menggunakan Next.js App Router, desain visual Vanilla CSS futuristik, sistem transisi tema GPU-accelerated, serta Asisten AI Virtual pintar berbasis Groq Llama 3.1 8B Instant.
 
-> *"Technology Can Unite Anything"* — UKM CyberTech PNP (Est. 14 Mei 2009)
-
----
-
-## 🌟 Key Features
-
-### 🎨 1. High-End Visual Design & Dark/Light Mode System
-- **Strict Dark Mode Default**: Custom dark cyber palette (`#050d1a`) tailored for futuristic tech aesthetics.
-- **GPU-Accelerated View Transitions API**: Theme toggle features a smooth **circular ripple animation (`clip-path: circle()`)** expanding outward directly from the user's mouse click coordinates at 60 FPS.
-- **Micro-Animations**: Spring-loaded 180° icon rotation on theme buttons and interactive UI badges.
-
-### 🤖 2. CytechAI — Virtual Assistant Chatbot
-- **Powered by Groq LLM (`llama-3.1-8b-instant`)**: Ultra-fast (~1,000 tokens/sec) and token-efficient AI chatbot.
-- **Deterministic Anti-Jailbreak Defense**: Built-in prompt injection pre-processor that detects exploit attempts and instantly responds with Surat Al-Baqarah Ayat 9.
-- **Easter Eggs & Out-Of-Scope Filtering**: Responds to fun internal easter eggs and gracefully filters out off-topic requests.
-- **Sleek Floating Input UI**: Custom rounded pill input area with neon focus rings and a custom slim cyan scrollbar.
-
-### 🏛️ 3. Interactive Organizational Chart (Struktur DPH 2026/2027)
-- **3-Tier Hierarchy Tree**: Visual tree showing Pembina, Pengurus Harian (DPH), and Kepala Departemen / Divisi.
-- **Organic Avatar Expansion**: Hovering over DPH member cards organically expands the avatar circle into a large rounded image card while dynamically hiding text.
-- **Drag-to-Scroll Canvas**: Smooth horizontal touch & drag scrolling designed for desktop and mobile viewports.
-
-### 🚀 4. Division 3D Flip Cards & Portfolio Showcase
-- **3D Card Flip Motion**: Interactive 3D flip animation showcasing **Programming**, **Networking**, and **Multimedia** divisions.
-- **Portfolio & Gallery Bento Grid**: Categorized filter tabs (Web, Mobile, Security, Cloud, UI/UX) with lightbox image modals.
-
-### 🌐 5. Instant Bilingual Support (ID / EN)
-- One-click seamless language switcher across all sections, navigation links, and chatbot prompts.
+> *"Technology Can Unite Anything"* — UKM CyberTech PNP (Berdiri 14 Mei 2009)
 
 ---
 
-## 🛠️ Tech Stack
+## 🌟 Fitur-Fitur Utama
 
-- **Framework**: Next.js 15 (App Router)
-- **UI & Logic**: React 19, TypeScript
-- **Styling**: Vanilla CSS Modules (Design Tokens, Glassmorphism, CSS Variables)
-- **AI Integration**: Groq API (`llama-3.1-8b-instant`), Google Gemini, OpenAI Fallbacks
-- **Animations**: CSS View Transitions API, Keyframe Animations, Canvas Particle Matrix
+### 🎨 1. Desain Visual Premium & Sistem Transisi Tema (*Dark/Light Mode*)
+- **Default Dark Mode**: Menggunakan sistem warna cyber dark (`#050d1a`) khas organisasi teknologi modern.
+- **Transisi Tema GPU-Accelerated (View Transitions API)**: Mengubah tema dengan efek **gelombang melingkar (*circular ripple*)** yang mengembang secara mulus (60 FPS) dari titik koordinat klik kursor mouse.
+- **Mikro-Animasi**: Tombol ikon matahari/bulan berputar 180° (*spring rotation*) saat diklik atau di-hover.
+
+### 🤖 2. CytechAI — Asisten Virtual Pintar
+- **Ditenagai Groq LLM (`llama-3.1-8b-instant`)**: Respons instan (~1.000 token/detik) dan super hemat kuota.
+- **Proteksi Anti-Jailbreak Deterministik**: Memicu balasan pengingat Surat Al-Baqarah Ayat 9 secara otomatis apabila ada upaya peretasan prompt (*prompt injection/jailbreak*).
+- **Fitur Easter Egg & Filter Topik**: Membalas pertanyaan seputar orang terganteng dan menolak pertanyaan di luar topik CyberTech/IT secara ramah.
+- **UI Form Input Melayang**: Input berbentuk *floating pill* dengan pendaran neon cyan serta *custom slim scrollbar*.
+
+### 🏛️ 3. Bagan Struktur Organisasi Interaktif (DPH 2026/2027)
+- **Hierarki 3 Tingkat**: Menampilkan Pembina, Pengurus Harian (DPH), serta Kepala Departemen & Divisi.
+- **Animasi Ekspansi Kartu DPH**: Saat kursor diarahkan (*hover*) ke kartu anggota DPH, foto profil bulat secara organik mengembang menjadi kartu persegi melengkung besar sambil menyembunyikan teks.
+- **Container Drag-Scroll**: Dapat digeser secara mulus baik pada desktop maupun perangkat seluler.
+
+### 🚀 4. Kartu 3D Flip Divisi & Portofolio Karya
+- **Animasi Flip 3D Kartu Divisi**: Menampilkan detail divisi **Programming**, **Networking**, dan **Multimedia**.
+- **Portofolio & Galeri Bento Grid**: Filter kategori proyek (Web, Mobile, Security, Cloud, UI/UX) lengkap dengan tampilan modal gambar.
+
+### 🌐 5. Dukungan Dwi-Bahasa (*Bilingual ID/EN*)
+- Sakelar bahasa satu-klik untuk mengubah seluruh navigasi, konten utama, dan balasan chatbot antara Bahasa Indonesia dan Bahasa Inggris.
 
 ---
 
-## 🚀 Quick Start
+## 🛠️ Teknologi yang Digunakan
 
-### 1. Prerequisites
-Make sure you have Node.js 18.x or higher installed.
+- **Framework Utama**: Next.js 15 (App Router)
+- **Bahasa & UI**: React 19, TypeScript
+- **Styling**: Vanilla CSS Modules (Design Tokens, Glassmorphism, Variabel CSS)
+- **Integrasi AI**: Groq API (`llama-3.1-8b-instant`), Google Gemini, OpenAI Fallbacks
+- **Animasi**: CSS View Transitions API, Keyframe Animations, Canvas Particle Matrix
 
-### 2. Clone Repository
+---
+
+## 🚀 Panduan Memulai (*Quick Start*)
+
+### 1. Prasyarat
+Pastikan Node.js versi 18.x atau yang lebih baru sudah terinstal di komputer Anda.
+
+### 2. Kloning Repository
 ```bash
 git clone https://github.com/git-bjoand/CyberTech.git
 cd CyberTech
 ```
 
-### 3. Install Dependencies
+### 3. Instalasi Dependency
 ```bash
 npm install
 ```
 
-### 4. Configure Environment Variables
-Create a `.env.local` file in the root directory:
+### 4. Konfigurasi Variable Environment
+Buat file `.env.local` pada folder root proyek:
 ```env
-# AI LLM Provider Configuration ('groq' | 'gemini' | 'openai')
+# Penyedia AI LLM ('groq' | 'gemini' | 'openai')
 CYBERTECH_LLM_PROVIDER=groq
 
-# Groq API Key (Get free key at console.groq.com)
-GROQ_API_KEY=gsk_your_groq_api_key_here
+# Groq API Key (Dapatkan gratis di console.groq.com)
+GROQ_API_KEY=gsk_masukkan_api_key_groq_anda_di_sini
 GROQ_MODEL=llama-3.1-8b-instant
-
-# Optional Gemini Fallback
-# CYBERTECH_GEMINI_API_KEY=your_gemini_key_here
 ```
 
-### 5. Run Development Server
+### 5. Jalankan Server Development
 ```bash
 npm run dev
 ```
-Open [http://localhost:3000](http://localhost:3000) in your browser to view the application.
+Buka [http://localhost:3000](http://localhost:3000) pada browser Anda untuk melihat hasilnya.
 
 ---
 
-## 📁 Project Structure
+## 📁 Struktur Folder Proyek
 
 ```
 cybertech/
 ├── app/
 │   ├── api/
 │   │   └── chat/
-│   │       └── route.ts          # Groq AI Chatbot API Endpoint with Jailbreak Defense
-│   ├── globals.css               # Global CSS Variables, Tokens & View Transitions
-│   ├── layout.tsx                # Root Layout with Theme & Language Providers
-│   └── page.tsx                  # Single Page Landing Architecture
+│   │       └── route.ts          # Endpoint Chatbot AI Groq & Proteksi Jailbreak
+│   ├── globals.css               # Variabel CSS Global & View Transitions
+│   ├── layout.tsx                # Root Layout (Provider Theme & Lang)
+│   └── page.tsx                  # Halaman Utama (Landing Page Single Page)
 ├── components/
-│   ├── Navbar.tsx / .module.css  # Fixed Blur Header with Circular Ripple Theme Toggle
-│   ├── Hero.tsx / .module.css    # Matrix Particle Canvas & Primary CTA
-│   ├── About.tsx / .module.css   # Interactive Visi, Misi & History Tabs
-│   ├── Division.tsx / .module.css# 3D Flip Specialty Cards
-│   ├── Portfolio.tsx / .module.css# Filterable Project Showcase
-│   ├── Events.tsx / .module.css  # UKM Timeline & Hackathon Highlights
-│   ├── Structure.tsx / .module.css# DPH Organizational Chart & Organic Card Expand
-│   ├── Gallery.tsx / .module.css # Bento Photo Grid & Lightbox
-│   ├── Footer.tsx / .module.css  # Campus Contacts & Quick Links
-│   └── Chatbot.tsx / .module.css # CytechAI Floating Widget & Custom Scrollbar
+│   ├── Navbar.tsx / .module.css  # Header Melayang & Tombol Transisi Tema
+│   ├── Hero.tsx / .module.css    # Animasi Canvas Particle & Tombol Daftar Tahap 2
+│   ├── About.tsx / .module.css   # Tab Visi, Misi & Sejarah UKM
+│   ├── Division.tsx / .module.css# Kartu Flip 3D Divisi Spesialisasi
+│   ├── Portfolio.tsx / .module.css# Showcase Proyek Interaktif
+│   ├── Events.tsx / .module.css  # Timeline Hackathon & Agenda Utama
+│   ├── Structure.tsx / .module.css# Bagan Struktur DPH & Ekspansi Kartu Hover
+│   ├── Gallery.tsx / .module.css # Bento Grid Foto & Lightbox Modal
+│   ├── Footer.tsx / .module.css  # Kontak Kampus & Tautan Cepat
+│   └── Chatbot.tsx / .module.css # Widget Chatbot AI CytechAI & Custom Scrollbar
 ├── lib/
-│   ├── context/                  # ThemeContext & LangContext Providers
-│   └── data/                     # Organization Structure Data & Chatbot Config
+│   ├── context/                  # Context Provider (Theme & Lang)
+│   └── data/                     # Data Struktur Pengurus & Konfigurasi AI
 └── public/
-    └── images/                   # High-res Team & Division Assets
+    └── images/                   # Asset Foto & Logo Resmi CyberTech
 ```
 
 ---
 
-## 🧪 Build & Verification
+## 🧪 Pengujian & Build Produksi
 
-To verify TypeScript types and build for production:
+Untuk mengecek tipe TypeScript dan melakukan build produksi:
 
 ```bash
-# Typecheck
+# Cek Tipe TypeScript
 npx tsc --noEmit
 
-# Production Build
+# Build Produksi
 npm run build
 ```
 
 ---
 
-## 🤝 Contributing & License
+## 🤝 Lisensi & Hak Cipta
 
-Developed with ❤️ for **UKM CyberTech Politeknik Negeri Padang**.
+Dibuat dengan ❤️ untuk **UKM CyberTech Politeknik Negeri Padang**.
 
-Distributed under the [MIT License](LICENSE).
+Lisensi di bawah [MIT License](LICENSE).
