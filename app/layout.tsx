@@ -44,6 +44,8 @@ export const metadata: Metadata = {
     'Politeknik Negeri Padang',
     'PNP Padang',
     'Teknologi Informasi PNP',
+    'Organisasi Teknologi',
+    'Organisasi IT Politeknik Negeri Padang',
     'Hackathon PNP',
     'Hackathon Nasional Cybertech',
     'Programming PNP',
@@ -117,7 +119,7 @@ export const metadata: Metadata = {
     },
   },
   verification: {
-    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '',
+    google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '4n0dwgcjPAitPLa1cI3TjFL1X2x5z1Sl1ofzelDXc7c',
   },
 };
 
