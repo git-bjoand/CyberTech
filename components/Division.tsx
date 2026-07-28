@@ -53,7 +53,7 @@ export default function Division() {
       descEn: 'Building software, mobile apps, and web platforms with modern technologies.',
       descId: 'Membangun perangkat lunak, aplikasi seluler, dan platform web dengan teknologi modern.',
       icon: <Code size={22} weight="bold" />,
-      image: '/images/primary/programming.png?v=2',
+      image: '/images/primary/programming.png',
       tags: ['Mobile Programming', 'Web Programming', 'Machine Learning', 'Game Development'],
     },
     {
@@ -63,7 +63,7 @@ export default function Division() {
       descEn: 'Designing, configuring, and securing computer networks and cloud infrastructure.',
       descId: 'Merancang, mengkonfigurasi, dan mengamankan jaringan komputer serta infrastruktur cloud.',
       icon: <Globe size={22} weight="bold" />,
-      image: '/images/primary/networking.png?v=2',
+      image: '/images/primary/networking.png',
       tags: ['Network Architecture', 'Cloud Infrastructure', 'Cyber Security'],
     },
     {
@@ -73,7 +73,7 @@ export default function Division() {
       descEn: 'Crafting UI/UX designs, motion graphics, and creative visual experiences.',
       descId: 'Merancang desain UI/UX, motion graphics, dan pengalaman visual yang kreatif.',
       icon: <Palette size={22} weight="bold" />,
-      image: '/images/primary/multimedia.png?v=2',
+      image: '/images/primary/multimedia.png',
       tags: ['UI/UX Design', 'Graphic Design', 'Motion Graphics', 'Video Editing'],
     },
   ];
@@ -129,12 +129,9 @@ export default function Division() {
                         src={card.image}
                         alt={card.nameEn}
                         fill
-                        priority
-                        loading="eager"
                         sizes="(max-width: 768px) 85vw, (max-width: 1200px) 33vw, 400px"
                         className={styles.image}
                         style={{ objectFit: 'contain' }}
-                        unoptimized
                       />
                     </div>
 
