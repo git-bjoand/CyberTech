@@ -4,6 +4,7 @@ import './globals.css';
 import { ThemeProvider } from '@/lib/context/ThemeContext';
 import { LangProvider } from '@/lib/context/LangContext';
 import JsonLd from '@/components/JsonLd';
+import GoogleAnalytics from '@/components/GoogleAnalytics';
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ['latin'],
@@ -139,6 +140,7 @@ export default function RootLayout({
         <JsonLd />
       </head>
       <body suppressHydrationWarning>
+        <GoogleAnalytics />
         <ThemeProvider>
           <LangProvider>{children}</LangProvider>
         </ThemeProvider>
