@@ -150,7 +150,11 @@ export default function Navbar() {
           <button className={styles.joinBtn}>
             {lang === 'en' ? 'Join Us' : 'Gabung'}
           </button>
-          <button className={styles.mobileMenuBtn} onClick={() => setMenuOpen(!menuOpen)}>
+          <button
+            className={styles.mobileMenuBtn}
+            onClick={() => setMenuOpen(!menuOpen)}
+            aria-label={menuOpen ? 'Tutup Menu Navigation' : 'Buka Menu Navigation'}
+          >
             {menuOpen ? <CloseIcon /> : <MenuIcon />}
           </button>
         </div>
