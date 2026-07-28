@@ -95,9 +95,9 @@ export default function Gallery() {
   const col3 = filteredPhotos.filter((_, i) => i % 3 === 2);
 
   // Duplicate columns for seamless infinite auto-scrolling marquee loop
-  const dupCol1 = [...col1, ...col1, ...col1];
-  const dupCol2 = [...col2, ...col2, ...col2];
-  const dupCol3 = [...col3, ...col3, ...col3];
+  const dupCol1 = [...col1, ...col1];
+  const dupCol2 = [...col2, ...col2];
+  const dupCol3 = [...col3, ...col3];
 
   return (
     <section id="gallery" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>

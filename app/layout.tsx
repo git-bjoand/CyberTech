@@ -48,6 +48,7 @@ export const metadata: Metadata = {
     'Organisasi Teknologi',
     'Organisasi IT Politeknik Negeri Padang',
     'Hackathon PNP',
+    'Hackathon Sumbar',
     'Hackathon Nasional Cybertech',
     'Programming PNP',
     'Networking Mikrotik Cisco Padang',
