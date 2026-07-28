@@ -1,5 +1,5 @@
 export default function JsonLd() {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cyber-tech-eosin.vercel.app').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cybertech-pnp.vercel.app').replace(/\/$/, '');
 
   const organizationSchema = {
     '@context': 'https://schema.org',

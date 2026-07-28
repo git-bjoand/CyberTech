@@ -18,7 +18,7 @@ const inter = Inter({
   display: 'swap',
 });
 
-const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cybertechpnp.org';
+const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || 'https://cybertech-pnp.vercel.app';
 
 export const viewport: Viewport = {
   themeColor: [

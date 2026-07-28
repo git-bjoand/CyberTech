@@ -1,7 +1,7 @@
 import { MetadataRoute } from 'next';
 
 export default function sitemap(): MetadataRoute.Sitemap {
-  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cyber-tech-eosin.vercel.app').replace(/\/$/, '');
+  const baseUrl = (process.env.NEXT_PUBLIC_SITE_URL || 'https://cybertech-pnp.vercel.app').replace(/\/$/, '');
   const currentDate = new Date().toISOString();
 
   return [
