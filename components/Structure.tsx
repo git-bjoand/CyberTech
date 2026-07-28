@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import styles from './Structure.module.css';
 import { useLang } from '@/lib/context/LangContext';
 import { ketuaUmum, level2, level3, level4, Member } from '@/lib/data/structure';
@@ -96,13 +97,12 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
 
       {/* Photo Container with Controlled Photo Mode */}
       <div className={styles.imageContainer}>
-        <img
+        <Image
           src={displayedPhoto}
           alt={member.name}
+          width={320}
+          height={320}
           className={`${styles.photo} ${photoMode === 'hover' ? styles.photoFull : ''}`}
-          onError={(e) => {
-            (e.target as HTMLImageElement).src = '/images/primary/cyberlogo.png';
-          }}
         />
       </div>
 

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Image from 'next/image';
 import { useLang } from '@/lib/context/LangContext';
 import { events } from '@/lib/data/events';
 import styles from './Events.module.css';
@@ -93,9 +94,11 @@ export default function Events() {
               >
                 {event.image && (
                   <div className={styles.cardImageContainer}>
-                    <img
+                    <Image
                       src={event.image}
                       alt={event.title}
+                      width={400}
+                      height={240}
                       className={styles.cardImage}
                     />
                     <div className={styles.imageOverlay} />
