@@ -48,7 +48,8 @@ export default function JsonLd() {
     '@type': 'WebSite',
     '@id': `${baseUrl}/#website`,
     url: baseUrl,
-    name: 'UKM Cybertech PNP — Technology Can Unite Anything',
+    name: 'UKM Cybertech PNP',
+    alternateName: ['Cybertech PNP', 'UKM Cybertech', 'CyberTech PNP', 'Politeknik Negeri Padang'],
     description:
       'Official Website UKM Cybertech Politeknik Negeri Padang. Tempat berkarya, berkolaborasi, dan berinovasi di bidang IT.',
     inLanguage: ['id-ID', 'en-US'],

@@ -58,6 +58,7 @@ export const metadata: Metadata = {
     'Unit Kegiatan Mahasiswa TI',
   ],
   authors: [{ name: 'UKM Cybertech PNP', url: siteUrl }],
+  applicationName: 'UKM Cybertech PNP',
   creator: 'UKM Cybertech PNP',
   publisher: 'UKM Cybertech Politeknik Negeri Padang',
   formatDetection: {
