@@ -671,6 +671,84 @@ export async function saveRegistrationStatusToDb(settings: Partial<RegistrationS
   }
 }
 
+export interface PaymentSettings {
+  bankName: string;
+  accountNumber: string;
+  accountHolder: string;
+  notes?: string;
+}
+
+export async function getPaymentSettingsFromDb(): Promise<PaymentSettings> {
+  const defaultSettings: PaymentSettings = {
+    bankName: 'BNI',
+    accountNumber: '1868208198',
+    accountHolder: 'RahmaDani',
+    notes: 'Silakan lakukan transfer ke rekening di atas sebelum mengunggah bukti transfer.',
+  };
+
+  if (pool) {
+    try {
+      await initDb();
+      const res = await pool.query("SELECT value FROM site_settings WHERE key = 'payment_settings'");
+      if (res.rows.length > 0) {
+        const parsed = JSON.parse(res.rows[0].value);
+        return { ...defaultSettings, ...parsed };
+      }
+    } catch (e) {
+      console.error('PostgreSQL getPaymentSettings error:', e);
+    }
+  }
+
+  // Fallback to JSON
+  try {
+    const filePath = path.join(process.cwd(), 'lib', 'data', 'payment-settings.json');
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      if (content.trim()) {
+        const parsed = JSON.parse(content);
+        return { ...defaultSettings, ...parsed };
+      }
+    }
+  } catch (e) {}
+
+  return defaultSettings;
+}
+
+export async function savePaymentSettingsToDb(settings: Partial<PaymentSettings>): Promise<boolean> {
+  const current = await getPaymentSettingsFromDb();
+  const updated: PaymentSettings = {
+    ...current,
+    ...settings,
+  };
+
+  if (pool) {
+    try {
+      await initDb();
+      await pool.query(
+        `INSERT INTO site_settings (key, value) VALUES ('payment_settings', $1)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [JSON.stringify(updated)]
+      );
+    } catch (e) {
+      console.error('PostgreSQL savePaymentSettings error:', e);
+    }
+  }
+
+  // Save to JSON fallback
+  try {
+    const dataDir = path.join(process.cwd(), 'lib', 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const filePath = path.join(dataDir, 'payment-settings.json');
+    fs.writeFileSync(filePath, JSON.stringify(updated, null, 2));
+    return true;
+  } catch (e) {
+    console.error('JSON savePaymentSettings error:', e);
+    return false;
+  }
+}
+
 
 
 

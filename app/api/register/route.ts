@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveRegistrationRecord, getRegistrationStatusFromDb } from '@/lib/db';
+import { saveRegistrationRecord, getRegistrationStatusFromDb, getPaymentSettingsFromDb } from '@/lib/db';
 
 // Simple in-memory IP rate limiter
 const rateLimitMap = new Map<string, number[]>();
@@ -37,9 +37,11 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 export async function GET() {
   try {
     const settings = await getRegistrationStatusFromDb();
+    const paymentSettings = await getPaymentSettingsFromDb();
     return NextResponse.json({
       success: true,
       settings,
+      paymentSettings,
     });
   } catch (error) {
     return NextResponse.json(

@@ -48,18 +48,40 @@ export default function RegisterForm() {
   const [regStatus, setRegStatus] = useState<{ isOpen: boolean; title?: string; message?: string } | null>(null);
   const [statusLoaded, setStatusLoaded] = useState(false);
 
+  // Dynamic Payment Settings
+  const [paymentSettings, setPaymentSettings] = useState<{
+    bankName: string;
+    accountNumber: string;
+    accountHolder: string;
+    notes?: string;
+  }>({
+    bankName: 'BNI',
+    accountNumber: '1868208198',
+    accountHolder: 'RahmaDani',
+  });
+  const [copiedAccount, setCopiedAccount] = useState(false);
+
   useEffect(() => {
     setFormStartTime(Date.now());
     fetch('/api/register')
       .then((res) => res.json())
       .then((data) => {
-        if (data.success && data.settings) {
-          setRegStatus(data.settings);
+        if (data.success) {
+          if (data.settings) setRegStatus(data.settings);
+          if (data.paymentSettings) setPaymentSettings(data.paymentSettings);
         }
         setStatusLoaded(true);
       })
       .catch(() => setStatusLoaded(true));
   }, []);
+
+  const copyAccountNumber = () => {
+    if (paymentSettings?.accountNumber) {
+      navigator.clipboard.writeText(paymentSettings.accountNumber);
+      setCopiedAccount(true);
+      setTimeout(() => setCopiedAccount(false), 2500);
+    }
+  };
 
   // Update Prodi list whenever Jurusan changes
   const handleJurusanChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -540,6 +562,61 @@ export default function RegisterForm() {
               </select>
               <span className={styles.hint}>Divisi cadangan minat kedua kamu.</span>
             </div>
+          </div>
+
+          {/* Bank Payment Information Box */}
+          <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '10px', padding: '1.1rem 1.25rem', marginBottom: '1.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <span style={{ fontSize: '1.25rem' }}>💳</span>
+                <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>
+                  Informasi Rekening Transfer Pembayaran
+                </h3>
+              </div>
+              <span style={{ background: '#10b981', color: '#000', fontWeight: 800, fontSize: '0.8rem', padding: '0.25rem 0.65rem', borderRadius: '4px', textTransform: 'uppercase' }}>
+                {paymentSettings.bankName || 'BNI'}
+              </span>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '0.85rem', alignItems: 'center', background: 'rgba(0, 0, 0, 0.25)', padding: '0.85rem 1rem', borderRadius: '8px', border: '1px solid rgba(255, 255, 255, 0.08)' }}>
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Nomor Rekening:</div>
+                <div style={{ fontSize: '1.25rem', fontWeight: 800, fontFamily: 'monospace', color: '#38bdf8', letterSpacing: '0.5px' }}>
+                  {paymentSettings.accountNumber || '1868208198'}
+                </div>
+              </div>
+
+              <div>
+                <div style={{ fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600 }}>Atas Nama (A.N):</div>
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: '#f1f5f9' }}>
+                  {paymentSettings.accountHolder || 'RahmaDani'}
+                </div>
+              </div>
+
+              <div style={{ textAlign: 'right' }}>
+                <button
+                  type="button"
+                  onClick={copyAccountNumber}
+                  style={{
+                    padding: '0.55rem 0.9rem',
+                    background: copiedAccount ? '#10b981' : '#0284c7',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '6px',
+                    fontWeight: 700,
+                    fontSize: '0.825rem',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                >
+                  {copiedAccount ? '✓ Rekening Tersalin!' : '📋 Salin No. Rekening'}
+                </button>
+              </div>
+            </div>
+
+            <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.825rem', color: '#94a3b8', lineHeight: '1.45' }}>
+              💡 {paymentSettings.notes || 'Silakan lakukan transfer ke rekening di atas, lalu unggah foto / screenshot bukti transfer pada kolom di bawah ini.'}
+            </p>
           </div>
 
           {/* 6. Bukti Pembayaran Pendaftaran */}

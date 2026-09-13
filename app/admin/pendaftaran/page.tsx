@@ -86,7 +86,61 @@ export default function AdminPendaftaranPage() {
   useEffect(() => {
     fetchRegistrations();
     fetchStatus();
+    fetchPaymentSettings();
   }, []);
+
+  // Payment Settings State (Bank info)
+  const [paymentSettings, setPaymentSettings] = useState<{ bankName: string; accountNumber: string; accountHolder: string } | null>(null);
+  const [isPaymentModalOpen, setIsPaymentModalOpen] = useState(false);
+  const [editBankName, setEditBankName] = useState('');
+  const [editAccountNumber, setEditAccountNumber] = useState('');
+  const [editAccountHolder, setEditAccountHolder] = useState('');
+  const [savingPaymentSettings, setSavingPaymentSettings] = useState(false);
+
+  const fetchPaymentSettings = async () => {
+    try {
+      const res = await fetch('/api/admin/payment-settings');
+      const data = await res.json();
+      if (res.ok && data.success && data.paymentSettings) {
+        setPaymentSettings(data.paymentSettings);
+        setEditBankName(data.paymentSettings.bankName);
+        setEditAccountNumber(data.paymentSettings.accountNumber);
+        setEditAccountHolder(data.paymentSettings.accountHolder);
+      }
+    } catch (e) {}
+  };
+
+  const handleSavePaymentSettings = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSavingPaymentSettings(true);
+    const username = getAdminUsername();
+    try {
+      const res = await fetch('/api/admin/payment-settings', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-username': username,
+        },
+        body: JSON.stringify({
+          bankName: editBankName,
+          accountNumber: editAccountNumber,
+          accountHolder: editAccountHolder,
+        }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPaymentSettings(data.paymentSettings);
+        setIsPaymentModalOpen(false);
+        alert('Pengaturan rekening pembayaran berhasil disimpan!');
+      } else {
+        alert(data.error || 'Gagal menyimpan pengaturan rekening.');
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan saat menyimpan pengaturan rekening.');
+    } finally {
+      setSavingPaymentSettings(false);
+    }
+  };
 
   const [loadingDetail, setLoadingDetail] = useState(false);
 
@@ -314,17 +368,23 @@ export default function AdminPendaftaranPage() {
             </select>
           </div>
 
-          <div style={{ display: 'flex', gap: '0.65rem', width: '100%' }}>
+          <div style={{ display: 'flex', gap: '0.65rem', width: '100%', flexWrap: 'wrap' }}>
             <button
               onClick={fetchRegistrations}
-              style={{ flex: 1, padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+              style={{ flex: '1 1 120px', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
             >
               🔄 Refresh
             </button>
             <button
+              onClick={() => setIsPaymentModalOpen(true)}
+              style={{ flex: '1 1 160px', padding: '0.75rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+            >
+              💳 Pengaturan Rekening
+            </button>
+            <button
               onClick={exportToCSV}
               disabled={filteredItems.length === 0}
-              style={{ flex: 1, padding: '0.75rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+              style={{ flex: '1 1 140px', padding: '0.75rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
             >
               📊 Export CSV ({filteredItems.length})
             </button>
@@ -557,6 +617,97 @@ export default function AdminPendaftaranPage() {
                   {isDeleting ? 'Menghapus...' : 'Ya, Hapus Data'}
                 </button>
               </div>
+            </div>
+          </div>
+        )}
+
+        {/* Modal Pengaturan Rekening Pembayaran */}
+        {isPaymentModalOpen && (
+          <div
+            style={{ position: 'fixed', inset: 0, background: 'var(--admin-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}
+            onClick={() => setIsPaymentModalOpen(false)}
+          >
+            <div
+              style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '480px', padding: '1.5rem', position: 'relative' }}
+              onClick={(e) => e.stopPropagation()}
+            >
+              <button
+                onClick={() => setIsPaymentModalOpen(false)}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+              >
+                ✕
+              </button>
+
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <span style={{ fontSize: '1.5rem' }}>💳</span>
+                <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
+                  Pengaturan Rekening Transfer
+                </h3>
+              </div>
+              <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.85rem', marginBottom: '1.25rem' }}>
+                Ubah informasi bank, nomor rekening, dan nama pemilik rekening yang tampil di form pendaftaran publik.
+              </p>
+
+              <form onSubmit={handleSavePaymentSettings}>
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--admin-text-main)', marginBottom: '0.35rem' }}>
+                    Nama Bank / Metode Pembayaran:
+                  </label>
+                  <input
+                    type="text"
+                    value={editBankName}
+                    onChange={(e) => setEditBankName(e.target.value)}
+                    placeholder="Contoh: BNI / BCA / MANDIRI"
+                    required
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--admin-text-main)', marginBottom: '0.35rem' }}>
+                    Nomor Rekening:
+                  </label>
+                  <input
+                    type="text"
+                    value={editAccountNumber}
+                    onChange={(e) => setEditAccountNumber(e.target.value)}
+                    placeholder="Contoh: 1868208198"
+                    required
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ marginBottom: '1.5rem' }}>
+                  <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'var(--admin-text-main)', marginBottom: '0.35rem' }}>
+                    Atas Nama (A.N):
+                  </label>
+                  <input
+                    type="text"
+                    value={editAccountHolder}
+                    onChange={(e) => setEditAccountHolder(e.target.value)}
+                    placeholder="Contoh: RahmaDani"
+                    required
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '0.9rem', outline: 'none' }}
+                  />
+                </div>
+
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button
+                    type="button"
+                    onClick={() => setIsPaymentModalOpen(false)}
+                    style={{ padding: '0.75rem 1.25rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                  >
+                    Batal
+                  </button>
+                  <button
+                    type="submit"
+                    disabled={savingPaymentSettings}
+                    style={{ padding: '0.75rem 1.25rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                  >
+                    {savingPaymentSettings ? 'Menyimpan...' : '💾 Simpan Rekening'}
+                  </button>
+                </div>
+              </form>
             </div>
           </div>
         )}
