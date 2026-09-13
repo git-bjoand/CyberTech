@@ -152,8 +152,9 @@ export default function AdminPendaftaranPage() {
     return matchesSearch && matchesDivisi;
   });
 
+
   const exportToCSV = () => {
-    if (items.length === 0) return;
+    if (filteredItems.length === 0) return;
 
     const headers = [
       'ID Registrasi',
@@ -183,17 +184,20 @@ export default function AdminPendaftaranPage() {
       i.ipAddress,
     ]);
 
+    // Use semicolon (;) delimiter + sep=; header for Excel compatibility
     const csvContent =
-      'data:text/csv;charset=utf-8,\uFEFF' +
-      [headers.join(','), ...rows.map((e) => e.join(','))].join('\n');
+      '\uFEFFsep=;\n' +
+      [headers.join(';'), ...rows.map((e) => e.join(';'))].join('\n');
 
-    const encodedUri = encodeURI(csvContent);
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
-    link.setAttribute('href', encodedUri);
-    link.setAttribute('download', `Rekap_Pendaftaran_CyberTech_${new Date().toISOString().slice(0, 10)}.csv`);
+    link.href = url;
+    link.download = `Rekap_Pendaftar_CyberTech_${new Date().toISOString().slice(0, 10)}.csv`;
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
+    URL.revokeObjectURL(url);
   };
 
   const formatWaUrl = (phone?: string) => {
