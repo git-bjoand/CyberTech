@@ -75,8 +75,49 @@ export default function RegisterForm() {
     }
   };
 
-  // Image upload handler with base64 conversion & validation
-  const processImageFile = (file: File) => {
+  // Canvas image compression helper (max width 1000px, 0.75 quality JPEG)
+  const compressImage = (file: File, maxWidth = 1000, quality = 0.75): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, width, height);
+          const compressedDataUrl = canvas.toDataURL('image/jpeg', quality);
+          resolve(compressedDataUrl);
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => {
+        const fallbackReader = new FileReader();
+        fallbackReader.onloadend = () => resolve(fallbackReader.result as string);
+        fallbackReader.readAsDataURL(file);
+      };
+      reader.readAsDataURL(file);
+    });
+  };
+
+  // Image upload handler with base64 conversion & automatic compression
+  const processImageFile = async (file: File) => {
     setErrorMsg(null);
 
     // Validate file type
@@ -85,20 +126,28 @@ export default function RegisterForm() {
       return;
     }
 
-    // Validate file size max 5MB (5 * 1024 * 1024 bytes)
-    if (file.size > 5 * 1024 * 1024) {
-      setErrorMsg('Ukuran file bukti pembayaran terlalu besar (Maksimal 5MB).');
+    // Validate file size max 10MB
+    if (file.size > 10 * 1024 * 1024) {
+      setErrorMsg('Ukuran file bukti pembayaran terlalu besar (Maksimal 10MB).');
       return;
     }
 
     setFileName(file.name);
-    setFileSize((file.size / (1024 * 1024)).toFixed(2) + ' MB');
+    setFileSize('Mengompres gambar...');
 
-    const reader = new FileReader();
-    reader.onloadend = () => {
-      setBuktiPembayaran(reader.result as string);
-    };
-    reader.readAsDataURL(file);
+    try {
+      const compressedBase64 = await compressImage(file, 1000, 0.75);
+      setBuktiPembayaran(compressedBase64);
+      const approxBytes = Math.round((compressedBase64.length * 3) / 4);
+      setFileSize((approxBytes / 1024).toFixed(0) + ' KB (Terkompresi)');
+    } catch (err) {
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setBuktiPembayaran(reader.result as string);
+        setFileSize((file.size / (1024 * 1024)).toFixed(2) + ' MB');
+      };
+      reader.readAsDataURL(file);
+    }
   };
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {

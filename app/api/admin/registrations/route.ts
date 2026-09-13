@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllRegistrations, deleteRegistrationRecord, getAdminAccountByUsername } from '@/lib/db';
+import { getAllRegistrations, getRegistrationById, deleteRegistrationRecord, getAdminAccountByUsername } from '@/lib/db';
 
 async function verifyAuth(req: NextRequest): Promise<boolean> {
   const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
@@ -24,6 +24,17 @@ export async function GET(req: NextRequest) {
         { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
         { status: 401 }
       );
+    }
+
+    const { searchParams } = new URL(req.url);
+    const registrationId = searchParams.get('registrationId');
+
+    if (registrationId) {
+      const item = await getRegistrationById(registrationId);
+      if (!item) {
+        return NextResponse.json({ success: false, error: 'Data pendaftaran tidak ditemukan.' }, { status: 404 });
+      }
+      return NextResponse.json({ success: true, data: item });
     }
 
     const data = await getAllRegistrations();

@@ -88,6 +88,35 @@ export default function AdminPendaftaranPage() {
     fetchStatus();
   }, []);
 
+  const [loadingDetail, setLoadingDetail] = useState(false);
+
+  const handleOpenDetail = async (item: RegistrationItem) => {
+    setSelectedItem(item);
+    if (!item.buktiPembayaran) {
+      setLoadingDetail(true);
+      try {
+        const username = getAdminUsername();
+        const res = await fetch(
+          `/api/admin/registrations?registrationId=${encodeURIComponent(item.registrationId)}`,
+          {
+            headers: { 'x-admin-username': username },
+          }
+        );
+        const data = await res.json();
+        if (res.ok && data.success && data.data) {
+          setSelectedItem(data.data);
+          setItems((prev) =>
+            prev.map((i) => (i.registrationId === item.registrationId ? data.data : i))
+          );
+        }
+      } catch (err) {
+        console.error(err);
+      } finally {
+        setLoadingDetail(false);
+      }
+    }
+  };
+
   const handleToggleStatus = async (newIsOpen: boolean) => {
     setUpdatingStatus(true);
     const username = getAdminUsername();
@@ -364,7 +393,7 @@ export default function AdminPendaftaranPage() {
                       <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
                         <div style={{ display: 'inline-flex', gap: '0.5rem' }}>
                           <button
-                            onClick={() => setSelectedItem(item)}
+                            onClick={() => handleOpenDetail(item)}
                             style={{ padding: '0.45rem 0.75rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' }}
                           >
                             Detail & Bukti
@@ -468,7 +497,11 @@ export default function AdminPendaftaranPage() {
                 <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.75rem' }}>
                   📷 Foto Bukti Pembayaran Transfer:
                 </div>
-                {selectedItem.buktiPembayaran && selectedItem.buktiPembayaran.startsWith('data:image/') ? (
+                {loadingDetail ? (
+                  <div style={{ color: '#0284c7', fontStyle: 'italic', padding: '1rem', background: 'var(--admin-input-bg)', borderRadius: '6px', textAlign: 'center', fontSize: '0.875rem' }}>
+                    ⏳ Memuat foto bukti transfer...
+                  </div>
+                ) : selectedItem.buktiPembayaran && selectedItem.buktiPembayaran.startsWith('data:image/') ? (
                   <div style={{ textAlign: 'center', background: 'var(--admin-input-bg)', padding: '0.85rem', borderRadius: '6px', border: '1px dashed var(--admin-border)' }}>
                     <img
                       src={selectedItem.buktiPembayaran}

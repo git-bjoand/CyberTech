@@ -294,8 +294,7 @@ export async function getAllRegistrations(): Promise<any[]> {
           COALESCE(NULLIF(alasan_divisi2, ''), harapan, '') AS "alasanDivisi2",
           COALESCE(alasan, '') AS "alasan",
           COALESCE(harapan, '') AS "harapan",
-          ip_address AS "ipAddress",
-          bukti_pembayaran AS "buktiPembayaran"
+          ip_address AS "ipAddress"
         FROM registrations
         ORDER BY created_at DESC
       `;
@@ -311,12 +310,61 @@ export async function getAllRegistrations(): Promise<any[]> {
     const filePath = path.join(process.cwd(), 'lib', 'data', 'registrations.json');
     if (fs.existsSync(filePath)) {
       const fileContent = fs.readFileSync(filePath, 'utf8');
-      return fileContent.trim() ? JSON.parse(fileContent) : [];
+      if (fileContent.trim()) {
+        const parsed = JSON.parse(fileContent);
+        return parsed.map(({ buktiPembayaran, ...rest }: any) => rest);
+      }
     }
   } catch (err) {
     console.error('JSON read error:', err);
   }
   return [];
+}
+
+/**
+ * Fetches single registration detail including payment proof by registrationId
+ */
+export async function getRegistrationById(registrationId: string): Promise<any | null> {
+  if (pool) {
+    try {
+      await initDb();
+      const query = `
+        SELECT 
+          registration_id AS "registrationId",
+          created_at AS "timestamp",
+          nama,
+          COALESCE(no_hp, '') AS "noHp",
+          jurusan,
+          prodi,
+          divisi1,
+          divisi2,
+          COALESCE(NULLIF(alasan_divisi1, ''), alasan, '') AS "alasanDivisi1",
+          COALESCE(NULLIF(alasan_divisi2, ''), harapan, '') AS "alasanDivisi2",
+          COALESCE(alasan, '') AS "alasan",
+          COALESCE(harapan, '') AS "harapan",
+          ip_address AS "ipAddress",
+          bukti_pembayaran AS "buktiPembayaran"
+        FROM registrations
+        WHERE registration_id = $1
+      `;
+      const result = await pool.query(query, [registrationId]);
+      if (result.rows.length > 0) return result.rows[0];
+    } catch (err) {
+      console.error('PostgreSQL getRegistrationById error:', err);
+    }
+  }
+
+  try {
+    const filePath = path.join(process.cwd(), 'lib', 'data', 'registrations.json');
+    if (fs.existsSync(filePath)) {
+      const fileContent = fs.readFileSync(filePath, 'utf8');
+      if (fileContent.trim()) {
+        const parsed = JSON.parse(fileContent);
+        return parsed.find((i: any) => i.registrationId === registrationId) || null;
+      }
+    }
+  } catch (err) {}
+  return null;
 }
 
 /**
