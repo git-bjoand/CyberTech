@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { saveRegistrationRecord } from '@/lib/db';
+import { saveRegistrationRecord, getRegistrationStatusFromDb } from '@/lib/db';
 
 // Simple in-memory IP rate limiter
 const rateLimitMap = new Map<string, number[]>();
@@ -34,8 +34,34 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
   return { allowed: true, remaining: MAX_REQUESTS_PER_WINDOW - validTimestamps.length };
 }
 
+export async function GET() {
+  try {
+    const settings = await getRegistrationStatusFromDb();
+    return NextResponse.json({
+      success: true,
+      settings,
+    });
+  } catch (error) {
+    return NextResponse.json(
+      { success: false, error: 'Gagal mengambil status pendaftaran.' },
+      { status: 500 }
+    );
+  }
+}
+
 export async function POST(req: NextRequest) {
   try {
+    const regStatus = await getRegistrationStatusFromDb();
+    if (!regStatus.isOpen) {
+      return NextResponse.json(
+        {
+          success: false,
+          error: regStatus.message || 'Pendaftaran anggota baru UKM Cybertech PNP saat ini telah resmi ditutup.',
+        },
+        { status: 403 }
+      );
+    }
+
     const ip = getClientIp(req);
     
     // 1. Rate Limiting Check

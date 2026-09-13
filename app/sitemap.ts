@@ -15,5 +15,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
         `${baseUrl}/images/primary/maskot.png`,
       ],
     },
+    {
+      url: `${baseUrl}/register`,
+      lastModified: currentDate,
+      changeFrequency: 'weekly',
+      priority: 0.9,
+      images: [
+        `${baseUrl}/images/primary/cyberlogo.png`,
+      ],
+    },
   ];
 }

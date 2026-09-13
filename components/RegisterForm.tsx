@@ -44,8 +44,21 @@ export default function RegisterForm() {
   const [copied, setCopied] = useState(false);
   const [dragActive, setDragActive] = useState(false);
 
+  // Registration status (Open / Closed toggle)
+  const [regStatus, setRegStatus] = useState<{ isOpen: boolean; title?: string; message?: string } | null>(null);
+  const [statusLoaded, setStatusLoaded] = useState(false);
+
   useEffect(() => {
     setFormStartTime(Date.now());
+    fetch('/api/register')
+      .then((res) => res.json())
+      .then((data) => {
+        if (data.success && data.settings) {
+          setRegStatus(data.settings);
+        }
+        setStatusLoaded(true);
+      })
+      .catch(() => setStatusLoaded(true));
   }, []);
 
   // Update Prodi list whenever Jurusan changes
@@ -240,12 +253,87 @@ export default function RegisterForm() {
     );
   }
 
+  if (!statusLoaded) {
+    return (
+      <div className={styles.wrapper}>
+        <div style={{ textAlign: 'center', padding: '4rem 1rem', color: '#10b981', fontWeight: 600 }}>
+          <div className={styles.spinner} style={{ margin: '0 auto 1rem auto', width: '32px', height: '32px', border: '3px solid rgba(16, 185, 129, 0.2)', borderTopColor: '#10b981' }} />
+          <span>Memuat Halaman Pendaftaran...</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (regStatus && !regStatus.isOpen) {
+    return (
+      <div className={styles.wrapper}>
+        <div className={styles.closedCard}>
+          <div className={styles.closedIconWrap}>
+            <span style={{ fontSize: '2.25rem' }}>🔒</span>
+          </div>
+          <div className={styles.closedBadge}>
+            <span className={styles.dotRed}></span> Pendaftaran Ditutup
+          </div>
+          <h1 className={styles.closedTitle}>
+            {regStatus.title || 'Pendaftaran Recruitment CyberTech Saat Ini Ditutup'}
+          </h1>
+          <p className={styles.closedDesc}>
+            {regStatus.message || 'Terima kasih atas antusiasme Anda. Pendaftaran pendaftar baru UKM Cybertech PNP di tutup. Sampai jumpa di Recruitment periode berikutnya!'}
+          </p>
+
+          <div className={styles.closedNoticeBox}>
+            <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '0.35rem', fontSize: '0.9rem' }}>
+              💡 Informasi Selanjutnya
+            </div>
+            <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.5' }}>
+              Pantau jadwal wawancara, pengumuman hasil seleksi, dan informasi kegiatan UKM CyberTech PNP melalui Instagram resmi kami di <strong style={{ color: '#10b981' }}>@cybertech_pnp</strong>.
+            </p>
+          </div>
+
+          <div className={styles.btnGroup} style={{ marginTop: '1.75rem' }}>
+            <a
+              href="https://instagram.com/cybertech_pnp"
+              target="_blank"
+              rel="noopener noreferrer"
+              className={styles.copyIdBtn}
+              style={{ textDecoration: 'none' }}
+            >
+              📱 Kunjungi Instagram @cybertech_pnp
+            </a>
+            <Link href="/" className={styles.backHomeBtn}>
+              Kembali ke Beranda
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  const getMissingFields = () => {
+    const missing: string[] = [];
+    if (!nama.trim()) missing.push('Nama Lengkap');
+    if (!noHp.trim()) missing.push('No. WhatsApp');
+    else if (noHp.trim().length < 9) missing.push('No. WhatsApp (min. 9 digit)');
+    if (!jurusan) missing.push('Jurusan PNP');
+    if (!prodi) missing.push('Program Studi');
+    if (!divisi1) missing.push('Divisi Utama (Pilihan 1)');
+    if (!buktiPembayaran) missing.push('Bukti Pembayaran Transfer');
+    if (!alasan.trim()) missing.push('Alasan Masuk');
+    else if (alasan.trim().length < 15) missing.push(`Alasan (kurang ${15 - alasan.trim().length} karakter)`);
+    if (!harapan.trim()) missing.push('Harapan');
+    else if (harapan.trim().length < 15) missing.push(`Harapan (kurang ${15 - harapan.trim().length} karakter)`);
+    return missing;
+  };
+
+  const missingFields = getMissingFields();
+  const isFormValid = missingFields.length === 0;
+
   return (
     <div className={styles.wrapper}>
       <div className={styles.headerCard}>
         <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: '0.6rem', marginBottom: '0.75rem', flexWrap: 'wrap' }}>
           <div className={styles.badge}>
-            <span className={styles.dot}></span> Open Recruitment 2026
+            <span className={styles.dot}></span> Recruitment 2026
           </div>
         </div>
         <h1 className={styles.title}>Form Pendaftaran UKM CyberTech</h1>
@@ -300,7 +388,7 @@ export default function RegisterForm() {
                 No. WhatsApp / Handphone <span className={styles.required}>*</span>
               </label>
               <input
-                type="tel"
+                type="number"
                 className={styles.input}
                 placeholder="Contoh: 081234567890"
                 value={noHp}
@@ -484,12 +572,40 @@ export default function RegisterForm() {
             <span className={styles.hint}>Minimal 15 karakter. ({harapan.length} karakter)</span>
           </div>
 
+          {/* Realtime Confirmation Checklist */}
+          {!isFormValid ? (
+            <div className={styles.missingBox}>
+              <div className={styles.missingTitle}>
+                ⚠️ Harap Lengkapi Bidang Isian Berikut Untuk Mengirim:
+              </div>
+              <ul className={styles.missingList}>
+                {missingFields.map((field, idx) => (
+                  <li key={idx} className={styles.missingTag}>
+                    • {field}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          ) : (
+            <div className={styles.validBox}>
+              ✓ Formulir telah diisi dengan lengkap. Siap dikirim!
+            </div>
+          )}
+
           {/* Submit Button */}
-          <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+          <button
+            type="submit"
+            className={styles.submitBtn}
+            disabled={!isFormValid || isSubmitting}
+          >
             {isSubmitting ? (
               <>
                 <span className={styles.spinner}></span>
                 <span>Memproses Pendaftaran...</span>
+              </>
+            ) : !isFormValid ? (
+              <>
+                <span>🔒 Lengkapi Data di Atas</span>
               </>
             ) : (
               <>

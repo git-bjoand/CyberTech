@@ -2,6 +2,7 @@
 
 import React, { useState, useRef, useEffect } from 'react';
 import Image from 'next/image';
+import { usePathname } from 'next/navigation';
 import { useLang } from '@/lib/context/LangContext';
 import styles from './Chatbot.module.css';
 
@@ -12,6 +13,7 @@ interface Message {
 }
 
 export default function Chatbot() {
+  const pathname = usePathname();
   const { t } = useLang();
   const [isOpen, setIsOpen] = useState(false);
   const [showBubble, setShowBubble] = useState(false);
@@ -70,6 +72,7 @@ export default function Chatbot() {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
+          currentPage: pathname,
           messages: [...messages, userMsg].map(m => ({
             role: m.role,
             content: m.content,

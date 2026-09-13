@@ -31,6 +31,10 @@ export default function AdminPendaftaranPage() {
   const [itemToDelete, setItemToDelete] = useState<RegistrationItem | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
 
+  // Registration Status Control State (Open/Close toggle)
+  const [regStatus, setRegStatus] = useState<{ isOpen: boolean; title: string; message: string } | null>(null);
+  const [updatingStatus, setUpdatingStatus] = useState(false);
+
   const getAdminUsername = () => {
     try {
       const sessionStr = sessionStorage.getItem('cybertech_admin_user');
@@ -40,6 +44,16 @@ export default function AdminPendaftaranPage() {
       }
     } catch (e) {}
     return '';
+  };
+
+  const fetchStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/registration-status');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRegStatus(data.settings);
+      }
+    } catch (e) {}
   };
 
   const fetchRegistrations = async () => {
@@ -69,7 +83,33 @@ export default function AdminPendaftaranPage() {
 
   useEffect(() => {
     fetchRegistrations();
+    fetchStatus();
   }, []);
+
+  const handleToggleStatus = async (newIsOpen: boolean) => {
+    setUpdatingStatus(true);
+    const username = getAdminUsername();
+    try {
+      const res = await fetch('/api/admin/registration-status', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-username': username,
+        },
+        body: JSON.stringify({ isOpen: newIsOpen }),
+      });
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setRegStatus(data.settings);
+      } else {
+        alert(data.error || 'Gagal mengubah status pendaftaran.');
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan koneksi saat mengubah status pendaftaran.');
+    } finally {
+      setUpdatingStatus(false);
+    }
+  };
 
   const handleDeleteConfirmed = async () => {
     if (!itemToDelete) return;
@@ -168,13 +208,47 @@ export default function AdminPendaftaranPage() {
   return (
     <div style={{ maxWidth: '1200px', margin: '0 auto' }}>
         {/* Header */}
-        <div style={{ marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--admin-border)' }}>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
-            Kelola Rekap Pendaftaran Anggota
-          </h1>
-          <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
-            Manajemen calon anggota baru, kontak WhatsApp, bukti transfer, dan export CSV.
-          </p>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '1px solid var(--admin-border)', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
+              Kelola Rekap Pendaftaran Anggota
+            </h1>
+            <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+              Manajemen calon anggota baru, kontak WhatsApp, bukti transfer, dan kontrol buka/tutup pendaftaran.
+            </p>
+          </div>
+
+          {/* Registration Status Toggle Button */}
+          {regStatus && (
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', padding: '0.6rem 1rem', borderRadius: '8px' }}>
+              <div>
+                <div style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
+                  Status Pendaftaran Publik:
+                </div>
+                <div style={{ fontSize: '0.875rem', fontWeight: 800, color: regStatus.isOpen ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  {regStatus.isOpen ? '🟢 DIBUKA (OPEN)' : '🔴 DITUTUP (CLOSED)'}
+                </div>
+              </div>
+
+              <button
+                onClick={() => handleToggleStatus(!regStatus.isOpen)}
+                disabled={updatingStatus}
+                style={{
+                  padding: '0.55rem 1rem',
+                  background: regStatus.isOpen ? '#ef4444' : '#10b981',
+                  color: '#ffffff',
+                  border: 'none',
+                  borderRadius: '6px',
+                  fontWeight: 700,
+                  fontSize: '0.825rem',
+                  cursor: 'pointer',
+                  whiteSpace: 'nowrap',
+                }}
+              >
+                {updatingStatus ? 'Memproses...' : regStatus.isOpen ? '🔒 Tutup Pendaftaran' : '🔓 Buka Pendaftaran'}
+              </button>
+            </div>
+          )}
         </div>
 
         {errorMsg && (

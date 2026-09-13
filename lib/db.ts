@@ -106,6 +106,11 @@ export async function initDb() {
       role VARCHAR(50) DEFAULT 'admin',
       created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
     );
+
+    CREATE TABLE IF NOT EXISTS site_settings (
+      key VARCHAR(100) PRIMARY KEY,
+      value TEXT NOT NULL
+    );
   `;
 
   try {
@@ -516,6 +521,82 @@ export async function updateAdminAccountInDb(
     return true;
   } catch (err) {
     console.error('PostgreSQL updateAdminAccount error:', err);
+    return false;
+  }
+}
+
+export interface RegistrationSettings {
+  isOpen: boolean;
+  title: string;
+  message: string;
+}
+
+export async function getRegistrationStatusFromDb(): Promise<RegistrationSettings> {
+  const defaultSettings: RegistrationSettings = {
+    isOpen: true,
+    title: 'Pendaftaran Recruitment CyberTech Saat Ini Ditutup',
+    message: 'Terima kasih atas antusiasme Anda. Pendaftaran pendaftar baru UKM Cybertech PNP di tutup. Sampai jumpa di Recruitment periode berikutnya!',
+  };
+
+  if (pool) {
+    try {
+      await initDb();
+      const res = await pool.query("SELECT value FROM site_settings WHERE key = 'registration_status'");
+      if (res.rows.length > 0) {
+        const parsed = JSON.parse(res.rows[0].value);
+        return { ...defaultSettings, ...parsed };
+      }
+    } catch (e) {
+      console.error('PostgreSQL getRegistrationStatus error:', e);
+    }
+  }
+
+  // Fallback to JSON
+  try {
+    const filePath = path.join(process.cwd(), 'lib', 'data', 'registration-settings.json');
+    if (fs.existsSync(filePath)) {
+      const content = fs.readFileSync(filePath, 'utf8');
+      if (content.trim()) {
+        const parsed = JSON.parse(content);
+        return { ...defaultSettings, ...parsed };
+      }
+    }
+  } catch (e) {}
+
+  return defaultSettings;
+}
+
+export async function saveRegistrationStatusToDb(settings: Partial<RegistrationSettings>): Promise<boolean> {
+  const current = await getRegistrationStatusFromDb();
+  const updated: RegistrationSettings = {
+    ...current,
+    ...settings,
+  };
+
+  if (pool) {
+    try {
+      await initDb();
+      await pool.query(
+        `INSERT INTO site_settings (key, value) VALUES ('registration_status', $1)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
+        [JSON.stringify(updated)]
+      );
+    } catch (e) {
+      console.error('PostgreSQL saveRegistrationStatus error:', e);
+    }
+  }
+
+  // Save to JSON fallback
+  try {
+    const dataDir = path.join(process.cwd(), 'lib', 'data');
+    if (!fs.existsSync(dataDir)) {
+      fs.mkdirSync(dataDir, { recursive: true });
+    }
+    const filePath = path.join(dataDir, 'registration-settings.json');
+    fs.writeFileSync(filePath, JSON.stringify(updated, null, 2));
+    return true;
+  } catch (e) {
+    console.error('JSON saveRegistrationStatus error:', e);
     return false;
   }
 }

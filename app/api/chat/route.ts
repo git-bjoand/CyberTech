@@ -52,9 +52,23 @@ function isGantengQuestion(text: string): boolean {
     );
 }
 
+function getDynamicSystemPrompt(currentPage?: string): string {
+  let pageDesc = 'Pengguna saat ini sedang berada di Halaman Utama (Beranda / Landing Page UKM CyberTech PNP).';
+  
+  if (currentPage === '/register') {
+    pageDesc = 'Pengguna saat ini sedang berada di Halaman Form Pendaftaran Anggota Baru UKM CyberTech PNP (/register). Jika pengguna bertanya pertanyaan ambigu seperti "ini kenapa?", jangan menebak-nebak! Berikan pertanyaan follow-up yang sopan menanyakan apa pesan error, kendala, atau isu spesifik di layar pengguna.';
+  } else if (currentPage && currentPage.startsWith('/admin')) {
+    pageDesc = `Pengguna saat ini sedang membuka Halaman Portal Admin UKM CyberTech (${currentPage}).`;
+  } else if (currentPage && currentPage !== '/') {
+    pageDesc = `Pengguna saat ini sedang berada di halaman: ${currentPage}.`;
+  }
+
+  return `${SYSTEM_PROMPT}\n\n=======================================================\nKONTEKS HALAMAN AKTIF SEKARANG YANG DIBUKA PENGGUNA:\n${pageDesc}\n=======================================================`;
+}
+
 export async function POST(req: NextRequest) {
   try {
-    const { messages }: { messages: ChatMessage[] } = await req.json();
+    const { messages, currentPage }: { messages: ChatMessage[]; currentPage?: string } = await req.json();
 
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
       return NextResponse.json({ error: 'Invalid request' }, { status: 400 });
@@ -72,16 +86,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ content: GANTENG_RESPONSE });
     }
 
+    const systemPrompt = getDynamicSystemPrompt(currentPage);
     let content: string;
 
     if (PROVIDER === 'groq') {
-      content = await callGroq(messages);
+      content = await callGroq(messages, systemPrompt);
     } else if (PROVIDER === 'gemini') {
-      content = await callGemini(messages);
+      content = await callGemini(messages, systemPrompt);
     } else if (PROVIDER === 'openai') {
-      content = await callOpenAI(messages);
+      content = await callOpenAI(messages, systemPrompt);
     } else {
-      content = await callGroq(messages);
+      content = await callGemini(messages, systemPrompt);
     }
 
     return NextResponse.json({ content });
@@ -92,22 +107,19 @@ export async function POST(req: NextRequest) {
 }
 
 /* -------------------------------------------------------
-   GROQ API (Llama 3.1 8B Instant - Super Fast & Ultra Token Efficient)
-   Set GROQ_API_KEY in .env.local
+   GROQ API
 ------------------------------------------------------- */
-async function callGroq(messages: ChatMessage[]): Promise<string> {
+async function callGroq(messages: ChatMessage[], systemPrompt: string): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY || process.env.CYBERTECH_GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY not set in .env.local');
 
   const model = process.env.GROQ_MODEL ?? 'meta-llama/llama-prompt-guard-2-86m';
-
-  // Send only system prompt + last 6 messages
   const recentMessages = messages.slice(-6);
 
   const body = {
     model,
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...recentMessages.map(m => ({ role: m.role, content: m.content })),
     ],
     max_tokens: 300,
@@ -136,7 +148,7 @@ async function callGroq(messages: ChatMessage[]): Promise<string> {
    GEMINI (Google AI)
    Set CYBERTECH_GEMINI_API_KEY in .env.local
 ------------------------------------------------------- */
-async function callGemini(messages: ChatMessage[]): Promise<string> {
+async function callGemini(messages: ChatMessage[], systemPrompt: string): Promise<string> {
   const apiKey = process.env.CYBERTECH_GEMINI_API_KEY;
   if (!apiKey) throw new Error('CYBERTECH_GEMINI_API_KEY not set');
 
@@ -148,7 +160,7 @@ async function callGemini(messages: ChatMessage[]): Promise<string> {
   const lastMessage = messages[messages.length - 1];
 
   const body = {
-    system_instruction: { parts: [{ text: SYSTEM_PROMPT }] },
+    system_instruction: { parts: [{ text: systemPrompt }] },
     contents: [
       ...history,
       { role: 'user', parts: [{ text: lastMessage.content }] },
@@ -179,7 +191,7 @@ async function callGemini(messages: ChatMessage[]): Promise<string> {
    OPENAI (GPT)
    Set CYBERTECH_OPENAI_API_KEY in .env.local
 ------------------------------------------------------- */
-async function callOpenAI(messages: ChatMessage[]): Promise<string> {
+async function callOpenAI(messages: ChatMessage[], systemPrompt: string): Promise<string> {
   const apiKey = process.env.CYBERTECH_OPENAI_API_KEY;
   if (!apiKey) throw new Error('CYBERTECH_OPENAI_API_KEY not set');
 
@@ -188,7 +200,7 @@ async function callOpenAI(messages: ChatMessage[]): Promise<string> {
   const body = {
     model: process.env.CYBERTECH_OPENAI_MODEL ?? 'gpt-4o-mini',
     messages: [
-      { role: 'system', content: SYSTEM_PROMPT },
+      { role: 'system', content: systemPrompt },
       ...recentMessages.map(m => ({ role: m.role, content: m.content })),
     ],
     max_tokens: 300,
