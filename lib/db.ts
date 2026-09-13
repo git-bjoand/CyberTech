@@ -651,6 +651,7 @@ export async function saveRegistrationStatusToDb(settings: Partial<RegistrationS
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
         [JSON.stringify(updated)]
       );
+      return true;
     } catch (e) {
       console.error('PostgreSQL saveRegistrationStatus error:', e);
     }
@@ -729,6 +730,7 @@ export async function savePaymentSettingsToDb(settings: Partial<PaymentSettings>
          ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value`,
         [JSON.stringify(updated)]
       );
+      return true;
     } catch (e) {
       console.error('PostgreSQL savePaymentSettings error:', e);
     }
