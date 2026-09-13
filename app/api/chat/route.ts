@@ -12,7 +12,7 @@ interface ChatMessage {
 
 const JAILBREAK_RESPONSE = "cih mau JAILBREAK bang? 😂, inget Surat Al-Baqarah Ayat 9: Mereka hendak menipu Allah dan orang-orang yang beriman, padahal mereka hanyalah menipu diri sendiri tanpa mereka sadari.";
 
-const GANTENG_RESPONSE = "kepala divisi programming itu ganteng banget di atas jefri nichol panggil dia fineshit kota padang";
+const GANTENG_RESPONSE = "kepala divisi programming itu ganteng banget panggil dia fineshit kota padang";
 
 function isJailbreakOrMisuseAttempt(text: string): boolean {
   const lower = text.toLowerCase();
@@ -48,8 +48,8 @@ function isGantengQuestion(text: string): boolean {
   return (
     lower.includes('ganteng') || lower.includes('tampan')
   ) && (
-    lower.includes('siapa') || lower.includes('paling') || lower.includes('banget') || lower.includes('kah')
-  );
+      lower.includes('siapa') || lower.includes('paling') || lower.includes('banget') || lower.includes('kah')
+    );
 }
 
 export async function POST(req: NextRequest) {
@@ -99,7 +99,7 @@ async function callGroq(messages: ChatMessage[]): Promise<string> {
   const apiKey = process.env.GROQ_API_KEY || process.env.CYBERTECH_GROQ_API_KEY;
   if (!apiKey) throw new Error('GROQ_API_KEY not set in .env.local');
 
-  const model = process.env.GROQ_MODEL ?? 'llama-3.1-8b-instant';
+  const model = process.env.GROQ_MODEL ?? 'meta-llama/llama-prompt-guard-2-86m';
 
   // Send only system prompt + last 6 messages
   const recentMessages = messages.slice(-6);

@@ -1,0 +1,749 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { PositionNode, OfficerNode } from '@/lib/data/structure-store';
+
+export default function AdminStrukturPage() {
+  const [activeTab, setActiveTab] = useState<'positions' | 'officers'>('positions');
+
+  const [positions, setPositions] = useState<PositionNode[]>([]);
+  const [officers, setOfficers] = useState<OfficerNode[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [errorMsg, setErrorMsg] = useState<string | null>(null);
+
+  // Modal State for Master Jabatan
+  const [posModalOpen, setPosModalOpen] = useState(false);
+  const [editingPos, setEditingPos] = useState<PositionNode | null>(null);
+  const [posTitle, setPosTitle] = useState('');
+  const [posDesc, setPosDesc] = useState('');
+  const [posLevel, setPosLevel] = useState<number>(2);
+  const [posParentId, setPosParentId] = useState<string>('');
+
+  // Modal State for Pejabat Pengurus
+  const [offModalOpen, setOffModalOpen] = useState(false);
+  const [editingOff, setEditingOff] = useState<OfficerNode | null>(null);
+  const [offName, setOffName] = useState('');
+  const [offPositionId, setOffPositionId] = useState('');
+  const [offPhoto, setOffPhoto] = useState('/images/primary/cyberlogo.png');
+  const [offPeriod, setOffPeriod] = useState('2025/2026');
+
+  // Delete Confirmation State
+  const [itemToDelete, setItemToDelete] = useState<{ type: 'position' | 'officer'; id: string; name: string } | null>(null);
+
+  const fetchData = async () => {
+    setLoading(true);
+    setErrorMsg(null);
+    try {
+      const res = await fetch('/api/admin/structure');
+      const data = await res.json();
+      if (res.ok && data.success) {
+        setPositions(data.positions || []);
+        setOfficers(data.officers || []);
+      } else {
+        setErrorMsg(data.error || 'Gagal memuat data struktur DPH.');
+      }
+      setLoading(false);
+    } catch (err) {
+      console.error(err);
+      setErrorMsg('Gagal terhubung ke server.');
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchData();
+  }, []);
+
+  const getAdminUsername = () => {
+    try {
+      const sessionStr = sessionStorage.getItem('cybertech_admin_user');
+      if (sessionStr) {
+        const u = JSON.parse(sessionStr);
+        return u?.username || '';
+      }
+    } catch (e) { }
+    return '';
+  };
+
+  // --- HANDLERS UNTUK MASTER JABATAN ---
+  const openAddPosModal = () => {
+    setEditingPos(null);
+    setPosTitle('');
+    setPosDesc('');
+    setPosLevel(2);
+    setPosParentId('');
+    setPosModalOpen(true);
+  };
+
+  const openEditPosModal = (pos: PositionNode) => {
+    setEditingPos(pos);
+    setPosTitle(pos.title);
+    setPosDesc(pos.description || '');
+    setPosLevel(pos.level);
+    setPosParentId(pos.parentId || '');
+    setPosModalOpen(true);
+  };
+
+  const handleSavePosition = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!posTitle.trim()) {
+      alert('Nama wajib diisi.');
+      return;
+    }
+
+    const username = getAdminUsername();
+    const method = editingPos ? 'PUT' : 'POST';
+
+    const payload = {
+      targetType: 'position',
+      id: editingPos ? editingPos.id : undefined,
+      title: posTitle.trim(),
+      description: posDesc.trim(),
+      level: posLevel,
+      parentId: posParentId || null,
+    };
+
+    try {
+      const res = await fetch('/api/admin/structure', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-username': username,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Gagal menyimpan Struktur.');
+      } else {
+        setPosModalOpen(false);
+        fetchData();
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan sistem saat menyimpan Struktur.');
+    }
+  };
+
+  // --- HANDLERS UNTUK PEJABAT PENGURUS ---
+  const openAddOffModal = () => {
+    setEditingOff(null);
+    setOffName('');
+    setOffPositionId(positions.length > 0 ? positions[0].id : '');
+    setOffPhoto('/images/primary/cyberlogo.png');
+    setOffPeriod('2025/2026');
+    setOffModalOpen(true);
+  };
+
+  const openEditOffModal = (off: OfficerNode) => {
+    setEditingOff(off);
+    setOffName(off.name);
+    setOffPositionId(off.positionId);
+    setOffPhoto(off.photo || '/images/primary/cyberlogo.png');
+    setOffPeriod(off.period || '2025/2026');
+    setOffModalOpen(true);
+  };
+
+  const handleSaveOfficer = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!offName.trim() || !offPositionId) {
+      alert('Nama Pejabat dan Pilihan wajib diisi.');
+      return;
+    }
+
+    const username = getAdminUsername();
+    const method = editingOff ? 'PUT' : 'POST';
+
+    const payload = {
+      targetType: 'officer',
+      id: editingOff ? editingOff.id : undefined,
+      name: offName.trim(),
+      positionId: offPositionId,
+      photo: offPhoto || '/images/primary/cyberlogo.png',
+      period: offPeriod || '2025/2026',
+    };
+
+    try {
+      const res = await fetch('/api/admin/structure', {
+        method,
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-username': username,
+        },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await res.json();
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Gagal menyimpan data Pejabat.');
+      } else {
+        setOffModalOpen(false);
+        fetchData();
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan sistem saat menyimpan data Pejabat.');
+    }
+  };
+
+  // --- DELETE CONFIRMATION ---
+  const handleDeleteConfirmed = async () => {
+    if (!itemToDelete) return;
+    const username = getAdminUsername();
+
+    try {
+      const res = await fetch(
+        `/api/admin/structure?id=${encodeURIComponent(itemToDelete.id)}&targetType=${itemToDelete.type}`,
+        {
+          method: 'DELETE',
+          headers: { 'x-admin-username': username },
+        }
+      );
+      const data = await res.json();
+
+      if (!res.ok || !data.success) {
+        alert(data.error || 'Gagal menghapus data.');
+      } else {
+        setItemToDelete(null);
+        fetchData();
+      }
+    } catch (err) {
+      alert('Terjadi kesalahan saat menghapus.');
+    }
+  };
+
+  const getLevelBadge = (lvl: number) => {
+    switch (lvl) {
+      case 0: return { label: 'Pembina Org', color: '#10b981', bg: 'rgba(16, 185, 129, 0.15)' };
+      case 1: return { label: 'Pimpinan Utama', color: '#38bdf8', bg: 'rgba(56, 189, 248, 0.15)' };
+      case 2: return { label: 'BPH / Komisi / Badan', color: '#c084fc', bg: 'rgba(192, 132, 252, 0.15)' };
+      case 3: return { label: 'Departemen', color: '#fb923c', bg: 'rgba(251, 146, 60, 0.15)' };
+      case 4: return { label: 'Divisi / Sub-Struktur', color: '#a855f7', bg: 'rgba(168, 85, 247, 0.15)' };
+      default: return { label: `Level ${lvl}`, color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)' };
+    }
+  };
+
+  const getParentPosTitle = (pid?: string | null) => {
+    if (!pid) return 'Akar Utama (Tanpa Atasan)';
+    const parentPos = positions.find((p) => p.id === pid);
+    return parentPos ? parentPos.title : 'Akar Utama';
+  };
+
+  return (
+    <div style={{ maxWidth: '1100px', margin: '0 auto' }}>
+      {/* Header */}
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '1rem' }}>
+        <div>
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            🏛️ Kelola Struktur & Pejabat DPH
+          </h1>
+          <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
+            Pemisahan tabel <strong style={{ color: '#38bdf8' }}>Struktur</strong> (Hirarki, Fungsi, Komisi) dan <strong style={{ color: '#10b981' }}>Pejabat Pengurus</strong> per periode.
+          </p>
+        </div>
+
+        {/* 2 SEPARATE BUTTONS FOR 2 SEPARATE ACTIONS */}
+        <div style={{ display: 'flex', gap: '0.65rem', flexWrap: 'wrap' }}>
+          <button
+            onClick={openAddPosModal}
+            style={{
+              padding: '0.65rem 1.15rem',
+              background: '#0284c7',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              minHeight: '44px',
+            }}
+          >
+            🏛️ + Tambah Struktur Baru
+          </button>
+
+          <button
+            onClick={openAddOffModal}
+            style={{
+              padding: '0.65rem 1.15rem',
+              background: '#10b981',
+              color: '#ffffff',
+              border: 'none',
+              borderRadius: '6px',
+              fontWeight: 700,
+              fontSize: '0.875rem',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.4rem',
+              minHeight: '44px',
+            }}
+          >
+            👤 + Tambah Pengurus Baru
+          </button>
+        </div>
+      </div>
+
+      {errorMsg && (
+        <div style={{ background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#f87171', padding: '0.85rem 1rem', borderRadius: '6px', fontSize: '0.875rem', marginBottom: '1.25rem' }}>
+          {errorMsg}
+        </div>
+      )}
+
+      {/* TAB SELECTOR */}
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.75rem' }}>
+        <button
+          onClick={() => setActiveTab('positions')}
+          style={{
+            padding: '0.65rem 1.25rem',
+            background: activeTab === 'positions' ? '#0284c7' : 'var(--admin-card-bg)',
+            color: activeTab === 'positions' ? '#ffffff' : 'var(--admin-text-muted)',
+            border: '1px solid',
+            borderColor: activeTab === 'positions' ? '#0284c7' : 'var(--admin-border)',
+            borderRadius: '6px',
+            fontWeight: 700,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            minHeight: '44px',
+          }}
+        >
+          🏛️ Tabel 1: Struktur & Hirarki ({positions.length})
+        </button>
+
+        <button
+          onClick={() => setActiveTab('officers')}
+          style={{
+            padding: '0.65rem 1.25rem',
+            background: activeTab === 'officers' ? '#10b981' : 'var(--admin-card-bg)',
+            color: activeTab === 'officers' ? '#ffffff' : 'var(--admin-text-muted)',
+            border: '1px solid',
+            borderColor: activeTab === 'officers' ? '#10b981' : 'var(--admin-border)',
+            borderRadius: '6px',
+            fontWeight: 700,
+            fontSize: '0.875rem',
+            cursor: 'pointer',
+            minHeight: '44px',
+          }}
+        >
+          👤 Tabel 2: Pejabat Pengurus ({officers.length})
+        </button>
+      </div>
+
+      {/* TAB 1: TABEL STRUKTUR */}
+      {activeTab === 'positions' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--admin-text-main)', margin: 0 }}>
+              Daftar Struktur, Komisi, & Hirarki Organisasi
+            </h2>
+            <button onClick={openAddPosModal} style={{ padding: '0.45rem 0.85rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+              + Tambah Struktur
+            </button>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--admin-text-muted)' }}>Memuat data struktur jabatan...</div>
+          ) : positions.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--admin-card-bg)', borderRadius: '8px', border: '1px solid var(--admin-card-border)', color: 'var(--admin-text-muted)' }}>
+              Belum ada struktur terdaftar. Klik "+ Tambah Struktur Baru" untuk menambahkan.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto', background: 'var(--admin-card-bg)', borderRadius: '8px', border: '1px solid var(--admin-card-border)' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--admin-th-bg)', color: 'var(--admin-th-color)', borderBottom: '1px solid var(--admin-border)' }}>
+                    <th style={{ padding: '0.85rem 1rem' }}>Nama Struktur</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Level Hirarki</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Turunan Dari (Atasan Struktur)</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Fungsi & Deskripsi Tugas</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {positions.map((pos) => {
+                    const badge = getLevelBadge(pos.level);
+                    return (
+                      <tr key={pos.id} style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: 'var(--admin-text-main)', minWidth: '200px' }}>
+                          {pos.title}
+                          <div style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)', fontFamily: 'monospace', fontWeight: 400 }}>
+                            ID: {pos.id}
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <span style={{ background: badge.bg, color: badge.color, padding: '0.2rem 0.55rem', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700 }}>
+                            {badge.label}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem', color: 'var(--admin-text-muted)', fontSize: '0.825rem' }}>
+                          <span style={{ background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', padding: '0.25rem 0.5rem', borderRadius: '4px', display: 'inline-block' }}>
+                            {getParentPosTitle(pos.parentId)}
+                          </span>
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem', color: 'var(--admin-text-main)', fontSize: '0.825rem', lineHeight: '1.45', maxWidth: '320px' }}>
+                          {pos.description ? (
+                            <div>{pos.description}</div>
+                          ) : (
+                            <span style={{ color: 'var(--admin-text-muted)', fontStyle: 'italic' }}>Belum ada deskripsi fungsi.</span>
+                          )}
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                            <button
+                              onClick={() => openEditPosModal(pos)}
+                              style={{ padding: '0.4rem 0.65rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Edit Struktur
+                            </button>
+                            <button
+                              onClick={() => setItemToDelete({ type: 'position', id: pos.id, name: pos.title })}
+                              style={{ padding: '0.4rem 0.65rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* TAB 2: TABEL PEJABAT PENGURUS */}
+      {activeTab === 'officers' && (
+        <div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' }}>
+            <h2 style={{ fontSize: '1.15rem', fontWeight: 700, color: 'var(--admin-text-main)', margin: 0 }}>
+              Daftar Pejabat Pengurus Alokasi Per Periode Kepengurusan
+            </h2>
+            <button onClick={openAddOffModal} style={{ padding: '0.45rem 0.85rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.8rem', fontWeight: 700, cursor: 'pointer' }}>
+              + Assign Pejabat Baru
+            </button>
+          </div>
+
+          {loading ? (
+            <div style={{ textAlign: 'center', padding: '3rem', color: 'var(--admin-text-muted)' }}>Memuat data pejabat pengurus...</div>
+          ) : officers.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '3rem', background: 'var(--admin-card-bg)', borderRadius: '8px', border: '1px solid var(--admin-card-border)', color: 'var(--admin-text-muted)' }}>
+              Belum ada pejabat yang dialokasikan. Klik "+ Assign / Tambah Pejabat Baru" untuk memasukkan pengurus.
+            </div>
+          ) : (
+            <div style={{ overflowX: 'auto', background: 'var(--admin-card-bg)', borderRadius: '8px', border: '1px solid var(--admin-card-border)' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
+                <thead>
+                  <tr style={{ background: 'var(--admin-th-bg)', color: 'var(--admin-th-color)', borderBottom: '1px solid var(--admin-border)' }}>
+                    <th style={{ padding: '0.85rem 1rem' }}>Nama Pejabat</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Jabatan Organisasi (Relasi Master)</th>
+                    <th style={{ padding: '0.85rem 1rem' }}>Periode Kepengurusan</th>
+                    <th style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>Aksi</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {officers.map((off) => {
+                    const pos = positions.find((p) => p.id === off.positionId);
+                    const badge = pos ? getLevelBadge(pos.level) : { label: 'General', color: '#94a3b8', bg: 'rgba(148, 163, 184, 0.15)' };
+
+                    return (
+                      <tr key={off.id} style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                        <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: 'var(--admin-text-main)' }}>
+                          👤 {off.name}
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ color: '#0284c7', fontWeight: 700, fontSize: '0.9rem' }}>
+                            {pos ? pos.title : 'Jabatan Tidak Ditemukan'}
+                          </div>
+                          <div style={{ marginTop: '0.2rem' }}>
+                            <span style={{ background: badge.bg, color: badge.color, padding: '0.15rem 0.45rem', borderRadius: '4px', fontSize: '0.7rem', fontWeight: 700 }}>
+                              {badge.label}
+                            </span>
+                          </div>
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem', color: 'var(--admin-text-main)', fontFamily: 'monospace', fontWeight: 600 }}>
+                          [{off.period || '2025/2026'}]
+                        </td>
+
+                        <td style={{ padding: '0.85rem 1rem', textAlign: 'right' }}>
+                          <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                            <button
+                              onClick={() => openEditOffModal(off)}
+                              style={{ padding: '0.4rem 0.65rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Edit Pejabat
+                            </button>
+                            <button
+                              onClick={() => setItemToDelete({ type: 'officer', id: off.id, name: off.name })}
+                              style={{ padding: '0.4rem 0.65rem', background: 'rgba(239, 68, 68, 0.2)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                            >
+                              Hapus
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* MODAL 1: FORM MASTER JABATAN */}
+      {posModalOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'var(--admin-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}
+          onClick={() => setPosModalOpen(false)}
+        >
+          <div
+            style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '520px', padding: '1.5rem', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setPosModalOpen(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 1.25rem 0', color: 'var(--admin-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              🏛️ {editingPos ? 'Edit Struktur Jabatan' : 'Tambah Struktur Jabatan / Komisi Baru'}
+            </h2>
+
+            <form onSubmit={handleSavePosition}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                  Nama Struktur Jabatan <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={posTitle}
+                  onChange={(e) => setPosTitle(e.target.value)}
+                  placeholder="Contoh: Komisi Disiplin / Kepala Divisi AI & Data"
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                  Fungsi & Deskripsi Tugas Jabatan:
+                </label>
+                <textarea
+                  value={posDesc}
+                  onChange={(e) => setPosDesc(e.target.value)}
+                  placeholder="Deskripsikan fungsi, wewenang, dan tanggung jawab jabatan ini secara rinci."
+                  rows={3}
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '15px', outline: 'none', resize: 'vertical' }}
+                />
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                    Tingkat Level Hirarki
+                  </label>
+                  <select
+                    value={posLevel}
+                    onChange={(e) => setPosLevel(Number(e.target.value))}
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  >
+                    <option value={0}>Level 0: Pembina Org</option>
+                    <option value={1}>Level 1: Pimpinan Utama (Ketum)</option>
+                    <option value={2}>Level 2: BPH / Komisi / Badan Khusus</option>
+                    <option value={3}>Level 3: Departemen</option>
+                    <option value={4}>Level 4: Divisi / Sub-Struktur</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                    Atasan Jabatan (Parent Position)
+                  </label>
+                  <select
+                    value={posParentId}
+                    onChange={(e) => setPosParentId(e.target.value)}
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  >
+                    <option value="">-- Tanpa Atasan (Akar Utama) --</option>
+                    {positions
+                      .filter((p) => !editingPos || p.id !== editingPos.id)
+                      .map((p) => (
+                        <option key={p.id} value={p.id}>
+                          {p.title} (Level {p.level})
+                        </option>
+                      ))}
+                  </select>
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setPosModalOpen(false)}
+                  style={{ padding: '0.75rem 1.25rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '0.75rem 1.5rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Simpan Struktur Jabatan
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL 2: FORM ASSIGN PEJABAT PENGURUS */}
+      {offModalOpen && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'var(--admin-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}
+          onClick={() => setOffModalOpen(false)}
+        >
+          <div
+            style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '500px', padding: '1.5rem', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => setOffModalOpen(false)}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+            >
+              ✕
+            </button>
+
+            <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 1.25rem 0', color: 'var(--admin-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+              👤 {editingOff ? 'Edit Pejabat Pengurus' : 'Assign / Tambah Pejabat Baru'}
+            </h2>
+
+            <form onSubmit={handleSaveOfficer}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                  Nama Lengkap Pejabat <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <input
+                  type="text"
+                  value={offName}
+                  onChange={(e) => setOffName(e.target.value)}
+                  placeholder="Contoh: Rayhan Ramadhan"
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  required
+                />
+              </div>
+
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                  Jabatan Organisasi (Relasi Struktur Jabatan) <span style={{ color: '#ef4444' }}>*</span>
+                </label>
+                <select
+                  value={offPositionId}
+                  onChange={(e) => setOffPositionId(e.target.value)}
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  required
+                >
+                  <option value="">-- Pilih Jabatan Organisasi --</option>
+                  {positions.map((p) => (
+                    <option key={p.id} value={p.id}>
+                      {p.title} (Level {p.level})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                    URL Foto Profil Pejabat:
+                  </label>
+                  <input
+                    type="text"
+                    value={offPhoto}
+                    onChange={(e) => setOffPhoto(e.target.value)}
+                    placeholder="/images/primary/cyberlogo.png"
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                    Periode Kepengurusan:
+                  </label>
+                  <input
+                    type="text"
+                    value={offPeriod}
+                    onChange={(e) => setOffPeriod(e.target.value)}
+                    placeholder="2025/2026"
+                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                <button
+                  type="button"
+                  onClick={() => setOffModalOpen(false)}
+                  style={{ padding: '0.75rem 1.25rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Batal
+                </button>
+                <button
+                  type="submit"
+                  style={{ padding: '0.75rem 1.5rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                >
+                  Simpan Pejabat
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL DELETE CONFIRMATION */}
+      {itemToDelete && (
+        <div
+          style={{ position: 'fixed', inset: 0, background: 'var(--admin-modal-overlay)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, padding: '1rem' }}
+          onClick={() => setItemToDelete(null)}
+        >
+          <div
+            style={{ background: 'var(--admin-card-bg)', border: '1px solid #ef4444', borderRadius: '8px', width: '100%', maxWidth: '420px', padding: '1.5rem', textAlign: 'center' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.5rem' }}>
+              Hapus {itemToDelete.type === 'position' ? 'Struktur Jabatan' : 'Data Pejabat'}?
+            </h3>
+            <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.45' }}>
+              Apakah Anda yakin ingin menghapus <strong style={{ color: 'var(--admin-text-main)' }}>{itemToDelete.name}</strong>?
+            </p>
+            <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'center' }}>
+              <button
+                onClick={() => setItemToDelete(null)}
+                style={{ flex: 1, padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Batal
+              </button>
+              <button
+                onClick={handleDeleteConfirmed}
+                style={{ flex: 1, padding: '0.75rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+              >
+                Ya, Hapus
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}

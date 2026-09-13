@@ -46,6 +46,8 @@ export const metadata: Metadata = {
     'PNP Padang',
     'Teknologi Informasi PNP',
     'Organisasi Teknologi',
+    "Organisasi politeknik negeri padang",
+    "Organisasi pnp",
     'Organisasi IT Politeknik Negeri Padang',
     'Hackathon PNP',
     'Hackathon Sumbar',
@@ -121,6 +123,10 @@ export const metadata: Metadata = {
       'max-snippet': -1,
     },
   },
+  other: {
+    'site_name': 'UKM Cybertech PNP',
+    'og:site_name': 'UKM Cybertech PNP',
+  },
   verification: {
     google: process.env.NEXT_PUBLIC_GOOGLE_SITE_VERIFICATION || '4n0dwgcjPAitPLa1cI3TjFL1X2x5z1Sl1ofzelDXc7c',
   },
@@ -135,6 +141,7 @@ export default function RootLayout({
     <html
       lang="id"
       data-theme="dark"
+      data-scroll-behavior="smooth"
       suppressHydrationWarning
       className={`${spaceGrotesk.variable} ${inter.variable}`}
     >

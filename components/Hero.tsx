@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState, useRef } from 'react';
+import Link from 'next/link';
 import styles from './Hero.module.css';
 import { useLang } from '@/lib/context/LangContext';
 
@@ -226,15 +227,9 @@ export default function Hero() {
           </p>
 
           <div className={styles.actions}>
-            <button
-              className={styles.btnPrimary}
-              onClick={() => {
-                const el = document.getElementById('portfolio');
-                if (el) window.scrollTo({ top: el.offsetTop - 68, behavior: 'smooth' });
-              }}
-            >
+            <Link href="/register" className={styles.btnPrimary}>
               {content.btnPrimary[lang as keyof typeof content.btnPrimary]}
-            </button>
+            </Link>
             <button
               className={styles.btnSecondary}
               onClick={() => {

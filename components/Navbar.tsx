@@ -2,6 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
+import { usePathname, useRouter } from 'next/navigation';
 import styles from './Navbar.module.css';
 import { useLang } from '@/lib/context/LangContext';
 import { useTheme } from '@/lib/context/ThemeContext';
@@ -54,6 +56,8 @@ const navLinks = [
 export default function Navbar() {
   const { lang, setLang } = useLang();
   const { theme, toggle: toggleTheme } = useTheme();
+  const pathname = usePathname();
+  const router = useRouter();
   
   const [scrolled, setScrolled] = useState(false);
   const [activeSection, setActiveSection] = useState('home');
@@ -68,6 +72,10 @@ export default function Navbar() {
         setScrolled(true);
       } else {
         setScrolled(false);
+      }
+
+      if (pathname !== '/') {
+        return;
       }
 
       // Active section
@@ -88,10 +96,15 @@ export default function Navbar() {
 
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
-  }, [activeSection]);
+  }, [activeSection, pathname]);
 
   const scrollToSection = (id: string) => {
     setMenuOpen(false);
+    if (pathname !== '/') {
+      router.push(`/#${id}`);
+      return;
+    }
+
     const element = document.getElementById(id);
     if (element) {
       window.scrollTo({
@@ -126,7 +139,7 @@ export default function Navbar() {
             {navLinks.map((link) => (
               <li key={link.id}>
                 <button
-                  className={`${styles.navLink} ${activeSection === link.id ? styles.active : ''}`}
+                  className={`${styles.navLink} ${pathname === '/' && activeSection === link.id ? styles.active : ''}`}
                   onClick={() => scrollToSection(link.id)}
                 >
                   {link.label[lang as keyof typeof link.label]}
@@ -147,9 +160,9 @@ export default function Navbar() {
           <button className={styles.iconBtn} onClick={toggleLang} aria-label="Toggle Language">
             {lang === 'en' ? 'EN' : 'ID'}
           </button>
-          <button className={styles.joinBtn}>
+          <Link href="/register" className={styles.joinBtn}>
             {lang === 'en' ? 'Join Us' : 'Gabung'}
-          </button>
+          </Link>
           <button
             className={styles.mobileMenuBtn}
             onClick={() => setMenuOpen(!menuOpen)}

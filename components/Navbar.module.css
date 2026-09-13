@@ -163,6 +163,10 @@
   cursor: pointer;
   transition: all 0.2s ease;
   box-shadow: 0 0 14px rgba(0, 150, 255, 0.3);
+  text-decoration: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .joinBtn:hover {

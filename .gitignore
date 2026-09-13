@@ -27,6 +27,11 @@ yarn-error.log*
 .env.test.local
 .env.production.local
 .env*.local
+!.env.example
+
+# Sensitive Data & Uploads
+/lib/data/registrations.json
+/public/uploads/
 
 # IDE & Editor files
 .vscode/
@@ -54,4 +59,5 @@ Thumbs.db
 # TypeScript build cache
 *.tsbuildinfo
 
+# Agent scratch directory
 .agents/*

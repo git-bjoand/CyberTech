@@ -71,6 +71,20 @@
 
   /* Navbar height */
   --navbar-h: 68px;
+
+  /* Admin Theme Tokens (Dark Mode) */
+  --admin-bg: #090d16;
+  --admin-card-bg: #0f172a;
+  --admin-card-border: #1e293b;
+  --admin-text-main: #ffffff;
+  --admin-text-muted: #94a3b8;
+  --admin-input-bg: #020617;
+  --admin-input-border: #334155;
+  --admin-th-bg: #1e293b;
+  --admin-th-color: #cbd5e1;
+  --admin-tr-hover: rgba(30, 41, 59, 0.6);
+  --admin-border: #1e293b;
+  --admin-modal-overlay: rgba(0, 0, 0, 0.75);
 }
 
 /* --- High-End Refined Light Mode --- */
@@ -108,6 +122,20 @@
   --shadow-glow-red: 0 0 20px rgba(220, 38, 38, 0.12);
   --shadow-glow-cyan: 0 0 20px rgba(2, 132, 199, 0.12);
   --shadow-elevated: 0 10px 30px rgba(15, 23, 42, 0.08);
+
+  /* Admin Theme Tokens (Light Mode) */
+  --admin-bg: #f8fafc;
+  --admin-card-bg: #ffffff;
+  --admin-card-border: #cbd5e1;
+  --admin-text-main: #0f172a;
+  --admin-text-muted: #334155;
+  --admin-input-bg: #ffffff;
+  --admin-input-border: #94a3b8;
+  --admin-th-bg: #e2e8f0;
+  --admin-th-color: #0f172a;
+  --admin-tr-hover: #f1f5f9;
+  --admin-border: #cbd5e1;
+  --admin-modal-overlay: rgba(15, 23, 42, 0.5);
 }
 
 /* =============================================
