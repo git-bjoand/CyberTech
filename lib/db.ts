@@ -16,10 +16,14 @@ if (connectionString) {
     ssl: connectionString.includes('localhost') || connectionString.includes('127.0.0.1')
       ? false
       : { rejectUnauthorized: false },
+    max: 10,
+    idleTimeoutMillis: 30000,
+    connectionTimeoutMillis: 5000,
   });
 }
 
 let tableInitialized = false;
+let initPromise: Promise<void> | null = null;
 
 /**
  * Ensures the PostgreSQL registrations table exists with all columns including no_hp
@@ -27,155 +31,160 @@ let tableInitialized = false;
 export async function initDb() {
   if (!pool || tableInitialized) return;
 
-  const createTableQuery = `
-    CREATE TABLE IF NOT EXISTS registrations (
-      id SERIAL PRIMARY KEY,
-      registration_id VARCHAR(50) UNIQUE NOT NULL,
-      nama VARCHAR(150) NOT NULL,
-      no_hp VARCHAR(30) DEFAULT '',
-      jurusan VARCHAR(150) NOT NULL,
-      prodi VARCHAR(150) NOT NULL,
-      divisi1 VARCHAR(100) NOT NULL,
-      divisi2 VARCHAR(100) DEFAULT 'Tidak ada',
-      bukti_pembayaran TEXT NOT NULL,
-      alasan TEXT NOT NULL,
-      harapan TEXT NOT NULL,
-      ip_address VARCHAR(45) NOT NULL,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    ALTER TABLE registrations ADD COLUMN IF NOT EXISTS no_hp VARCHAR(30) DEFAULT '';
-
-    CREATE TABLE IF NOT EXISTS dph_structure (
-      id VARCHAR(50) PRIMARY KEY,
-      name VARCHAR(150) NOT NULL,
-      role VARCHAR(150) NOT NULL,
-      description TEXT DEFAULT '',
-      level INT NOT NULL DEFAULT 1,
-      parent_id VARCHAR(50),
-      photo TEXT DEFAULT '',
-      period VARCHAR(50) DEFAULT '2025/2026',
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    ALTER TABLE dph_structure ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
-
-    CREATE TABLE IF NOT EXISTS events (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(200) NOT NULL,
-      description TEXT NOT NULL,
-      type VARCHAR(50) NOT NULL,
-      status VARCHAR(50) NOT NULL,
-      year INT DEFAULT 2026,
-      date VARCHAR(100),
-      image TEXT NOT NULL,
-      instagram VARCHAR(100),
-      is_featured BOOLEAN DEFAULT FALSE,
-      tags TEXT[] DEFAULT '{}',
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS portfolios (
-      id SERIAL PRIMARY KEY,
-      title VARCHAR(200) NOT NULL,
-      description TEXT NOT NULL,
-      division VARCHAR(50) NOT NULL,
-      year INT DEFAULT 2026,
-      image TEXT NOT NULL,
-      tags TEXT[] DEFAULT '{}',
-      is_partnership BOOLEAN DEFAULT FALSE,
-      partner VARCHAR(100),
-      link TEXT,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS gallery_photos (
-      id SERIAL PRIMARY KEY,
-      src TEXT NOT NULL,
-      alt VARCHAR(200) NOT NULL,
-      category VARCHAR(50) NOT NULL,
-      year INT DEFAULT 2026,
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS admin_accounts (
-      id SERIAL PRIMARY KEY,
-      username VARCHAR(100) UNIQUE NOT NULL,
-      password_hash TEXT NOT NULL,
-      full_name VARCHAR(150) NOT NULL,
-      role VARCHAR(50) DEFAULT 'admin',
-      created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
-    );
-
-    CREATE TABLE IF NOT EXISTS site_settings (
-      key VARCHAR(100) PRIMARY KEY,
-      value TEXT NOT NULL
-    );
-  `;
-
-  try {
-    await pool.query(createTableQuery);
-
-    // Seed initial admin account if table is empty
-    const checkAdmin = await pool.query('SELECT COUNT(*) FROM admin_accounts');
-    if (parseInt(checkAdmin.rows[0].count, 10) === 0) {
-      await pool.query(
-        'INSERT INTO admin_accounts (username, password_hash, full_name, role) VALUES ($1, $2, $3, $4)',
-        ['admin', 'cybertech2026', 'Super Admin CyberTech', 'superadmin']
-      );
-      console.log('✓ Default Admin Account seeded into PostgreSQL.');
-    }
-
-    // Seed initial DPH structure if table is empty
-    const checkCount = await pool.query('SELECT COUNT(*) FROM dph_structure');
-    if (parseInt(checkCount.rows[0].count, 10) === 0) {
-      const initialDph = [
-        { id: 'dph-0', name: 'Fazrol Rozi, M.Cs.', role: 'Pembina UKM CyberTech', level: 0, parentId: null, photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-1', name: 'Rayhan Ramadhan', role: 'Ketua Umum', level: 1, parentId: 'dph-0', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-2', name: 'Farel Al Furqan', role: 'Wakil Ketua Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-3', name: 'Dhannisya', role: 'Sekretaris Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-4', name: 'Sukra Sriwita', role: 'Bendahara Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-5', name: 'Rayfo Huda', role: 'Kepala Departemen HRD', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-6', name: 'Muhammad Raihan Pramana Wiguna', role: 'Kepala Departemen PR', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-7', name: 'Muhammad Hafizh Boyensa', role: 'Kepala Departemen CIM', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-        { id: 'dph-8', name: 'Muhammad Rofiqul Islamy', role: 'Kepala Departemen IT', level: 3, parentId: 'dph-1', photo: '/images/primary/programming.png', period: '2025/2026' },
-        { id: 'dph-9', name: 'Bagastio Putra Joandri', role: 'Kepala Divisi Programming', level: 4, parentId: 'dph-8', photo: '/images/primary/programming.png', period: '2025/2026' },
-        { id: 'dph-10', name: 'Muhammad Luthfi', role: 'Kepala Divisi Networking', level: 4, parentId: 'dph-8', photo: '/images/primary/networking.png', period: '2025/2026' },
-        { id: 'dph-11', name: 'Zahwa Rahmadhania', role: 'Kepala Divisi Multimedia', level: 4, parentId: 'dph-7', photo: '/images/primary/multimedia.png', period: '2025/2026' },
-      ];
-
-      for (const node of initialDph) {
-        await pool.query(
-          'INSERT INTO dph_structure (id, name, role, level, parent_id, photo, period) VALUES ($1, $2, $3, $4, $5, $6, $7)',
-          [node.id, node.name, node.role, node.level, node.parentId, node.photo, node.period]
+  if (!initPromise) {
+    initPromise = (async () => {
+      const createTableQuery = `
+        CREATE TABLE IF NOT EXISTS registrations (
+          id SERIAL PRIMARY KEY,
+          registration_id VARCHAR(50) UNIQUE NOT NULL,
+          nama VARCHAR(150) NOT NULL,
+          no_hp VARCHAR(30) DEFAULT '',
+          jurusan VARCHAR(150) NOT NULL,
+          prodi VARCHAR(150) NOT NULL,
+          divisi1 VARCHAR(100) NOT NULL,
+          divisi2 VARCHAR(100) DEFAULT 'Tidak ada',
+          bukti_pembayaran TEXT NOT NULL,
+          alasan TEXT NOT NULL,
+          harapan TEXT NOT NULL,
+          ip_address VARCHAR(45) NOT NULL,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
-      }
-      console.log('✓ Initial DPH structure seeded into PostgreSQL.');
-    }
 
-    // Seed events if empty
-    const checkEvents = await pool.query('SELECT COUNT(*) FROM events');
-    if (parseInt(checkEvents.rows[0].count, 10) === 0) {
-      const initialEvents = [
-        { id: 1, title: 'Hackathon Nasional CyberTech', description: 'Event tahunan bergengsi berupa live coding selama 24 jam non-stop.', type: 'annual', status: 'upcoming', year: 2026, image: '/images/primary/programming.png', instagram: '@hackathon_cybertech', isFeatured: true, tags: ['24 Jam', 'Nasional', 'Live Coding', 'Tahunan'] },
-        { id: 2, title: 'Workshop Web Development', description: 'Workshop intensif pengembangan web modern menggunakan teknologi terkini.', type: 'workshop', status: 'past', year: 2025, image: '/images/primary/programming.png', instagram: '', isFeatured: false, tags: ['Workshop', 'Web Dev', 'Intensif'] },
-        { id: 3, title: 'Seminar Cyber Security', description: 'Seminar tentang keamanan siber, etika hacking, dan pentingnya perlindungan data digital.', type: 'seminar', status: 'past', year: 2025, image: '/images/primary/networking.png', instagram: '', isFeatured: false, tags: ['Seminar', 'Cybersecurity', 'Awareness'] },
-      ];
+        ALTER TABLE registrations ADD COLUMN IF NOT EXISTS no_hp VARCHAR(30) DEFAULT '';
 
-      for (const ev of initialEvents) {
-        await pool.query(
-          'INSERT INTO events (id, title, description, type, status, year, image, instagram, is_featured, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-          [ev.id, ev.title, ev.description, ev.type, ev.status, ev.year, ev.image, ev.instagram, ev.isFeatured, ev.tags]
+        CREATE TABLE IF NOT EXISTS dph_structure (
+          id VARCHAR(50) PRIMARY KEY,
+          name VARCHAR(150) NOT NULL,
+          role VARCHAR(150) NOT NULL,
+          description TEXT DEFAULT '',
+          level INT NOT NULL DEFAULT 1,
+          parent_id VARCHAR(50),
+          photo TEXT DEFAULT '',
+          period VARCHAR(50) DEFAULT '2025/2026',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
-      }
-      console.log('✓ Initial Events seeded into PostgreSQL.');
-    }
 
-    tableInitialized = true;
-    console.log('✓ PostgreSQL tables "registrations", "dph_structure", "events", "portfolios", & "gallery_photos" ready.');
-  } catch (err) {
-    console.error('Error initializing PostgreSQL tables:', err);
+        ALTER TABLE dph_structure ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+
+        CREATE TABLE IF NOT EXISTS events (
+          id SERIAL PRIMARY KEY,
+          title VARCHAR(200) NOT NULL,
+          description TEXT NOT NULL,
+          type VARCHAR(50) NOT NULL,
+          status VARCHAR(50) NOT NULL,
+          year INT DEFAULT 2026,
+          date VARCHAR(100),
+          image TEXT NOT NULL,
+          instagram VARCHAR(100),
+          is_featured BOOLEAN DEFAULT FALSE,
+          tags TEXT[] DEFAULT '{}',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS portfolios (
+          id SERIAL PRIMARY KEY,
+          title VARCHAR(200) NOT NULL,
+          description TEXT NOT NULL,
+          division VARCHAR(50) NOT NULL,
+          year INT DEFAULT 2026,
+          image TEXT NOT NULL,
+          tags TEXT[] DEFAULT '{}',
+          is_partnership BOOLEAN DEFAULT FALSE,
+          partner VARCHAR(100),
+          link TEXT,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS gallery_photos (
+          id SERIAL PRIMARY KEY,
+          src TEXT NOT NULL,
+          alt VARCHAR(200) NOT NULL,
+          category VARCHAR(50) NOT NULL,
+          year INT DEFAULT 2026,
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS admin_accounts (
+          id SERIAL PRIMARY KEY,
+          username VARCHAR(100) UNIQUE NOT NULL,
+          password_hash TEXT NOT NULL,
+          full_name VARCHAR(150) NOT NULL,
+          role VARCHAR(50) DEFAULT 'admin',
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
+        CREATE TABLE IF NOT EXISTS site_settings (
+          key VARCHAR(100) PRIMARY KEY,
+          value TEXT NOT NULL
+        );
+      `;
+
+      await pool!.query(createTableQuery);
+
+      // Seed initial admin account if table is empty
+      const checkAdmin = await pool!.query('SELECT COUNT(*) FROM admin_accounts');
+      if (parseInt(checkAdmin.rows[0].count, 10) === 0) {
+        await pool!.query(
+          'INSERT INTO admin_accounts (username, password_hash, full_name, role) VALUES ($1, $2, $3, $4)',
+          ['admin', 'cybertech2026', 'Super Admin CyberTech', 'superadmin']
+        );
+        console.log('✓ Default Admin Account seeded into PostgreSQL.');
+      }
+
+      // Seed initial DPH structure if table is empty
+      const checkCount = await pool!.query('SELECT COUNT(*) FROM dph_structure');
+      if (parseInt(checkCount.rows[0].count, 10) === 0) {
+        const initialDph = [
+          { id: 'dph-0', name: 'Fazrol Rozi, M.Cs.', role: 'Pembina UKM CyberTech', level: 0, parentId: null, photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-1', name: 'Rayhan Ramadhan', role: 'Ketua Umum', level: 1, parentId: 'dph-0', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-2', name: 'Farel Al Furqan', role: 'Wakil Ketua Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-3', name: 'Dhannisya', role: 'Sekretaris Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-4', name: 'Sukra Sriwita', role: 'Bendahara Umum', level: 2, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-5', name: 'Rayfo Huda', role: 'Kepala Departemen HRD', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-6', name: 'Muhammad Raihan Pramana Wiguna', role: 'Kepala Departemen PR', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-7', name: 'Muhammad Hafizh Boyensa', role: 'Kepala Departemen CIM', level: 3, parentId: 'dph-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
+          { id: 'dph-8', name: 'Muhammad Rofiqul Islamy', role: 'Kepala Departemen IT', level: 3, parentId: 'dph-1', photo: '/images/primary/programming.png', period: '2025/2026' },
+          { id: 'dph-9', name: 'Bagastio Putra Joandri', role: 'Kepala Divisi Programming', level: 4, parentId: 'dph-8', photo: '/images/primary/programming.png', period: '2025/2026' },
+          { id: 'dph-10', name: 'Muhammad Luthfi', role: 'Kepala Divisi Networking', level: 4, parentId: 'dph-8', photo: '/images/primary/networking.png', period: '2025/2026' },
+          { id: 'dph-11', name: 'Zahwa Rahmadhania', role: 'Kepala Divisi Multimedia', level: 4, parentId: 'dph-7', photo: '/images/primary/multimedia.png', period: '2025/2026' },
+        ];
+
+        for (const node of initialDph) {
+          await pool!.query(
+            'INSERT INTO dph_structure (id, name, role, level, parent_id, photo, period) VALUES ($1, $2, $3, $4, $5, $6, $7)',
+            [node.id, node.name, node.role, node.level, node.parentId, node.photo, node.period]
+          );
+        }
+        console.log('✓ Initial DPH structure seeded into PostgreSQL.');
+      }
+
+      // Seed events if empty
+      const checkEvents = await pool!.query('SELECT COUNT(*) FROM events');
+      if (parseInt(checkEvents.rows[0].count, 10) === 0) {
+        const initialEvents = [
+          { id: 1, title: 'Hackathon Nasional CyberTech', description: 'Event tahunan bergengsi berupa live coding selama 24 jam non-stop.', type: 'annual', status: 'upcoming', year: 2026, image: '/images/primary/programming.png', instagram: '@hackathon_cybertech', isFeatured: true, tags: ['24 Jam', 'Nasional', 'Live Coding', 'Tahunan'] },
+          { id: 2, title: 'Workshop Web Development', description: 'Workshop intensif pengembangan web modern menggunakan teknologi terkini.', type: 'workshop', status: 'past', year: 2025, image: '/images/primary/programming.png', instagram: '', isFeatured: false, tags: ['Workshop', 'Web Dev', 'Intensif'] },
+          { id: 3, title: 'Seminar Cyber Security', description: 'Seminar tentang keamanan siber, etika hacking, dan pentingnya perlindungan data digital.', type: 'seminar', status: 'past', year: 2025, image: '/images/primary/networking.png', instagram: '', isFeatured: false, tags: ['Seminar', 'Cybersecurity', 'Awareness'] },
+        ];
+
+        for (const ev of initialEvents) {
+          await pool!.query(
+            'INSERT INTO events (id, title, description, type, status, year, image, instagram, is_featured, tags) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+            [ev.id, ev.title, ev.description, ev.type, ev.status, ev.year, ev.image, ev.instagram, ev.isFeatured, ev.tags]
+          );
+        }
+        console.log('✓ Initial Events seeded into PostgreSQL.');
+      }
+
+      tableInitialized = true;
+      console.log('✓ PostgreSQL tables initialized.');
+    })().catch((err) => {
+      console.error('Error initializing PostgreSQL tables:', err);
+      initPromise = null;
+    });
   }
+
+  return initPromise;
 }
 
 export interface RegistrationRecord {
