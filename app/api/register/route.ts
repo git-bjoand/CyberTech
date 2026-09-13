@@ -85,11 +85,16 @@ export async function POST(req: NextRequest) {
       divisi1,
       divisi2,
       buktiPembayaran,
+      alasanDivisi1,
+      alasanDivisi2,
       alasan,
       harapan,
       hp_website,
       form_start_time,
     } = body;
+
+    const finalAlasanDiv1 = (alasanDivisi1 || alasan || '').trim();
+    const finalAlasanDiv2 = (alasanDivisi2 || harapan || '').trim();
 
     // 2. Honeypot check (bot trap)
     if (hp_website && hp_website.trim() !== '') {
@@ -149,18 +154,18 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ success: false, error: 'Ukuran file bukti pembayaran terlalu besar (maksimal 5MB).' }, { status: 400 });
     }
 
-    if (!alasan || alasan.trim().length < 15) {
-      return NextResponse.json({ success: false, error: 'Alasan masuk wajib diisi minimal 15 karakter.' }, { status: 400 });
+    if (!finalAlasanDiv1 || finalAlasanDiv1.length < 15) {
+      return NextResponse.json({ success: false, error: 'Alasan memilih Divisi 1 wajib diisi minimal 15 karakter.' }, { status: 400 });
     }
 
-    if (!harapan || harapan.trim().length < 15) {
-      return NextResponse.json({ success: false, error: 'Harapan wajib diisi minimal 15 karakter.' }, { status: 400 });
+    const hasDivisi2 = divisi2 && divisi2.trim() !== '' && divisi2.trim() !== 'Tidak ada';
+    if (hasDivisi2 && (!finalAlasanDiv2 || finalAlasanDiv2.length < 15)) {
+      return NextResponse.json({ success: false, error: 'Alasan memilih Divisi 2 wajib diisi minimal 15 karakter jika memilih Divisi 2.' }, { status: 400 });
     }
 
     // 5. Generate Registration Code
     const randomSuffix = Math.random().toString(36).substring(2, 8).toUpperCase();
     const registrationId = `REG-CYBER-${randomSuffix}`;
-    const timestamp = new Date().toISOString();
 
     // Save registration record to PostgreSQL Database
     await saveRegistrationRecord({
@@ -170,10 +175,10 @@ export async function POST(req: NextRequest) {
       jurusan: jurusan.trim(),
       prodi: prodi.trim(),
       divisi1: divisi1.trim(),
-      divisi2: divisi2 ? divisi2.trim() : 'Tidak ada',
+      divisi2: hasDivisi2 ? divisi2.trim() : 'Tidak ada',
       buktiPembayaran,
-      alasan: alasan.trim(),
-      harapan: harapan.trim(),
+      alasanDivisi1: finalAlasanDiv1,
+      alasanDivisi2: finalAlasanDiv2 || 'Tidak ada',
       ipAddress: ip,
     });
 

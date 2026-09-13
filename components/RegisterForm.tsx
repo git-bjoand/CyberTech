@@ -27,8 +27,8 @@ export default function RegisterForm() {
   const [availableProdi, setAvailableProdi] = useState<string[]>([]);
   const [divisi1, setDivisi1] = useState('');
   const [divisi2, setDivisi2] = useState('');
-  const [alasan, setAlasan] = useState('');
-  const [harapan, setHarapan] = useState('');
+  const [alasanDivisi1, setAlasanDivisi1] = useState('');
+  const [alasanDivisi2, setAlasanDivisi2] = useState('');
   const [buktiPembayaran, setBuktiPembayaran] = useState<string>('');
   const [fileName, setFileName] = useState<string>('');
   const [fileSize, setFileSize] = useState<string>('');
@@ -141,8 +141,14 @@ export default function RegisterForm() {
     setErrorMsg(null);
 
     // Client-side quick checks
-    if (!nama.trim() || !noHp.trim() || !jurusan || !prodi || !divisi1 || !alasan.trim() || !harapan.trim()) {
+    const hasDivisi2 = divisi2 && divisi2.trim() !== '' && divisi2.trim() !== 'Tidak ada';
+    if (!nama.trim() || !noHp.trim() || !jurusan || !prodi || !divisi1 || !alasanDivisi1.trim()) {
       setErrorMsg('Harap lengkapi semua bidang isian yang wajib diisi (*).');
+      return;
+    }
+
+    if (hasDivisi2 && !alasanDivisi2.trim()) {
+      setErrorMsg('Harap isi alasan memilih Divisi 2.');
       return;
     }
 
@@ -156,13 +162,13 @@ export default function RegisterForm() {
       return;
     }
 
-    if (alasan.trim().length < 15) {
-      setErrorMsg('Alasan masuk wajib diisi minimal 15 karakter.');
+    if (alasanDivisi1.trim().length < 15) {
+      setErrorMsg('Alasan memilih Divisi 1 wajib diisi minimal 15 karakter.');
       return;
     }
 
-    if (harapan.trim().length < 15) {
-      setErrorMsg('Harapan wajib diisi minimal 15 karakter.');
+    if (hasDivisi2 && alasanDivisi2.trim().length < 15) {
+      setErrorMsg('Alasan memilih Divisi 2 wajib diisi minimal 15 karakter.');
       return;
     }
 
@@ -180,10 +186,10 @@ export default function RegisterForm() {
           jurusan,
           prodi,
           divisi1,
-          divisi2: divisi2 || 'Tidak ada',
+          divisi2: hasDivisi2 ? divisi2.trim() : 'Tidak ada',
           buktiPembayaran,
-          alasan: alasan.trim(),
-          harapan: harapan.trim(),
+          alasanDivisi1: alasanDivisi1.trim(),
+          alasanDivisi2: hasDivisi2 ? alasanDivisi2.trim() : 'Tidak ada',
           hp_website: hpWebsite, // Honeypot field
           form_start_time: formStartTime,
         }),
@@ -318,10 +324,14 @@ export default function RegisterForm() {
     if (!prodi) missing.push('Program Studi');
     if (!divisi1) missing.push('Divisi Utama (Pilihan 1)');
     if (!buktiPembayaran) missing.push('Bukti Pembayaran Transfer');
-    if (!alasan.trim()) missing.push('Alasan Masuk');
-    else if (alasan.trim().length < 15) missing.push(`Alasan (kurang ${15 - alasan.trim().length} karakter)`);
-    if (!harapan.trim()) missing.push('Harapan');
-    else if (harapan.trim().length < 15) missing.push(`Harapan (kurang ${15 - harapan.trim().length} karakter)`);
+    if (!alasanDivisi1.trim()) missing.push('Alasan Memilih Divisi 1');
+    else if (alasanDivisi1.trim().length < 15) missing.push(`Alasan Divisi 1 (kurang ${15 - alasanDivisi1.trim().length} karakter)`);
+
+    const hasDivisi2 = divisi2 && divisi2.trim() !== '' && divisi2.trim() !== 'Tidak ada';
+    if (hasDivisi2) {
+      if (!alasanDivisi2.trim()) missing.push('Alasan Memilih Divisi 2');
+      else if (alasanDivisi2.trim().length < 15) missing.push(`Alasan Divisi 2 (kurang ${15 - alasanDivisi2.trim().length} karakter)`);
+    }
     return missing;
   };
 
@@ -540,36 +550,41 @@ export default function RegisterForm() {
             )}
           </div>
 
-          {/* 7. Alasan Masuk */}
+          {/* 7. Alasan Memilih Divisi 1 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              Alasan Masuk UKM CyberTech <span className={styles.required}>*</span>
+              Alasan Memilih Divisi 1 {divisi1 ? `(${divisi1})` : ''} <span className={styles.required}>*</span>
             </label>
             <textarea
               className={styles.textarea}
-              placeholder="Ceritakan motivasi dan alasan utama kamu ingin bergabung dengan UKM CyberTech PNP..."
-              value={alasan}
-              onChange={(e) => setAlasan(e.target.value)}
+              placeholder="Jelaskan alasan, minat, kemampuan, atau motivasi kamu memilih Divisi 1..."
+              value={alasanDivisi1}
+              onChange={(e) => setAlasanDivisi1(e.target.value)}
               rows={4}
               required
             />
-            <span className={styles.hint}>Minimal 15 karakter. ({alasan.length} karakter)</span>
+            <span className={styles.hint}>Tunjukkan passion & alasan kamu memilih divisi ini (minimal 15 karakter). ({alasanDivisi1.length} karakter)</span>
           </div>
 
-          {/* 8. Harapan */}
+          {/* 8. Alasan Memilih Divisi 2 */}
           <div className={styles.fieldGroup}>
             <label className={styles.label}>
-              Harapan Kamu Setelah Bergabung <span className={styles.required}>*</span>
+              Alasan Memilih Divisi 2 {divisi2 && divisi2 !== 'Tidak ada' ? `(${divisi2})` : '(Opsional)'} {divisi2 && divisi2 !== 'Tidak ada' ? <span className={styles.required}>*</span> : null}
             </label>
             <textarea
               className={styles.textarea}
-              placeholder="Apa skill, pengalaman, atau target yang ingin kamu capai di UKM CyberTech..."
-              value={harapan}
-              onChange={(e) => setHarapan(e.target.value)}
+              placeholder={divisi2 && divisi2 !== 'Tidak ada' ? `Jelaskan alasan kamu memilih ${divisi2} sebagai pilihan cadangan...` : 'Pilih Divisi 2 terlebih dahulu jika ingin menambahkan pilihan cadangan...'}
+              value={alasanDivisi2}
+              onChange={(e) => setAlasanDivisi2(e.target.value)}
               rows={4}
-              required
+              disabled={!divisi2 || divisi2 === 'Tidak ada'}
+              required={Boolean(divisi2 && divisi2 !== 'Tidak ada')}
             />
-            <span className={styles.hint}>Minimal 15 karakter. ({harapan.length} karakter)</span>
+            <span className={styles.hint}>
+              {divisi2 && divisi2 !== 'Tidak ada'
+                ? `Alasan memilih divisi cadangan ${divisi2} (minimal 15 karakter). (${alasanDivisi2.length} karakter)`
+                : 'Pilihan opsional jika kamu memilih divisi kedua.'}
+            </span>
           </div>
 
           {/* Realtime Confirmation Checklist */}

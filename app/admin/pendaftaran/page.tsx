@@ -11,8 +11,10 @@ interface RegistrationItem {
   prodi: string;
   divisi1: string;
   divisi2: string;
-  alasan: string;
-  harapan: string;
+  alasanDivisi1?: string;
+  alasanDivisi2?: string;
+  alasan?: string;
+  harapan?: string;
   ipAddress: string;
   buktiPembayaran?: string;
 }
@@ -165,8 +167,8 @@ export default function AdminPendaftaranPage() {
       'Program Studi',
       'Divisi 1',
       'Divisi 2',
-      'Alasan Masuk',
-      'Harapan',
+      'Alasan Divisi 1',
+      'Alasan Divisi 2',
       'IP Address',
     ];
 
@@ -179,8 +181,8 @@ export default function AdminPendaftaranPage() {
       `"${i.prodi.replace(/"/g, '""')}"`,
       `"${i.divisi1.replace(/"/g, '""')}"`,
       `"${i.divisi2.replace(/"/g, '""')}"`,
-      `"${i.alasan.replace(/"/g, '""')}"`,
-      `"${i.harapan.replace(/"/g, '""')}"`,
+      `"${(i.alasanDivisi1 || i.alasan || '').replace(/"/g, '""')}"`,
+      `"${(i.alasanDivisi2 || i.harapan || '').replace(/"/g, '""')}"`,
       i.ipAddress,
     ]);
 
@@ -444,16 +446,20 @@ export default function AdminPendaftaranPage() {
               </div>
 
               <div style={{ marginBottom: '1rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0284c7', marginBottom: '0.25rem' }}>Alasan Masuk:</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0284c7', marginBottom: '0.25rem' }}>
+                  Alasan Memilih Divisi 1 ({selectedItem.divisi1}):
+                </div>
                 <div style={{ background: 'var(--admin-input-bg)', padding: '0.75rem', borderRadius: '6px', fontSize: '0.875rem', color: 'var(--admin-text-main)', lineHeight: '1.45', border: '1px solid var(--admin-border)' }}>
-                  {selectedItem.alasan}
+                  {selectedItem.alasanDivisi1 || selectedItem.alasan || '-'}
                 </div>
               </div>
 
               <div style={{ marginBottom: '1.25rem' }}>
-                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0284c7', marginBottom: '0.25rem' }}>Harapan:</div>
+                <div style={{ fontSize: '0.8rem', fontWeight: 600, color: '#0284c7', marginBottom: '0.25rem' }}>
+                  Alasan Memilih Divisi 2 ({selectedItem.divisi2}):
+                </div>
                 <div style={{ background: 'var(--admin-input-bg)', padding: '0.75rem', borderRadius: '6px', fontSize: '0.875rem', color: 'var(--admin-text-main)', lineHeight: '1.45', border: '1px solid var(--admin-border)' }}>
-                  {selectedItem.harapan}
+                  {selectedItem.alasanDivisi2 || selectedItem.harapan || '-'}
                 </div>
               </div>
 

@@ -51,6 +51,8 @@ export async function initDb() {
         );
 
         ALTER TABLE registrations ADD COLUMN IF NOT EXISTS no_hp VARCHAR(30) DEFAULT '';
+        ALTER TABLE registrations ADD COLUMN IF NOT EXISTS alasan_divisi1 TEXT DEFAULT '';
+        ALTER TABLE registrations ADD COLUMN IF NOT EXISTS alasan_divisi2 TEXT DEFAULT '';
 
         CREATE TABLE IF NOT EXISTS dph_structure (
           id VARCHAR(50) PRIMARY KEY,
@@ -196,8 +198,10 @@ export interface RegistrationRecord {
   divisi1: string;
   divisi2: string;
   buktiPembayaran: string;
-  alasan: string;
-  harapan: string;
+  alasanDivisi1: string;
+  alasanDivisi2: string;
+  alasan?: string;
+  harapan?: string;
   ipAddress: string;
   timestamp?: string;
 }
@@ -206,15 +210,18 @@ export interface RegistrationRecord {
  * Inserts a new registration record into PostgreSQL (or JSON fallback)
  */
 export async function saveRegistrationRecord(record: RegistrationRecord): Promise<boolean> {
+  const alasanDiv1 = record.alasanDivisi1 || record.alasan || '';
+  const alasanDiv2 = record.alasanDivisi2 || record.harapan || '';
+
   if (pool) {
     try {
       await initDb();
       const insertQuery = `
         INSERT INTO registrations (
           registration_id, nama, no_hp, jurusan, prodi, divisi1, divisi2,
-          bukti_pembayaran, alasan, harapan, ip_address
+          bukti_pembayaran, alasan, harapan, alasan_divisi1, alasan_divisi2, ip_address
         )
-        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13)
       `;
       await pool.query(insertQuery, [
         record.registrationId,
@@ -225,8 +232,10 @@ export async function saveRegistrationRecord(record: RegistrationRecord): Promis
         record.divisi1,
         record.divisi2 || 'Tidak ada',
         record.buktiPembayaran,
-        record.alasan,
-        record.harapan,
+        alasanDiv1,
+        alasanDiv2,
+        alasanDiv1,
+        alasanDiv2,
         record.ipAddress,
       ]);
       return true;
@@ -252,6 +261,8 @@ export async function saveRegistrationRecord(record: RegistrationRecord): Promis
     }
     existingData.push({
       ...record,
+      alasanDivisi1: alasanDiv1,
+      alasanDivisi2: alasanDiv2,
       timestamp: new Date().toISOString(),
     });
     fs.writeFileSync(filePath, JSON.stringify(existingData, null, 2));
@@ -279,8 +290,10 @@ export async function getAllRegistrations(): Promise<any[]> {
           prodi,
           divisi1,
           divisi2,
-          alasan,
-          harapan,
+          COALESCE(NULLIF(alasan_divisi1, ''), alasan, '') AS "alasanDivisi1",
+          COALESCE(NULLIF(alasan_divisi2, ''), harapan, '') AS "alasanDivisi2",
+          COALESCE(alasan, '') AS "alasan",
+          COALESCE(harapan, '') AS "harapan",
           ip_address AS "ipAddress",
           bukti_pembayaran AS "buktiPembayaran"
         FROM registrations
