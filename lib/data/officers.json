@@ -74,7 +74,7 @@
   {
     "id": "off-9",
     "name": "Bagastio Putra Joandri",
-    "positionId": "pos-9",
+    "positionId": "pos-12",
     "photo": "/images/primary/cyberlogo.png",
     "photo2": "/images/primary/programming.png",
     "period": "2025/2026"
@@ -93,14 +93,6 @@
     "positionId": "pos-11",
     "photo": "/images/primary/cyberlogo.png",
     "photo2": "/images/primary/multimedia.png",
-    "period": "2025/2026"
-  },
-  {
-    "id": "off-1789509187551",
-    "name": "hsdg",
-    "positionId": "pos-1789505299356",
-    "photo": "/images/primary/cyberlogo.png",
-    "photo2": "/images/primary/maskot.png",
     "period": "2025/2026"
   }
 ]

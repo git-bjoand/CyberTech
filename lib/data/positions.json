@@ -63,13 +63,6 @@
     "parentId": "pos-1"
   },
   {
-    "id": "pos-9",
-    "title": "PLT Divisi Programming",
-    "description": "Mengkoordinasikan anggota divisi programming, pelatihan web/mobile app, mini project, dan persiapan lomba coding.",
-    "level": 4,
-    "parentId": "pos-8"
-  },
-  {
     "id": "pos-10",
     "title": "Kepala Divisi Networking",
     "description": "Pelatihan bidang jaringan komputer, MikroTik, Cisco, cybersecurity, dan pengelolaan infrastruktur lab/server.",
@@ -85,9 +78,9 @@
   },
   {
     "id": "pos-1789505299356",
-    "title": "staff ahli mechine learning",
-    "description": "menjalankan tugas dari ketua divisi proggramming",
-    "level": 5,
-    "parentId": "pos-9"
+    "title": "PLT Divisi Proggraming",
+    "description": "Mengkoordinasikan anggota divisi programming, pelatihan web/mobile app, mini project, dan persiapan lomba coding.",
+    "level": 4,
+    "parentId": "pos-8"
   }
 ]
