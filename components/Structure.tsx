@@ -178,7 +178,7 @@ export function parseDphNodes(all: any[]) {
     return true;
   });
 
-  // Level 1: Ketua Umum
+  // Level 1: Ketua Umum (root)
   const foundKetua = valid.find((m) => Number(m.level) === 1 || m.role?.toLowerCase().includes('ketua umum'));
   const ketua: DynamicMember = foundKetua ? {
     id: typeof foundKetua.id === 'number' ? foundKetua.id : 1,
@@ -192,7 +192,7 @@ export function parseDphNodes(all: any[]) {
     rawLevel: 1,
   } : ketuaUmum;
 
-  // Level 2: Executive Core (Sekretaris Umum, Wakil Ketum, Bendahara Umum, Komdis, etc.)
+  // Level 2: Executive Core (Sekretaris Umum, Wakil Ketum, Bendahara Umum, etc.)
   const foundL2 = valid.filter((m) => Number(m.level) === 2);
   const sortedL2 = [...foundL2].sort((a, b) => {
     const order = (role: string) => {
@@ -241,32 +241,20 @@ export function parseDphNodes(all: any[]) {
     rawLevel: 3,
   })) : level3;
 
-  // Level 4+: Technical Divisions & Staff Ahli (Networking, Programming, Multimedia, Staff Ahli ML, etc.)
-  const foundL4 = valid.filter((m) => Number(m.level) >= 4);
-  const sortedL4 = [...foundL4].sort((a, b) => {
-    const order = (role: string) => {
-      const s = (role || '').toLowerCase();
-      if (s.includes('networking')) return 1;
-      if (s.includes('programming')) return 2;
-      if (s.includes('multimedia')) return 3;
-      if (s.includes('mechine') || s.includes('machine') || s.includes('staff')) return 4;
-      return 5;
-    };
-    return order(a.role) - order(b.role);
-  });
-  const l4: DynamicMember[] = sortedL4.length > 0 ? sortedL4.map((m, idx) => ({
+  // All downstream nodes (Level >= 4): Divisi Teknis, Staff Ahli, etc.
+  const downstream = valid.filter((m) => Number(m.level) >= 4).map((m, idx) => ({
     id: typeof m.id === 'number' ? m.id : idx + 9,
     name: m.name,
     role: m.role,
     photo: m.photo || '/images/primary/cyberlogo.png',
     photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
-    level: 'divisi',
+    level: 'divisi' as const,
     parentId: m.parentId,
     positionId: m.positionId,
     rawLevel: Number(m.level),
-  })) : level4;
+  }));
 
-  return { ketua, l2, l3, l4 };
+  return { ketua, l2, l3, downstream };
 }
 
 interface StructureProps {
@@ -278,26 +266,27 @@ export default function Structure({ initialData }: StructureProps) {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Initialize with server-fetched database data instantly (no delay or flash of old static text)
   const initialParsed = initialData && initialData.length > 0 ? parseDphNodes(initialData) : null;
   const [ketua, setKetua] = useState<DynamicMember>(initialParsed ? initialParsed.ketua : ketuaUmum);
   const [l2, setL2] = useState<DynamicMember[]>(initialParsed ? initialParsed.l2 : level2);
   const [l3, setL3] = useState<DynamicMember[]>(initialParsed ? initialParsed.l3 : level3);
-  const [l4, setL4] = useState<DynamicMember[]>(initialParsed ? initialParsed.l4 : level4);
+  const [downstream, setDownstream] = useState<DynamicMember[]>(initialParsed ? initialParsed.downstream : level4);
 
-  // Sync state immediately if initialData prop updates
+  const syncData = (data: any[]) => {
+    const parsed = parseDphNodes(data);
+    setKetua(parsed.ketua);
+    setL2(parsed.l2);
+    setL3(parsed.l3);
+    setDownstream(parsed.downstream);
+  };
+
   useEffect(() => {
     if (initialData && initialData.length > 0) {
-      const parsed = parseDphNodes(initialData);
-      setKetua(parsed.ketua);
-      setL2(parsed.l2);
-      setL3(parsed.l3);
-      setL4(parsed.l4);
+      syncData(initialData);
     }
   }, [initialData]);
 
   useEffect(() => {
-    // Intersection observer for section entrance animation
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -309,16 +298,11 @@ export default function Structure({ initialData }: StructureProps) {
       observer.observe(sectionRef.current);
     }
 
-    // Always ensure fresh data from database in background
     fetch('/api/structure')
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
-          const parsed = parseDphNodes(resData.data);
-          setKetua(parsed.ketua);
-          setL2(parsed.l2);
-          setL3(parsed.l3);
-          setL4(parsed.l4);
+          syncData(resData.data);
         }
       })
       .catch((err) => {
@@ -327,6 +311,12 @@ export default function Structure({ initialData }: StructureProps) {
 
     return () => observer.disconnect();
   }, []);
+
+  // Helper to find children by parent's positionId
+  const getChildrenOf = (parentPosId?: string) => {
+    if (!parentPosId) return [];
+    return downstream.filter((item) => item.parentId === parentPosId);
+  };
 
   return (
     <section id="structure" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
@@ -345,7 +335,7 @@ export default function Structure({ initialData }: StructureProps) {
             <div className={styles.verticalStem} />
           </div>
 
-          {/* Dynamic Row for Level 2 (Executive Core) */}
+          {/* Dynamic Row for Level 2 (Executive Core / BPH) */}
           {l2.length > 0 && (
             <div className={styles.treeRow}>
               <div className={styles.treeRowStemIn} />
@@ -360,35 +350,53 @@ export default function Structure({ initialData }: StructureProps) {
           {/* Stem between Level 2 and Level 3 */}
           <div className={styles.verticalStem} />
 
-          {/* Dynamic Row for Level 3 (Departments) */}
+          {/* Dynamic Row for Level 3 (Departments) & their dynamic children attached via parentId */}
           {l3.length > 0 && (
             <div className={styles.treeRow}>
               <div className={styles.treeRowStemIn} />
-              {l3.map((member, idx) => {
-                const isIT = member.role?.toLowerCase().includes('it');
+              {l3.map((dept, deptIdx) => {
+                // Find all direct children of this department (e.g. Divisi Networking, Programming, Multimedia under IT)
+                const deptChildren = getChildrenOf(dept.positionId);
+
                 return (
-                  <div key={member.id || `l3-${idx}`} className={styles.treeNodeWrapper}>
-                    <StructureCard member={member} index={idx + l2.length + 1} />
-                    {/* If this department is IT, drop a stem connecting down to the technical divisions & staff */}
-                    {isIT && l4.length > 0 && (
-                      <div className={styles.verticalStemBottom} />
+                  <div key={dept.id || `l3-${deptIdx}`} className={styles.treeNodeWrapper}>
+                    <StructureCard member={dept} index={deptIdx + l2.length + 1} />
+
+                    {/* If this department has children linked by parentId, render them directly connected beneath it */}
+                    {deptChildren.length > 0 && (
+                      <div className={styles.subBranchContainer}>
+                        <div className={styles.subBranchStemDown} />
+                        <div className={styles.subBranchRow}>
+                          {deptChildren.map((child, childIdx) => {
+                            // Find sub-children of this child (e.g. Staff Ahli ML under Programming)
+                            const subChildren = getChildrenOf(child.positionId);
+
+                            return (
+                              <div key={child.id || `sub-${childIdx}`} className={styles.subTreeNodeWrapper}>
+                                <StructureCard member={child} index={childIdx + 50} />
+
+                                {/* Sub-children (Level 5 / Staff Ahli) connected directly under their parent (e.g. Programming) */}
+                                {subChildren.length > 0 && (
+                                  <div className={styles.subBranchContainer}>
+                                    <div className={styles.subBranchStemDown} />
+                                    <div className={styles.subBranchRow}>
+                                      {subChildren.map((sc, scIdx) => (
+                                        <div key={sc.id || `subsub-${scIdx}`} className={styles.subTreeNodeWrapper}>
+                                          <StructureCard member={sc} index={scIdx + 100} />
+                                        </div>
+                                      ))}
+                                    </div>
+                                  </div>
+                                )}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
                     )}
                   </div>
                 );
               })}
-            </div>
-          )}
-
-          {/* Dynamic Sub-branch for Level 4+ (Divisions & Staff Ahli connected under IT) */}
-          {l4.length > 0 && (
-            <div className={styles.subBranchContainer}>
-              <div className={styles.subBranchRow}>
-                {l4.map((member, idx) => (
-                  <div key={member.id || `l4-${idx}`} className={styles.subTreeNodeWrapper}>
-                    <StructureCard member={member} index={idx + l2.length + l3.length + 1} />
-                  </div>
-                ))}
-              </div>
             </div>
           )}
 
