@@ -33,6 +33,11 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
     setIsHovered(true);
     setPhotoMode('hover');
     setIsGlitching(true);
+
+    // End glitch burst effect after 350ms so content settles cleanly
+    finishTimerRef.current = setTimeout(() => {
+      setIsGlitching(false);
+    }, 350);
   };
 
   const handleMouseLeave = () => {
@@ -74,8 +79,8 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
     return () => clearTimers();
   }, []);
 
-  const displayedPhoto = photoMode === 'hover' ? fullPhoto : primaryPhoto;
-  const isDataOrExternalUrl = displayedPhoto.startsWith('data:') || displayedPhoto.startsWith('http');
+  const isPrimaryDataOrExt = primaryPhoto.startsWith('data:') || primaryPhoto.startsWith('http');
+  const isFullDataOrExt = fullPhoto.startsWith('data:') || fullPhoto.startsWith('http');
 
   return (
     <div
@@ -96,15 +101,48 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
         </>
       )}
 
-      {/* Photo Container with Controlled Photo Mode */}
+      {/* Dual-Layer Preloaded Photo Container (Instant Swap & Zero Delay) */}
       <div className={styles.imageContainer}>
+        {/* Layer 1: Foto Utama (Default) */}
         <Image
-          src={displayedPhoto}
+          src={primaryPhoto}
           alt={member.name}
           width={320}
           height={320}
-          unoptimized={isDataOrExternalUrl}
-          className={`${styles.photo} ${photoMode === 'hover' ? styles.photoFull : ''}`}
+          unoptimized={isPrimaryDataOrExt}
+          className={styles.photo}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: photoMode === 'hover' ? 0 : 1,
+            transform: photoMode === 'hover' ? 'scale(0.92)' : 'scale(1)',
+            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            pointerEvents: 'none',
+          }}
+        />
+
+        {/* Layer 2: Foto Kedua (Hover / Swap) */}
+        <Image
+          src={fullPhoto}
+          alt={`${member.name} - Hover`}
+          width={320}
+          height={320}
+          unoptimized={isFullDataOrExt}
+          className={styles.photo}
+          style={{
+            position: 'absolute',
+            inset: 0,
+            width: '100%',
+            height: '100%',
+            objectFit: 'cover',
+            opacity: photoMode === 'hover' ? 1 : 0,
+            transform: photoMode === 'hover' ? 'scale(1)' : 'scale(1.08)',
+            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+            pointerEvents: 'none',
+          }}
         />
       </div>
 
