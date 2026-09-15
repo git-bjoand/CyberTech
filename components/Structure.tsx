@@ -20,8 +20,9 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   const swapTimerRef = useRef<NodeJS.Timeout | null>(null);
   const finishTimerRef = useRef<NodeJS.Timeout | null>(null);
 
-  const primaryPhoto = member.photo || '/images/primary/cyberlogo.png';
-  const fullPhoto = member.photo2 || primaryPhoto;
+  const isEmpty = !member.name || member.name.trim() === '' || member.name.toLowerCase().includes('belum terisi') || member.name.toLowerCase().includes('open position');
+  const primaryPhoto = isEmpty ? '/images/primary/cyberlogo.png' : (member.photo || '/images/primary/cyberlogo.png');
+  const fullPhoto = isEmpty ? '/images/primary/cyberlogo.png' : (member.photo2 || primaryPhoto);
 
   const clearTimers = () => {
     if (swapTimerRef.current) clearTimeout(swapTimerRef.current);
@@ -29,6 +30,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   };
 
   const handleMouseEnter = () => {
+    if (isEmpty) return;
     clearTimers();
     setIsHovered(true);
     setPhotoMode('hover');
@@ -41,6 +43,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   };
 
   const handleMouseLeave = () => {
+    if (isEmpty) return;
     setIsHovered(false);
     clearTimers();
 
@@ -59,6 +62,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   };
 
   const handleClickToggle = () => {
+    if (isEmpty) return;
     clearTimers();
     setIsGlitching(true);
     if (photoMode === 'default') {
@@ -84,16 +88,16 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
 
   return (
     <div
-      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isHovered ? styles.activeState : ''}`}
+      className={`${styles.card} ${isKetua ? styles.ketuaCard : ''} ${isEmpty ? styles.emptyCard : ''} ${isHovered ? styles.activeState : ''}`}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
       onClick={handleClickToggle}
       tabIndex={0}
       role="article"
-      aria-label={`Member ${member.name}`}
+      aria-label={`Member ${isEmpty ? 'Belum Terisi' : member.name}`}
     >
       {/* Glitch Burst Overlay Effect on Hover & Unhover */}
-      {isGlitching && (
+      {isGlitching && !isEmpty && (
         <>
           <div className={styles.glitchBurstCyan} />
           <div className={styles.glitchBurstRed} />
@@ -106,7 +110,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
         {/* Layer 1: Foto Utama (Default) */}
         <Image
           src={primaryPhoto}
-          alt={member.name}
+          alt={isEmpty ? 'Slot Belum Terisi' : member.name}
           width={320}
           height={320}
           unoptimized={isPrimaryDataOrExt}
@@ -117,39 +121,42 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
             width: '100%',
             height: '100%',
             objectFit: 'cover',
-            opacity: photoMode === 'hover' ? 0 : 1,
-            transform: photoMode === 'hover' ? 'scale(0.92)' : 'scale(1)',
+            opacity: photoMode === 'hover' && !isEmpty ? 0 : 1,
+            transform: photoMode === 'hover' && !isEmpty ? 'scale(0.92)' : 'scale(1)',
             transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
             pointerEvents: 'none',
           }}
         />
 
         {/* Layer 2: Foto Kedua (Hover / Swap) */}
-        <Image
-          src={fullPhoto}
-          alt={`${member.name} - Hover`}
-          width={320}
-          height={320}
-          unoptimized={isFullDataOrExt}
-          className={styles.photo}
-          style={{
-            position: 'absolute',
-            inset: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            opacity: photoMode === 'hover' ? 1 : 0,
-            transform: photoMode === 'hover' ? 'scale(1)' : 'scale(1.08)',
-            transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
-            pointerEvents: 'none',
-          }}
-        />
+        {!isEmpty && (
+          <Image
+            src={fullPhoto}
+            alt={`${member.name} - Hover`}
+            width={320}
+            height={320}
+            unoptimized={isFullDataOrExt}
+            className={styles.photo}
+            style={{
+              position: 'absolute',
+              inset: 0,
+              width: '100%',
+              height: '100%',
+              objectFit: 'cover',
+              opacity: photoMode === 'hover' ? 1 : 0,
+              transform: photoMode === 'hover' ? 'scale(1)' : 'scale(1.08)',
+              transition: 'opacity 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)',
+              pointerEvents: 'none',
+            }}
+          />
+        )}
       </div>
 
       {/* Card Info Text */}
       <div className={styles.info}>
-        <h3 className={styles.name}>{member.name}</h3>
+        <h3 className={styles.name}>{isEmpty ? 'Belum Terisi' : member.name}</h3>
         <p className={styles.role}>{member.role}</p>
+        {isEmpty && <span className={styles.emptyBadge}>Open Slot</span>}
       </div>
     </div>
   );

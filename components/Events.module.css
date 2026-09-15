@@ -513,3 +513,27 @@
 [data-theme="light"] .cardFooter {
   border-top-color: rgba(0, 0, 0, 0.06);
 }
+
+/* Empty Event Placeholder States */
+.emptyCard {
+  border: 1px dashed rgba(59, 130, 246, 0.45) !important;
+  background: rgba(10, 22, 40, 0.6) !important;
+}
+
+.emptyCard:hover {
+  border-color: var(--accent-cyan) !important;
+  box-shadow: 0 0 25px rgba(0, 212, 255, 0.25) !important;
+}
+
+.emptyHeroCard {
+  border: 1px dashed rgba(59, 130, 246, 0.45) !important;
+  background: rgba(10, 22, 40, 0.5) !important;
+}
+
+.emptyCardLogo {
+  object-fit: contain;
+  opacity: 0.75;
+  filter: drop-shadow(0 0 15px rgba(59, 130, 246, 0.4));
+  margin: 1.5rem auto;
+  display: block;
+}

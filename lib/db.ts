@@ -1,6 +1,9 @@
 import { Pool } from 'pg';
 import fs from 'fs';
 import path from 'path';
+import { portfolios as defaultPortfolios, Portfolio } from '@/lib/data/portfolio';
+import { events as defaultEvents, Event } from '@/lib/data/events';
+import { photos as defaultPhotos, GalleryPhoto } from '@/lib/data/gallery';
 
 // Connection pool configuration
 const connectionString =
@@ -876,6 +879,285 @@ export async function updateAdminAccountInDb(
     return true;
   } catch (err) {
     console.error('PostgreSQL updateAdminAccount error:', err);
+    return false;
+  }
+}
+
+/**
+ * PORTFOLIO DB HANDLERS
+ */
+export async function getPortfoliosFromDb(): Promise<Portfolio[]> {
+  if (!pool) return defaultPortfolios;
+  try {
+    await initDb();
+    const res = await pool.query(`
+      SELECT 
+        id, 
+        title, 
+        description, 
+        division, 
+        year, 
+        COALESCE(image, '') AS image, 
+        COALESCE(tags, '{}') AS tags, 
+        COALESCE(is_partnership, false) AS "isPartnership", 
+        COALESCE(partner, '') AS partner, 
+        COALESCE(link, '') AS link 
+      FROM portfolios 
+      ORDER BY id ASC
+    `);
+    if (res.rows.length > 0) {
+      return res.rows.map((r: any) => ({
+        id: Number(r.id),
+        title: r.title,
+        description: r.description,
+        division: r.division,
+        year: Number(r.year) || 2026,
+        image: r.image,
+        tags: Array.isArray(r.tags) ? r.tags : [],
+        isPartnership: Boolean(r.isPartnership),
+        partner: r.partner,
+        link: r.link,
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.error('PostgreSQL getPortfoliosFromDb error:', err);
+    return defaultPortfolios;
+  }
+}
+
+export async function savePortfolioToDb(item: Partial<Portfolio>): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    if (item.id && typeof item.id === 'number') {
+      await pool.query(`
+        UPDATE portfolios SET 
+          title = $1, description = $2, division = $3, year = $4, image = $5, tags = $6, is_partnership = $7, partner = $8, link = $9
+        WHERE id = $10
+      `, [
+        item.title || '',
+        item.description || '',
+        item.division || 'programming',
+        item.year || 2026,
+        item.image || '',
+        item.tags || [],
+        Boolean(item.isPartnership),
+        item.partner || '',
+        item.link || '',
+        item.id
+      ]);
+    } else {
+      await pool.query(`
+        INSERT INTO portfolios (title, description, division, year, image, tags, is_partnership, partner, link)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+      `, [
+        item.title || '',
+        item.description || '',
+        item.division || 'programming',
+        item.year || 2026,
+        item.image || '',
+        item.tags || [],
+        Boolean(item.isPartnership),
+        item.partner || '',
+        item.link || '',
+      ]);
+    }
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL savePortfolioToDb error:', err);
+    return false;
+  }
+}
+
+export async function deletePortfolioFromDb(id: number | string): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    await pool.query('DELETE FROM portfolios WHERE id = $1', [Number(id)]);
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL deletePortfolioFromDb error:', err);
+    return false;
+  }
+}
+
+/**
+ * EVENTS DB HANDLERS
+ */
+export async function getEventsFromDb(): Promise<Event[]> {
+  if (!pool) return defaultEvents;
+  try {
+    await initDb();
+    const res = await pool.query(`
+      SELECT 
+        id, 
+        title, 
+        description, 
+        type, 
+        status, 
+        year, 
+        COALESCE(date, '') AS date, 
+        COALESCE(image, '') AS image, 
+        COALESCE(instagram, '') AS instagram, 
+        COALESCE(is_featured, false) AS "isFeatured", 
+        COALESCE(tags, '{}') AS tags 
+      FROM events 
+      ORDER BY id ASC
+    `);
+    if (res.rows.length > 0) {
+      return res.rows.map((r: any) => ({
+        id: Number(r.id),
+        title: r.title,
+        description: r.description,
+        type: r.type,
+        status: r.status,
+        year: Number(r.year) || 2026,
+        date: r.date,
+        image: r.image,
+        instagram: r.instagram,
+        isFeatured: Boolean(r.isFeatured),
+        tags: Array.isArray(r.tags) ? r.tags : [],
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.error('PostgreSQL getEventsFromDb error:', err);
+    return defaultEvents;
+  }
+}
+
+export async function saveEventToDb(item: Partial<Event>): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    if (item.id && typeof item.id === 'number') {
+      await pool.query(`
+        UPDATE events SET 
+          title = $1, description = $2, type = $3, status = $4, year = $5, date = $6, image = $7, instagram = $8, is_featured = $9, tags = $10
+        WHERE id = $11
+      `, [
+        item.title || '',
+        item.description || '',
+        item.type || 'annual',
+        item.status || 'upcoming',
+        item.year || 2026,
+        item.date || '',
+        item.image || '',
+        item.instagram || '',
+        Boolean(item.isFeatured),
+        item.tags || [],
+        item.id
+      ]);
+    } else {
+      await pool.query(`
+        INSERT INTO events (title, description, type, status, year, date, image, instagram, is_featured, tags)
+        VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+      `, [
+        item.title || '',
+        item.description || '',
+        item.type || 'annual',
+        item.status || 'upcoming',
+        item.year || 2026,
+        item.date || '',
+        item.image || '',
+        item.instagram || '',
+        Boolean(item.isFeatured),
+        item.tags || [],
+      ]);
+    }
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL saveEventToDb error:', err);
+    return false;
+  }
+}
+
+export async function deleteEventFromDb(id: number | string): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    await pool.query('DELETE FROM events WHERE id = $1', [Number(id)]);
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL deleteEventFromDb error:', err);
+    return false;
+  }
+}
+
+/**
+ * GALLERY DB HANDLERS
+ */
+export async function getGalleryPhotosFromDb(): Promise<GalleryPhoto[]> {
+  if (!pool) return defaultPhotos;
+  try {
+    await initDb();
+    const res = await pool.query(`
+      SELECT 
+        id, 
+        COALESCE(src, '') AS src, 
+        COALESCE(alt, '') AS alt, 
+        category, 
+        year 
+      FROM gallery_photos 
+      ORDER BY id ASC
+    `);
+    if (res.rows.length > 0) {
+      return res.rows.map((r: any) => ({
+        id: Number(r.id),
+        src: r.src,
+        alt: r.alt,
+        category: r.category,
+        year: Number(r.year) || 2026,
+      }));
+    }
+    return [];
+  } catch (err) {
+    console.error('PostgreSQL getGalleryPhotosFromDb error:', err);
+    return defaultPhotos;
+  }
+}
+
+export async function saveGalleryPhotoToDb(item: Partial<GalleryPhoto>): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    if (item.id && typeof item.id === 'number') {
+      await pool.query(`
+        UPDATE gallery_photos SET src = $1, alt = $2, category = $3, year = $4 WHERE id = $5
+      `, [
+        item.src || '',
+        item.alt || '',
+        item.category || 'workshop',
+        item.year || 2026,
+        item.id
+      ]);
+    } else {
+      await pool.query(`
+        INSERT INTO gallery_photos (src, alt, category, year)
+        VALUES ($1, $2, $3, $4)
+      `, [
+        item.src || '',
+        item.alt || '',
+        item.category || 'workshop',
+        item.year || 2026,
+      ]);
+    }
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL saveGalleryPhotoToDb error:', err);
+    return false;
+  }
+}
+
+export async function deleteGalleryPhotoFromDb(id: number | string): Promise<boolean> {
+  if (!pool) return false;
+  try {
+    await initDb();
+    await pool.query('DELETE FROM gallery_photos WHERE id = $1', [Number(id)]);
+    return true;
+  } catch (err) {
+    console.error('PostgreSQL deleteGalleryPhotoFromDb error:', err);
     return false;
   }
 }

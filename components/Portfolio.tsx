@@ -3,20 +3,32 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Image from 'next/image';
 import { useLang } from '@/lib/context/LangContext';
-import { portfolios, Division } from '@/lib/data/portfolio';
+import { portfolios as defaultPortfolios, Division, Portfolio as PortfolioItem } from '@/lib/data/portfolio';
 import styles from './Portfolio.module.css';
 
 type Filter = 'all' | Division;
 
-export default function Portfolio() {
+interface PortfolioProps {
+  initialData?: PortfolioItem[];
+}
+
+export default function Portfolio({ initialData }: PortfolioProps) {
   const { t } = useLang();
   const [filter, setFilter] = useState<Filter>('all');
-  const [isClient, setIsClient] = useState(false);
+  const [items, setItems] = useState<PortfolioItem[]>(
+    initialData && initialData.length > 0 ? initialData : defaultPortfolios
+  );
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
+  // Sync state if initialData prop updates
   useEffect(() => {
-    setIsClient(true);
+    if (initialData && initialData.length > 0) {
+      setItems(initialData);
+    }
+  }, [initialData]);
+
+  useEffect(() => {
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -27,6 +39,16 @@ export default function Portfolio() {
     if (sectionRef.current) {
       observer.observe(sectionRef.current);
     }
+
+    // Always ensure fresh data from database in background
+    fetch('/api/portfolio')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+          setItems(resData.data);
+        }
+      })
+      .catch(() => {});
 
     return () => observer.disconnect();
   }, []);
@@ -66,6 +88,8 @@ export default function Portfolio() {
     }
   };
 
+  const filteredItems = items.filter((item) => filter === 'all' || item.division === filter);
+
   return (
     <section id="portfolio" ref={sectionRef} className={`${styles.portfolio} ${isVisible ? styles.visible : ''}`}>
       <div className={styles.container}>
@@ -73,7 +97,7 @@ export default function Portfolio() {
           <div className={styles.labelWrapper}>
             <span className={styles.label}>{t?.portfolio?.label || 'Portofolio'}</span>
             <span className={styles.countBadge}>
-              {portfolios.filter((item) => filter === 'all' || item.division === filter).length} Proyek
+              {filteredItems.length} Proyek
             </span>
           </div>
           <h2 className={styles.title}>{t?.portfolio?.title || 'Karya & Proyek Kami'}</h2>
@@ -114,60 +138,134 @@ export default function Portfolio() {
         </div>
 
         <div className={styles.grid}>
-          {portfolios
-            .filter((item) => filter === 'all' || item.division === filter)
-            .map((item, index) => (
-              <div 
-                key={item.id} 
-                className={`${styles.card} ${isVisible ? styles.cardRevealed : ''}`}
-                style={{ transitionDelay: `${0.25 + index * 0.15}s` }}
-              >
-                <div className={styles.imageArea}>
-                  {item.image ? (
-                    <Image
-                      src={item.image}
-                      alt={item.title}
-                      fill
-                      className={styles.image}
-                    />
-                  ) : (
-                    <div className={styles.placeholderBox}>
-                      {getDivisionIcon(item.division)}
-                      <span className={styles.placeholderLabel}>{item.division}</span>
-                    </div>
-                  )}
-
-                  {/* Image Hover CTA Overlay */}
-                  <div className={styles.imageOverlay}>
-                    <span className={styles.viewBtn}>
-                      Lihat Proyek ↗
-                    </span>
-                  </div>
-
-                  {/* Collaboration Badge (Only Shown for Partnerships/Collaborations) */}
-                  {(item.isPartnership || item.division === 'partnership') && (
-                    <span className={styles.partnerBadge}>
-                      {item.partner ? `Partner: ${item.partner}` : 'Kolaborasi'}
-                    </span>
-                  )}
-                </div>
-
-                <div className={styles.content}>
-                  <div className={styles.cardMeta}>
-                    <span className={styles.yearTag}>{item.year}</span>
-                  </div>
-
-                  <h3 className={styles.cardTitle}>{item.title}</h3>
-                  <p className={styles.cardDesc}>{item.description}</p>
-
-                  <div className={styles.tags}>
-                    {item.tags.map((tag, i) => (
-                      <span key={i} className={styles.tag}>#{tag}</span>
-                    ))}
-                  </div>
+          {filteredItems.length === 0 ? (
+            /* Card Kosong / Empty State jika belum terisi */
+            <div 
+              className={`${styles.card} ${styles.emptyCard} ${isVisible ? styles.cardRevealed : ''}`}
+              style={{ transitionDelay: '0.25s' }}
+            >
+              <div className={styles.imageArea}>
+                <div className={styles.placeholderBox}>
+                  <Image
+                    src="/images/primary/cyberlogo.png"
+                    alt="Slot Kosong"
+                    width={90}
+                    height={90}
+                    className={styles.emptyCardLogo}
+                  />
+                  <span className={styles.emptySlotBadge}>Card Kosong / Belum Terisi</span>
                 </div>
               </div>
-            ))}
+
+              <div className={styles.content}>
+                <div className={styles.cardMeta}>
+                  <span className={styles.yearTag}>2026</span>
+                </div>
+
+                <h3 className={styles.cardTitle}>Proyek Segera Hadir</h3>
+                <p className={styles.cardDesc}>
+                  {filter === 'all'
+                    ? 'Belum ada data proyek terdaftar di database. Karya inovatif sedang dipersiapkan oleh anggota UKM.'
+                    : `Belum ada proyek untuk divisi ${filter}. Proyek divisi ini sedang dalam tahap pengerjaan.`}
+                </p>
+
+                <div className={styles.tags}>
+                  <span className={styles.tag}>#ComingSoon</span>
+                  <span className={styles.tag}>#CyberTech</span>
+                </div>
+              </div>
+            </div>
+          ) : (
+            filteredItems.map((item, index) => {
+              const isEmptyItem = !item.title || item.title.trim() === '';
+              const imageSrc = item.image || '/images/primary/cyberlogo.png';
+              const isExtOrData = Boolean(imageSrc.startsWith('data:') || imageSrc.startsWith('http'));
+
+              if (isEmptyItem) {
+                return (
+                  <div 
+                    key={item.id || index} 
+                    className={`${styles.card} ${styles.emptyCard} ${isVisible ? styles.cardRevealed : ''}`}
+                    style={{ transitionDelay: `${0.25 + index * 0.15}s` }}
+                  >
+                    <div className={styles.imageArea}>
+                      <div className={styles.placeholderBox}>
+                        <Image
+                          src="/images/primary/cyberlogo.png"
+                          alt="Slot Kosong"
+                          width={90}
+                          height={90}
+                          className={styles.emptyCardLogo}
+                        />
+                        <span className={styles.emptySlotBadge}>Slot Kosong</span>
+                      </div>
+                    </div>
+                    <div className={styles.content}>
+                      <div className={styles.cardMeta}>
+                        <span className={styles.yearTag}>{item.year || 2026}</span>
+                      </div>
+                      <h3 className={styles.cardTitle}>Slot Proyek Kosong</h3>
+                      <p className={styles.cardDesc}>Data proyek belum diisi di database admin.</p>
+                    </div>
+                  </div>
+                );
+              }
+
+              return (
+                <div 
+                  key={item.id} 
+                  className={`${styles.card} ${isVisible ? styles.cardRevealed : ''}`}
+                  style={{ transitionDelay: `${0.25 + index * 0.15}s` }}
+                >
+                  <div className={styles.imageArea}>
+                    {item.image ? (
+                      <Image
+                        src={item.image}
+                        alt={item.title}
+                        fill
+                        unoptimized={isExtOrData}
+                        className={styles.image}
+                      />
+                    ) : (
+                      <div className={styles.placeholderBox}>
+                        {getDivisionIcon(item.division)}
+                        <span className={styles.placeholderLabel}>{item.division}</span>
+                      </div>
+                    )}
+
+                    {/* Image Hover CTA Overlay */}
+                    <div className={styles.imageOverlay}>
+                      <span className={styles.viewBtn}>
+                        Lihat Proyek ↗
+                      </span>
+                    </div>
+
+                    {/* Collaboration Badge (Only Shown for Partnerships/Collaborations) */}
+                    {(item.isPartnership || item.division === 'partnership') && (
+                      <span className={styles.partnerBadge}>
+                        {item.partner ? `Partner: ${item.partner}` : 'Kolaborasi'}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className={styles.content}>
+                    <div className={styles.cardMeta}>
+                      <span className={styles.yearTag}>{item.year}</span>
+                    </div>
+
+                    <h3 className={styles.cardTitle}>{item.title}</h3>
+                    <p className={styles.cardDesc}>{item.description}</p>
+
+                    <div className={styles.tags}>
+                      {Array.isArray(item.tags) && item.tags.map((tag, i) => (
+                        <span key={i} className={styles.tag}>#{tag}</span>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              );
+            })
+          )}
         </div>
       </div>
     </section>

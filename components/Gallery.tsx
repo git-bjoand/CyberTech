@@ -4,15 +4,29 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import Image from 'next/image';
 import styles from './Gallery.module.css';
 import { useLang } from '@/lib/context/LangContext';
-import { photos, GalleryCategory } from '@/lib/data/gallery';
+import { photos as defaultPhotos, GalleryPhoto, GalleryCategory } from '@/lib/data/gallery';
 
-export default function Gallery() {
+interface GalleryProps {
+  initialData?: GalleryPhoto[];
+}
+
+export default function Gallery({ initialData }: GalleryProps) {
   const { t } = useLang();
   const [filter, setFilter] = useState<GalleryCategory | 'all'>('all');
+  const [allPhotos, setAllPhotos] = useState<GalleryPhoto[]>(
+    initialData && initialData.length > 0 ? initialData : defaultPhotos
+  );
   const [lightboxIndex, setLightboxIndex] = useState<number | null>(null);
   const [isPaused, setIsPaused] = useState(false);
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
+
+  // Sync state if initialData prop updates
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      setAllPhotos(initialData);
+    }
+  }, [initialData]);
 
   // Entrance intersection observer
   useEffect(() => {
@@ -27,13 +41,29 @@ export default function Gallery() {
       observer.observe(sectionRef.current);
     }
 
+    // Always ensure fresh data from database in background
+    fetch('/api/gallery')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+          setAllPhotos(resData.data);
+        }
+      })
+      .catch(() => {});
+
     return () => observer.disconnect();
   }, []);
 
-  // Filtered photos
-  const filteredPhotos = photos.filter(
+  // Filtered photos with fallback to empty placeholder cards if empty
+  const filteredPhotos = allPhotos.filter(
     (photo) => filter === 'all' || photo.category === filter
   );
+
+  const effectivePhotos = filteredPhotos.length > 0 ? filteredPhotos : [
+    { id: 101, src: '', alt: 'Dokumentasi Segera Hadir', category: (filter === 'all' ? 'workshop' : filter) as any, year: 2026 },
+    { id: 102, src: '', alt: 'Foto Kegiatan Mendatang', category: (filter === 'all' ? 'hackathon' : filter) as any, year: 2026 },
+    { id: 103, src: '', alt: 'Momen CyberTech 2026', category: (filter === 'all' ? 'internal' : filter) as any, year: 2026 },
+  ];
 
   // Lightbox handlers
   const openLightbox = (index: number) => {
@@ -47,16 +77,16 @@ export default function Gallery() {
   const showPrevLightbox = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex - 1 + filteredPhotos.length) % filteredPhotos.length);
+      setLightboxIndex((lightboxIndex - 1 + effectivePhotos.length) % effectivePhotos.length);
     }
-  }, [lightboxIndex, filteredPhotos.length]);
+  }, [lightboxIndex, effectivePhotos.length]);
 
   const showNextLightbox = useCallback((e?: React.MouseEvent) => {
     e?.stopPropagation();
     if (lightboxIndex !== null) {
-      setLightboxIndex((lightboxIndex + 1) % filteredPhotos.length);
+      setLightboxIndex((lightboxIndex + 1) % effectivePhotos.length);
     }
-  }, [lightboxIndex, filteredPhotos.length]);
+  }, [lightboxIndex, effectivePhotos.length]);
 
   // Keyboard navigation for Lightbox
   useEffect(() => {
@@ -90,9 +120,9 @@ export default function Gallery() {
   };
 
   // Split filtered photos into 3 masonry columns
-  const col1 = filteredPhotos.filter((_, i) => i % 3 === 0);
-  const col2 = filteredPhotos.filter((_, i) => i % 3 === 1);
-  const col3 = filteredPhotos.filter((_, i) => i % 3 === 2);
+  const col1 = effectivePhotos.filter((_, i) => i % 3 === 0);
+  const col2 = effectivePhotos.filter((_, i) => i % 3 === 1);
+  const col3 = effectivePhotos.filter((_, i) => i % 3 === 2);
 
   // Duplicate columns for seamless infinite auto-scrolling marquee loop
   const dupCol1 = [...col1, ...col1];
@@ -145,92 +175,125 @@ export default function Gallery() {
       >
         {/* Column 1 - Auto-Scroll Up */}
         <div className={`${styles.masonryColumn} ${styles.scrollUp} ${isPaused ? styles.paused : ''}`}>
-          {dupCol1.map((photo, index) => (
-            <div
-              key={`${photo.id}-1-${index}`}
-              className={styles.masonryCard}
-              onClick={() => openLightbox(index % (col1.length || 1))}
-            >
-              {photo.src ? (
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={500}
-                  height={index % 2 === 0 ? 320 : 240}
-                  className={styles.image}
-                />
-              ) : (
-                <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '300px' : '220px' }}>
-                  <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
-                  <span className={styles.placeholderText}>{photo.category}</span>
+          {dupCol1.map((photo, index) => {
+            const isExtOrData = Boolean(photo.src && (photo.src.startsWith('data:') || photo.src.startsWith('http')));
+            return (
+              <div
+                key={`${photo.id}-1-${index}`}
+                className={styles.masonryCard}
+                onClick={() => openLightbox(index % (col1.length || 1))}
+              >
+                {photo.src ? (
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={500}
+                    height={index % 2 === 0 ? 320 : 240}
+                    unoptimized={isExtOrData}
+                    className={styles.image}
+                  />
+                ) : (
+                  <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '300px' : '220px' }}>
+                    <Image
+                      src="/images/primary/cyberlogo.png"
+                      alt={photo.alt || 'CyberTech PNP'}
+                      width={64}
+                      height={64}
+                      style={{ opacity: 0.65, objectFit: 'contain', marginBottom: '8px' }}
+                    />
+                    <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
+                    <span className={styles.placeholderText}>{photo.category}</span>
+                  </div>
+                )}
+                <div className={styles.overlay}>
+                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.altText}>{photo.alt}</span>
                 </div>
-              )}
-              <div className={styles.overlay}>
-                <span className={styles.zoomIcon}>🔍</span>
-                <span className={styles.altText}>{photo.alt}</span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Column 2 - Auto-Scroll Down */}
         <div className={`${styles.masonryColumn} ${styles.scrollDown} ${isPaused ? styles.paused : ''}`}>
-          {dupCol2.map((photo, index) => (
-            <div
-              key={`${photo.id}-2-${index}`}
-              className={styles.masonryCard}
-              onClick={() => openLightbox(index % (col2.length || 1))}
-            >
-              {photo.src ? (
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={500}
-                  height={index % 2 === 0 ? 250 : 340}
-                  className={styles.image}
-                />
-              ) : (
-                <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '240px' : '320px' }}>
-                  <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
-                  <span className={styles.placeholderText}>{photo.category}</span>
+          {dupCol2.map((photo, index) => {
+            const isExtOrData = Boolean(photo.src && (photo.src.startsWith('data:') || photo.src.startsWith('http')));
+            return (
+              <div
+                key={`${photo.id}-2-${index}`}
+                className={styles.masonryCard}
+                onClick={() => openLightbox(index % (col2.length || 1))}
+              >
+                {photo.src ? (
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={500}
+                    height={index % 2 === 0 ? 250 : 340}
+                    unoptimized={isExtOrData}
+                    className={styles.image}
+                  />
+                ) : (
+                  <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '240px' : '320px' }}>
+                    <Image
+                      src="/images/primary/cyberlogo.png"
+                      alt={photo.alt || 'CyberTech PNP'}
+                      width={64}
+                      height={64}
+                      style={{ opacity: 0.65, objectFit: 'contain', marginBottom: '8px' }}
+                    />
+                    <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
+                    <span className={styles.placeholderText}>{photo.category}</span>
+                  </div>
+                )}
+                <div className={styles.overlay}>
+                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.altText}>{photo.alt}</span>
                 </div>
-              )}
-              <div className={styles.overlay}>
-                <span className={styles.zoomIcon}>🔍</span>
-                <span className={styles.altText}>{photo.alt}</span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
 
         {/* Column 3 - Auto-Scroll Up */}
         <div className={`${styles.masonryColumn} ${styles.scrollUp} ${isPaused ? styles.paused : ''}`}>
-          {dupCol3.map((photo, index) => (
-            <div
-              key={`${photo.id}-3-${index}`}
-              className={styles.masonryCard}
-              onClick={() => openLightbox(index % (col3.length || 1))}
-            >
-              {photo.src ? (
-                <Image
-                  src={photo.src}
-                  alt={photo.alt}
-                  width={500}
-                  height={index % 2 === 0 ? 300 : 220}
-                  className={styles.image}
-                />
-              ) : (
-                <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '280px' : '230px' }}>
-                  <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
-                  <span className={styles.placeholderText}>{photo.category}</span>
+          {dupCol3.map((photo, index) => {
+            const isExtOrData = Boolean(photo.src && (photo.src.startsWith('data:') || photo.src.startsWith('http')));
+            return (
+              <div
+                key={`${photo.id}-3-${index}`}
+                className={styles.masonryCard}
+                onClick={() => openLightbox(index % (col3.length || 1))}
+              >
+                {photo.src ? (
+                  <Image
+                    src={photo.src}
+                    alt={photo.alt}
+                    width={500}
+                    height={index % 2 === 0 ? 300 : 220}
+                    unoptimized={isExtOrData}
+                    className={styles.image}
+                  />
+                ) : (
+                  <div className={styles.placeholder} style={{ height: index % 2 === 0 ? '280px' : '230px' }}>
+                    <Image
+                      src="/images/primary/cyberlogo.png"
+                      alt={photo.alt || 'CyberTech PNP'}
+                      width={64}
+                      height={64}
+                      style={{ opacity: 0.65, objectFit: 'contain', marginBottom: '8px' }}
+                    />
+                    <span className={styles.placeholderIcon}>{getCategoryIcon(photo.category)}</span>
+                    <span className={styles.placeholderText}>{photo.category}</span>
+                  </div>
+                )}
+                <div className={styles.overlay}>
+                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.altText}>{photo.alt}</span>
                 </div>
-              )}
-              <div className={styles.overlay}>
-                <span className={styles.zoomIcon}>🔍</span>
-                <span className={styles.altText}>{photo.alt}</span>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       </div>
 

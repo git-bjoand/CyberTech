@@ -9,11 +9,17 @@ import Gallery from '@/components/Gallery';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
 import { getStructureListAsync } from '@/lib/data/structure-store';
+import { getPortfoliosFromDb, getEventsFromDb, getGalleryPhotosFromDb } from '@/lib/db';
 
 export const dynamic = 'force-dynamic';
 
 export default async function HomePage() {
-  const structureData = await getStructureListAsync();
+  const [structureData, portfolioData, eventsData, galleryData] = await Promise.all([
+    getStructureListAsync(),
+    getPortfoliosFromDb(),
+    getEventsFromDb(),
+    getGalleryPhotosFromDb(),
+  ]);
 
   return (
     <>
@@ -29,16 +35,16 @@ export default async function HomePage() {
           <Division />
         </section>
         <section id="portfolio" className="section-even">
-          <Portfolio />
+          <Portfolio initialData={portfolioData} />
         </section>
         <section id="events" className="section-odd">
-          <Events />
+          <Events initialData={eventsData} />
         </section>
         <section id="structure" className="section-even">
           <Structure initialData={structureData} />
         </section>
         <section id="gallery" className="section-odd">
-          <Gallery />
+          <Gallery initialData={galleryData} />
         </section>
       </main>
       <Footer />
