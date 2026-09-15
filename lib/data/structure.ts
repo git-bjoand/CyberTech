@@ -106,7 +106,7 @@ export const level4: Member[] = [
   {
     id: 10,
     name: 'Bagastio Putra Joandri',
-    role: 'Kepala Divisi Programming',
+    role: 'PLT Divisi Programming',
     photo: '/images/primary/cyberlogo.png',
     photo2: '/images/primary/programming.png',
     level: 'divisi',

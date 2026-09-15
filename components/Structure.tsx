@@ -155,16 +155,111 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   );
 };
 
-export default function Structure() {
+export function parseDphNodes(all: any[]) {
+  // Level 1: Ketua Umum
+  const foundKetua = all.find((m) => Number(m.level) === 1 || m.role?.toLowerCase().includes('ketua umum'));
+  const ketua: Member = foundKetua ? {
+    id: typeof foundKetua.id === 'number' ? foundKetua.id : 1,
+    name: foundKetua.name,
+    role: foundKetua.role,
+    photo: foundKetua.photo || '/images/primary/cyberlogo.png',
+    photo2: foundKetua.photo2 || foundKetua.photo || '/images/primary/maskot.png',
+    level: 'ketua',
+  } : ketuaUmum;
+
+  // Level 2: Sekretaris Umum, Wakil Ketua Umum, Bendahara Umum
+  const foundL2 = all.filter((m) => Number(m.level) === 2);
+  const sortedL2 = [...foundL2].sort((a, b) => {
+    const order = (role: string) => {
+      const s = (role || '').toLowerCase();
+      if (s.includes('sekretaris')) return 1;
+      if (s.includes('wakil')) return 2;
+      if (s.includes('bendahara')) return 3;
+      return 4;
+    };
+    return order(a.role) - order(b.role);
+  });
+  const l2: Member[] = sortedL2.length > 0 ? sortedL2.map((m, idx) => ({
+    id: typeof m.id === 'number' ? m.id : idx + 2,
+    name: m.name,
+    role: m.role,
+    photo: m.photo || '/images/primary/cyberlogo.png',
+    photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+    level: (m.role?.toLowerCase().includes('wakil') ? 'wakil' : 'sekretaris_bendahara') as any,
+  })) : level2;
+
+  // Level 3: Kepala Departemen (HRD, PR, CIM, IT)
+  const foundL3 = all.filter((m) => Number(m.level) === 3);
+  const sortedL3 = [...foundL3].sort((a, b) => {
+    const order = (role: string) => {
+      const s = (role || '').toLowerCase();
+      if (s.includes('hrd')) return 1;
+      if (s.includes('pr')) return 2;
+      if (s.includes('cim')) return 3;
+      if (s.includes('it')) return 4;
+      return 5;
+    };
+    return order(a.role) - order(b.role);
+  });
+  const l3: Member[] = sortedL3.length > 0 ? sortedL3.map((m, idx) => ({
+    id: typeof m.id === 'number' ? m.id : idx + 5,
+    name: m.name,
+    role: m.role,
+    photo: m.photo || '/images/primary/cyberlogo.png',
+    photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+    level: 'departemen',
+  })) : level3;
+
+  // Level 4: Kepala Divisi (Networking, Programming, Multimedia)
+  const foundL4 = all.filter((m) => Number(m.level) === 4);
+  const sortedL4 = [...foundL4].sort((a, b) => {
+    const order = (role: string) => {
+      const s = (role || '').toLowerCase();
+      if (s.includes('networking')) return 1;
+      if (s.includes('programming')) return 2;
+      if (s.includes('multimedia')) return 3;
+      return 4;
+    };
+    return order(a.role) - order(b.role);
+  });
+  const l4: Member[] = sortedL4.length > 0 ? sortedL4.map((m, idx) => ({
+    id: typeof m.id === 'number' ? m.id : idx + 9,
+    name: m.name,
+    role: m.role,
+    photo: m.photo || '/images/primary/cyberlogo.png',
+    photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+    level: 'divisi',
+  })) : level4;
+
+  return { ketua, l2, l3, l4 };
+}
+
+interface StructureProps {
+  initialData?: any[];
+}
+
+export default function Structure({ initialData }: StructureProps) {
   const { t } = useLang();
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
-  // Dynamic DPH state from PostgreSQL Database
-  const [ketua, setKetua] = useState<Member>(ketuaUmum);
-  const [l2, setL2] = useState<Member[]>(level2);
-  const [l3, setL3] = useState<Member[]>(level3);
-  const [l4, setL4] = useState<Member[]>(level4);
+  // Initialize with server-fetched database data instantly (no delay or flash of old static text)
+  const initialParsed = initialData && initialData.length > 0 ? parseDphNodes(initialData) : null;
+  const [ketua, setKetua] = useState<Member>(initialParsed ? initialParsed.ketua : ketuaUmum);
+  const [l2, setL2] = useState<Member[]>(initialParsed ? initialParsed.l2 : level2);
+  const [l3, setL3] = useState<Member[]>(initialParsed ? initialParsed.l3 : level3);
+  const [l4, setL4] = useState<Member[]>(initialParsed ? initialParsed.l4 : level4);
+
+  // Sync state immediately if initialData prop updates
+  useEffect(() => {
+    if (initialData && initialData.length > 0) {
+      const parsed = parseDphNodes(initialData);
+      setKetua(parsed.ketua);
+      setL2(parsed.l2);
+      setL3(parsed.l3);
+      setL4(parsed.l4);
+    }
+  }, [initialData]);
 
   useEffect(() => {
     // Intersection observer for section entrance animation
@@ -179,95 +274,16 @@ export default function Structure() {
       observer.observe(sectionRef.current);
     }
 
-    // Fetch dynamic DPH structure from database
+    // Always ensure fresh data from database in background
     fetch('/api/structure')
       .then((res) => res.json())
       .then((resData) => {
         if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
-          const all: any[] = resData.data;
-
-          // Level 1: Ketua Umum
-          const foundKetua = all.find((m) => m.level === 1 || m.role?.toLowerCase().includes('ketua umum'));
-          if (foundKetua) {
-            setKetua({
-              id: typeof foundKetua.id === 'number' ? foundKetua.id : 1,
-              name: foundKetua.name,
-              role: foundKetua.role,
-              photo: foundKetua.photo || '/images/primary/cyberlogo.png',
-              photo2: foundKetua.photo2 || foundKetua.photo || '/images/primary/maskot.png',
-              level: 'ketua',
-            });
-          }
-
-          // Level 2: Sekretaris Umum, Wakil Ketua Umum, Bendahara Umum
-          const foundL2 = all.filter((m) => m.level === 2);
-          if (foundL2.length > 0) {
-            const sortedL2 = [...foundL2].sort((a, b) => {
-              const order = (role: string) => {
-                const s = (role || '').toLowerCase();
-                if (s.includes('sekretaris')) return 1;
-                if (s.includes('wakil')) return 2;
-                if (s.includes('bendahara')) return 3;
-                return 4;
-              };
-              return order(a.role) - order(b.role);
-            });
-            setL2(sortedL2.map((m, idx) => ({
-              id: typeof m.id === 'number' ? m.id : idx + 2,
-              name: m.name,
-              role: m.role,
-              photo: m.photo || '/images/primary/cyberlogo.png',
-              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
-              level: (m.role?.toLowerCase().includes('wakil') ? 'wakil' : 'sekretaris_bendahara') as any,
-            })));
-          }
-
-          // Level 3: Kepala Departemen (HRD, PR, CIM, IT)
-          const foundL3 = all.filter((m) => m.level === 3);
-          if (foundL3.length > 0) {
-            const sortedL3 = [...foundL3].sort((a, b) => {
-              const order = (role: string) => {
-                const s = (role || '').toLowerCase();
-                if (s.includes('hrd')) return 1;
-                if (s.includes('pr')) return 2;
-                if (s.includes('cim')) return 3;
-                if (s.includes('it')) return 4;
-                return 5;
-              };
-              return order(a.role) - order(b.role);
-            });
-            setL3(sortedL3.map((m, idx) => ({
-              id: typeof m.id === 'number' ? m.id : idx + 5,
-              name: m.name,
-              role: m.role,
-              photo: m.photo || '/images/primary/cyberlogo.png',
-              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
-              level: 'departemen',
-            })));
-          }
-
-          // Level 4: Kepala Divisi (Networking, Programming, Multimedia)
-          const foundL4 = all.filter((m) => m.level === 4);
-          if (foundL4.length > 0) {
-            const sortedL4 = [...foundL4].sort((a, b) => {
-              const order = (role: string) => {
-                const s = (role || '').toLowerCase();
-                if (s.includes('networking')) return 1;
-                if (s.includes('programming')) return 2;
-                if (s.includes('multimedia')) return 3;
-                return 4;
-              };
-              return order(a.role) - order(b.role);
-            });
-            setL4(sortedL4.map((m, idx) => ({
-              id: typeof m.id === 'number' ? m.id : idx + 9,
-              name: m.name,
-              role: m.role,
-              photo: m.photo || '/images/primary/cyberlogo.png',
-              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
-              level: 'divisi',
-            })));
-          }
+          const parsed = parseDphNodes(resData.data);
+          setKetua(parsed.ketua);
+          setL2(parsed.l2);
+          setL3(parsed.l3);
+          setL4(parsed.l4);
         }
       })
       .catch((err) => {

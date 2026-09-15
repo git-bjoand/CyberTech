@@ -8,8 +8,13 @@ import Structure from '@/components/Structure';
 import Gallery from '@/components/Gallery';
 import Footer from '@/components/Footer';
 import Chatbot from '@/components/Chatbot';
+import { getStructureListAsync } from '@/lib/data/structure-store';
 
-export default function HomePage() {
+export const dynamic = 'force-dynamic';
+
+export default async function HomePage() {
+  const structureData = await getStructureListAsync();
+
   return (
     <>
       <Navbar />
@@ -30,7 +35,7 @@ export default function HomePage() {
           <Events />
         </section>
         <section id="structure" className="section-even">
-          <Structure />
+          <Structure initialData={structureData} />
         </section>
         <section id="gallery" className="section-odd">
           <Gallery />
