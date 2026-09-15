@@ -93,17 +93,6 @@
   padding-top: 0px;
 }
 
-/* Vertical stem descending from above into row center */
-.treeRowStemIn {
-  position: absolute;
-  top: 0;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 36px;
-  background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), var(--accent-cyan));
-}
-
 /* Each node wrapper in a dynamic row */
 .treeNodeWrapper {
   position: relative;
@@ -124,15 +113,18 @@
   background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), var(--accent-cyan), rgba(59, 130, 246, 0.45));
 }
 
-.treeNodeWrapper:first-child::before {
+.treeNodeWrapper:first-child::before,
+.treeNodeWrapper:first-of-type::before {
   left: 50%;
 }
 
-.treeNodeWrapper:last-child::before {
+.treeNodeWrapper:last-child::before,
+.treeNodeWrapper:last-of-type::before {
   right: 50%;
 }
 
-.treeNodeWrapper:only-child::before {
+.treeNodeWrapper:only-child::before,
+.treeNodeWrapper:first-child:last-child::before {
   display: none;
 }
 
@@ -191,15 +183,18 @@
   background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), var(--accent-cyan), rgba(59, 130, 246, 0.45));
 }
 
-.subTreeNodeWrapper:first-child::before {
+.subTreeNodeWrapper:first-child::before,
+.subTreeNodeWrapper:first-of-type::before {
   left: 50%;
 }
 
-.subTreeNodeWrapper:last-child::before {
+.subTreeNodeWrapper:last-child::before,
+.subTreeNodeWrapper:last-of-type::before {
   right: 50%;
 }
 
-.subTreeNodeWrapper:only-child::before {
+.subTreeNodeWrapper:only-child::before,
+.subTreeNodeWrapper:first-child:last-child::before {
   display: none;
 }
 
@@ -493,8 +488,7 @@
 }
 
 [data-theme="light"] .verticalStem,
-[data-theme="light"] .subBranchStemDown,
-[data-theme="light"] .treeRowStemIn {
+[data-theme="light"] .subBranchStemDown {
   background: rgba(37, 99, 235, 0.4);
 }
 

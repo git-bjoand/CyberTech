@@ -338,7 +338,6 @@ export default function Structure({ initialData }: StructureProps) {
           {/* Dynamic Row for Level 2 (Executive Core / BPH) */}
           {l2.length > 0 && (
             <div className={styles.treeRow}>
-              <div className={styles.treeRowStemIn} />
               {l2.map((member, idx) => (
                 <div key={member.id || `l2-${idx}`} className={styles.treeNodeWrapper}>
                   <StructureCard member={member} index={idx + 1} />
@@ -353,7 +352,6 @@ export default function Structure({ initialData }: StructureProps) {
           {/* Dynamic Row for Level 3 (Departments) & their dynamic children attached via parentId */}
           {l3.length > 0 && (
             <div className={styles.treeRow}>
-              <div className={styles.treeRowStemIn} />
               {l3.map((dept, deptIdx) => {
                 // Find all direct children of this department (e.g. Divisi Networking, Programming, Multimedia under IT)
                 const deptChildren = getChildrenOf(dept.positionId);
