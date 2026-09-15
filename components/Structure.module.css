@@ -5,10 +5,8 @@
   color: var(--text-primary);
   border-top: 1px solid var(--border-subtle);
   border-bottom: 1px solid var(--border-subtle);
-  opacity: 0;
-  transform: translateY(35px);
+  opacity: 1;
   transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
-  will-change: opacity, transform;
 }
 
 .container.visible {
@@ -77,21 +75,6 @@
   margin: 0 auto;
 }
 
-.verticalStemTop {
-  display: none;
-}
-
-.verticalStemBottom {
-  width: 2px;
-  height: 28px;
-  background: linear-gradient(180deg, var(--accent-cyan), rgba(59, 130, 246, 0.4));
-  margin: 0 auto;
-}
-
-.verticalStemCenterL2 {
-  display: none;
-}
-
 /* Level 1: Root (Ketua Umum) */
 .treeLevel1 {
   display: flex;
@@ -106,8 +89,8 @@
   justify-content: center;
   align-items: flex-start;
   position: relative;
-  margin: 0 auto 28px auto;
-  padding-top: 24px;
+  margin: 0 auto 24px auto;
+  padding-top: 0px;
 }
 
 /* Vertical stem descending from above into row center */
@@ -117,7 +100,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 2px;
-  height: 24px;
+  height: 36px;
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), var(--accent-cyan));
 }
 
@@ -161,7 +144,7 @@
   left: 50%;
   transform: translateX(-50%);
   width: 2px;
-  height: 24px;
+  height: 36px;
   background: rgba(59, 130, 246, 0.4);
 }
 
@@ -172,12 +155,12 @@
   align-items: center;
   position: relative;
   width: 100%;
-  margin-top: 14px;
+  margin-top: 20px;
 }
 
 .subBranchStemDown {
   width: 2px;
-  height: 24px;
+  height: 36px;
   background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), var(--accent-cyan));
   margin: 0 auto;
 }
@@ -187,7 +170,7 @@
   justify-content: center;
   align-items: flex-start;
   position: relative;
-  padding-top: 24px;
+  padding-top: 36px;
 }
 
 .subTreeNodeWrapper {
@@ -227,20 +210,15 @@
   left: 50%;
   transform: translateX(-50%);
   width: 2px;
-  height: 24px;
+  height: 36px;
   background: rgba(59, 130, 246, 0.4);
-}
-
-.treeNode {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
 }
 
 /* ===== Card ===== */
 .card {
   background: var(--bg-card);
   border: 1px solid var(--border-default);
+  margin-top: 36px;
   border-radius: 12px;
   padding: 0.75rem;
   display: flex;
@@ -299,9 +277,9 @@
 .activeState {
   border-color: var(--accent-cyan) !important;
   box-shadow: var(--shadow-glow-cyan), 0 0 25px rgba(0, 212, 255, 0.35) !important;
-  transform: translateY(-4px) scale(1.02);
+  transform: translateY(2px) scale(1.02);
   background: #030814 !important;
-  z-index: 20;
+  z-index: 5;
 }
 
 /* Active State: Avatar Circle Organically Expands into a Large Rounded Box */
@@ -515,15 +493,19 @@
 }
 
 [data-theme="light"] .verticalStem,
-[data-theme="light"] .verticalStemTop,
-[data-theme="light"] .verticalStemBottom {
-  background: rgba(37, 99, 235, 0.35);
+[data-theme="light"] .subBranchStemDown,
+[data-theme="light"] .treeRowStemIn {
+  background: rgba(37, 99, 235, 0.4);
 }
 
-[data-theme="light"] .horizontalBarL2,
-[data-theme="light"] .horizontalBarL3,
-[data-theme="light"] .horizontalBarL4 {
-  background: linear-gradient(90deg, rgba(37, 99, 235, 0.2), #2563eb, rgba(37, 99, 235, 0.2));
+[data-theme="light"] .treeNodeWrapper::before,
+[data-theme="light"] .subTreeNodeWrapper::before {
+  background: linear-gradient(90deg, rgba(37, 99, 235, 0.3), #2563eb, rgba(37, 99, 235, 0.3));
+}
+
+[data-theme="light"] .treeNodeWrapper::after,
+[data-theme="light"] .subTreeNodeWrapper::after {
+  background: rgba(37, 99, 235, 0.4);
 }
 
 [data-theme="light"] .card {

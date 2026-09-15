@@ -263,7 +263,7 @@ interface StructureProps {
 
 export default function Structure({ initialData }: StructureProps) {
   const { t } = useLang();
-  const [isVisible, setIsVisible] = useState(false);
+  const [isVisible, setIsVisible] = useState(true);
   const sectionRef = useRef<HTMLElement>(null);
 
   const initialParsed = initialData && initialData.length > 0 ? parseDphNodes(initialData) : null;
