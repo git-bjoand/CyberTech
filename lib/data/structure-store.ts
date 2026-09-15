@@ -164,10 +164,12 @@ export async function getStructureListAsync(): Promise<StructureNode[]> {
         }
       }
 
-      return dedupedPositions.map((pos) => {
+      const result: StructureNode[] = [];
+      for (const pos of dedupedPositions) {
         const officer = officers.find((o) => o.positionId === pos.id);
-        if (officer) {
-          return {
+        // "kalau dia belum terisi dia gk tampil jadi jangan ada open slot gituuu"
+        if (officer && officer.name && officer.name.trim() !== '' && !officer.name.toLowerCase().includes('belum terisi')) {
+          result.push({
             id: officer.id,
             name: officer.name,
             role: pos.title,
@@ -178,23 +180,10 @@ export async function getStructureListAsync(): Promise<StructureNode[]> {
             photo: officer.photo || '/images/primary/cyberlogo.png',
             photo2: officer.photo2 || officer.photo || '/images/primary/maskot.png',
             period: officer.period || '2025/2026',
-          };
+          });
         }
-
-        // Vacant position (e.g. newly added "staff ahli mechine learning" in DB)
-        return {
-          id: `vacant-${pos.id}`,
-          name: 'Belum Terisi',
-          role: pos.title,
-          description: pos.description,
-          level: Number(pos.level),
-          parentId: pos.parentId,
-          positionId: pos.id,
-          photo: '/images/primary/cyberlogo.png',
-          photo2: '/images/primary/maskot.png',
-          period: '2025/2026',
-        };
-      });
+      }
+      return result;
     }
   } catch (err) {
     console.error('getStructureListAsync error:', err);
@@ -222,10 +211,11 @@ export function getStructureList(): StructureNode[] {
     }
   }
 
-  return dedupedPositions.map((pos) => {
+  const result: StructureNode[] = [];
+  for (const pos of dedupedPositions) {
     const officer = officers.find((o) => o.positionId === pos.id);
-    if (officer) {
-      return {
+    if (officer && officer.name && officer.name.trim() !== '' && !officer.name.toLowerCase().includes('belum terisi')) {
+      result.push({
         id: officer.id,
         name: officer.name,
         role: pos.title,
@@ -236,22 +226,10 @@ export function getStructureList(): StructureNode[] {
         photo: officer.photo || '/images/primary/cyberlogo.png',
         photo2: officer.photo2 || officer.photo || '/images/primary/maskot.png',
         period: officer.period || '2025/2026',
-      };
+      });
     }
-
-    return {
-      id: `vacant-${pos.id}`,
-      name: 'Belum Terisi',
-      role: pos.title,
-      description: pos.description,
-      level: Number(pos.level),
-      parentId: pos.parentId,
-      positionId: pos.id,
-      photo: '/images/primary/cyberlogo.png',
-      photo2: '/images/primary/maskot.png',
-      period: '2025/2026',
-    };
-  });
+  }
+  return result;
 }
 
 export function saveStructureList(list: StructureNode[]): boolean {

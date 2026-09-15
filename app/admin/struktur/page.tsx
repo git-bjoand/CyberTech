@@ -652,19 +652,27 @@ export default function AdminStrukturPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
                 <div>
                   <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
-                    Tingkat Level Hirarki
+                    Tingkat Level Hirarki (Angka) <span style={{ color: '#ef4444' }}>*</span>
                   </label>
-                  <select
+                  <input
+                    type="number"
+                    min={0}
+                    max={10}
+                    step={1}
                     value={posLevel}
-                    onChange={(e) => setPosLevel(Number(e.target.value))}
+                    onChange={(e) => setPosLevel(parseInt(e.target.value, 10) || 0)}
+                    placeholder="Masukkan angka level (0 - 5)"
                     style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
-                  >
-                    <option value={0}>Level 0: Pembina Org</option>
-                    <option value={1}>Level 1: Pimpinan Utama (Ketum)</option>
-                    <option value={2}>Level 2: BPH / Komisi / Badan Khusus</option>
-                    <option value={3}>Level 3: Departemen</option>
-                    <option value={4}>Level 4: Divisi / Sub-Struktur</option>
-                  </select>
+                    required
+                  />
+                  <div style={{ marginTop: '0.45rem', fontSize: '0.75rem', color: 'var(--admin-text-muted)', lineHeight: '1.45', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.5rem 0.65rem', borderRadius: '4px' }}>
+                    <div style={{ fontWeight: 700, color: 'var(--accent-cyan, #38bdf8)', marginBottom: '0.2rem' }}>💡 Panduan Tingkatan Level:</div>
+                    <div><strong>Level 0:</strong> Pembina (Disimpan di sistem, disembunyikan di landing)</div>
+                    <div><strong>Level 1:</strong> Pimpinan Tertinggi (Ketua Umum)</div>
+                    <div><strong>Level 2:</strong> Pengurus Harian Inti (Sekretaris Umum, Wakil Ketum, Bendahara Umum)</div>
+                    <div><strong>Level 3:</strong> Kepala Departemen (HRD, PR, CIM, IT)</div>
+                    <div><strong>Level 4+:</strong> Divisi Teknis & Staff Ahli (Networking, Programming, Multimedia, Staff Ahli ML, dll)</div>
+                  </div>
                 </div>
 
                 <div>

@@ -169,8 +169,14 @@ export interface DynamicMember extends Member {
 }
 
 export function parseDphNodes(all: any[]) {
-  // Exclude level 0 (Pembina)
-  const valid = all.filter((m) => Number(m.level) > 0);
+  // Exclude level 0 (Pembina) and exclude empty / unassigned slots ("kalau dia belum terisi dia gk tampil")
+  const valid = all.filter((m) => {
+    if (Number(m.level) <= 0) return false;
+    if (!m.name || m.name.trim() === '' || m.name.toLowerCase().includes('belum terisi') || m.name.toLowerCase().includes('open position')) {
+      return false;
+    }
+    return true;
+  });
 
   // Level 1: Ketua Umum
   const foundKetua = valid.find((m) => Number(m.level) === 1 || m.role?.toLowerCase().includes('ketua umum'));
