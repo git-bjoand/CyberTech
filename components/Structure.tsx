@@ -162,20 +162,32 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   );
 };
 
+export interface DynamicMember extends Member {
+  parentId?: string | null;
+  positionId?: string;
+  rawLevel?: number;
+}
+
 export function parseDphNodes(all: any[]) {
+  // Exclude level 0 (Pembina)
+  const valid = all.filter((m) => Number(m.level) > 0);
+
   // Level 1: Ketua Umum
-  const foundKetua = all.find((m) => Number(m.level) === 1 || m.role?.toLowerCase().includes('ketua umum'));
-  const ketua: Member = foundKetua ? {
+  const foundKetua = valid.find((m) => Number(m.level) === 1 || m.role?.toLowerCase().includes('ketua umum'));
+  const ketua: DynamicMember = foundKetua ? {
     id: typeof foundKetua.id === 'number' ? foundKetua.id : 1,
     name: foundKetua.name,
     role: foundKetua.role,
     photo: foundKetua.photo || '/images/primary/cyberlogo.png',
     photo2: foundKetua.photo2 || foundKetua.photo || '/images/primary/maskot.png',
     level: 'ketua',
+    parentId: foundKetua.parentId,
+    positionId: foundKetua.positionId,
+    rawLevel: 1,
   } : ketuaUmum;
 
-  // Level 2: Sekretaris Umum, Wakil Ketua Umum, Bendahara Umum
-  const foundL2 = all.filter((m) => Number(m.level) === 2);
+  // Level 2: Executive Core (Sekretaris Umum, Wakil Ketum, Bendahara Umum, Komdis, etc.)
+  const foundL2 = valid.filter((m) => Number(m.level) === 2);
   const sortedL2 = [...foundL2].sort((a, b) => {
     const order = (role: string) => {
       const s = (role || '').toLowerCase();
@@ -186,17 +198,20 @@ export function parseDphNodes(all: any[]) {
     };
     return order(a.role) - order(b.role);
   });
-  const l2: Member[] = sortedL2.length > 0 ? sortedL2.map((m, idx) => ({
+  const l2: DynamicMember[] = sortedL2.length > 0 ? sortedL2.map((m, idx) => ({
     id: typeof m.id === 'number' ? m.id : idx + 2,
     name: m.name,
     role: m.role,
     photo: m.photo || '/images/primary/cyberlogo.png',
     photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
     level: (m.role?.toLowerCase().includes('wakil') ? 'wakil' : 'sekretaris_bendahara') as any,
+    parentId: m.parentId,
+    positionId: m.positionId,
+    rawLevel: 2,
   })) : level2;
 
-  // Level 3: Kepala Departemen (HRD, PR, CIM, IT)
-  const foundL3 = all.filter((m) => Number(m.level) === 3);
+  // Level 3: Kepala Departemen (HRD, PR, CIM, IT, etc.)
+  const foundL3 = valid.filter((m) => Number(m.level) === 3);
   const sortedL3 = [...foundL3].sort((a, b) => {
     const order = (role: string) => {
       const s = (role || '').toLowerCase();
@@ -208,34 +223,41 @@ export function parseDphNodes(all: any[]) {
     };
     return order(a.role) - order(b.role);
   });
-  const l3: Member[] = sortedL3.length > 0 ? sortedL3.map((m, idx) => ({
+  const l3: DynamicMember[] = sortedL3.length > 0 ? sortedL3.map((m, idx) => ({
     id: typeof m.id === 'number' ? m.id : idx + 5,
     name: m.name,
     role: m.role,
     photo: m.photo || '/images/primary/cyberlogo.png',
     photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
     level: 'departemen',
+    parentId: m.parentId,
+    positionId: m.positionId,
+    rawLevel: 3,
   })) : level3;
 
-  // Level 4: Kepala Divisi (Networking, Programming, Multimedia)
-  const foundL4 = all.filter((m) => Number(m.level) === 4);
+  // Level 4+: Technical Divisions & Staff Ahli (Networking, Programming, Multimedia, Staff Ahli ML, etc.)
+  const foundL4 = valid.filter((m) => Number(m.level) >= 4);
   const sortedL4 = [...foundL4].sort((a, b) => {
     const order = (role: string) => {
       const s = (role || '').toLowerCase();
       if (s.includes('networking')) return 1;
       if (s.includes('programming')) return 2;
       if (s.includes('multimedia')) return 3;
-      return 4;
+      if (s.includes('mechine') || s.includes('machine') || s.includes('staff')) return 4;
+      return 5;
     };
     return order(a.role) - order(b.role);
   });
-  const l4: Member[] = sortedL4.length > 0 ? sortedL4.map((m, idx) => ({
+  const l4: DynamicMember[] = sortedL4.length > 0 ? sortedL4.map((m, idx) => ({
     id: typeof m.id === 'number' ? m.id : idx + 9,
     name: m.name,
     role: m.role,
     photo: m.photo || '/images/primary/cyberlogo.png',
     photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
     level: 'divisi',
+    parentId: m.parentId,
+    positionId: m.positionId,
+    rawLevel: Number(m.level),
   })) : level4;
 
   return { ketua, l2, l3, l4 };
@@ -252,10 +274,10 @@ export default function Structure({ initialData }: StructureProps) {
 
   // Initialize with server-fetched database data instantly (no delay or flash of old static text)
   const initialParsed = initialData && initialData.length > 0 ? parseDphNodes(initialData) : null;
-  const [ketua, setKetua] = useState<Member>(initialParsed ? initialParsed.ketua : ketuaUmum);
-  const [l2, setL2] = useState<Member[]>(initialParsed ? initialParsed.l2 : level2);
-  const [l3, setL3] = useState<Member[]>(initialParsed ? initialParsed.l3 : level3);
-  const [l4, setL4] = useState<Member[]>(initialParsed ? initialParsed.l4 : level4);
+  const [ketua, setKetua] = useState<DynamicMember>(initialParsed ? initialParsed.ketua : ketuaUmum);
+  const [l2, setL2] = useState<DynamicMember[]>(initialParsed ? initialParsed.l2 : level2);
+  const [l3, setL3] = useState<DynamicMember[]>(initialParsed ? initialParsed.l3 : level3);
+  const [l4, setL4] = useState<DynamicMember[]>(initialParsed ? initialParsed.l4 : level4);
 
   // Sync state immediately if initialData prop updates
   useEffect(() => {
@@ -300,19 +322,6 @@ export default function Structure({ initialData }: StructureProps) {
     return () => observer.disconnect();
   }, []);
 
-  const sekUm = l2[0] || level2[0];
-  const wakil = l2[1] || level2[1];
-  const benUm = l2[2] || level2[2];
-
-  const deptHRD = l3[0] || level3[0];
-  const deptPR = l3[1] || level3[1];
-  const deptCIM = l3[2] || level3[2];
-  const deptIT = l3[3] || level3[3];
-
-  const divNet = l4[0] || level4[0];
-  const divProg = l4[1] || level4[1];
-  const divMulti = l4[2] || level4[2];
-
   return (
     <section id="structure" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
       <div className={styles.header}>
@@ -330,76 +339,52 @@ export default function Structure({ initialData }: StructureProps) {
             <div className={styles.verticalStem} />
           </div>
 
-          {/* Branch Bar to Level 2 (Executive Core) */}
-          <div className={styles.branchContainerL2}>
-            <div className={styles.horizontalBarL2} />
-            <div className={styles.level2Grid}>
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={sekUm} index={1} />
-              </div>
+          {/* Dynamic Row for Level 2 (Executive Core) */}
+          {l2.length > 0 && (
+            <div className={styles.treeRow}>
+              <div className={styles.treeRowStemIn} />
+              {l2.map((member, idx) => (
+                <div key={member.id || `l2-${idx}`} className={styles.treeNodeWrapper}>
+                  <StructureCard member={member} index={idx + 1} />
+                </div>
+              ))}
+            </div>
+          )}
 
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={wakil} index={2} />
-              </div>
+          {/* Stem between Level 2 and Level 3 */}
+          <div className={styles.verticalStem} />
 
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={benUm} index={3} />
+          {/* Dynamic Row for Level 3 (Departments) */}
+          {l3.length > 0 && (
+            <div className={styles.treeRow}>
+              <div className={styles.treeRowStemIn} />
+              {l3.map((member, idx) => {
+                const isIT = member.role?.toLowerCase().includes('it');
+                return (
+                  <div key={member.id || `l3-${idx}`} className={styles.treeNodeWrapper}>
+                    <StructureCard member={member} index={idx + l2.length + 1} />
+                    {/* If this department is IT, drop a stem connecting down to the technical divisions & staff */}
+                    {isIT && l4.length > 0 && (
+                      <div className={styles.verticalStemBottom} />
+                    )}
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {/* Dynamic Sub-branch for Level 4+ (Divisions & Staff Ahli connected under IT) */}
+          {l4.length > 0 && (
+            <div className={styles.subBranchContainer}>
+              <div className={styles.subBranchRow}>
+                {l4.map((member, idx) => (
+                  <div key={member.id || `l4-${idx}`} className={styles.subTreeNodeWrapper}>
+                    <StructureCard member={member} index={idx + l2.length + l3.length + 1} />
+                  </div>
+                ))}
               </div>
             </div>
-
-            <div className={styles.verticalStemCenterL2} />
-          </div>
-
-          {/* Branch Bar to Level 3 (4 Depts) */}
-          <div className={styles.branchContainerL3}>
-            <div className={styles.horizontalBarL3} />
-            <div className={styles.level3Grid}>
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={deptHRD} index={4} />
-              </div>
-
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={deptPR} index={5} />
-              </div>
-
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={deptCIM} index={6} />
-              </div>
-
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={deptIT} index={7} />
-                <div className={styles.verticalStemBottom} />
-              </div>
-            </div>
-          </div>
-
-          {/* Branch Bar to Level 4 (3 Technical Divisions) - Connected under Rofiqul (Dept IT) */}
-          <div className={styles.branchContainerL4}>
-            <div className={styles.horizontalBarL4} />
-            <div className={styles.level4Grid}>
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={divNet} index={8} />
-              </div>
-
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={divProg} index={9} />
-              </div>
-
-              <div className={styles.treeNode}>
-                <div className={styles.verticalStemTop} />
-                <StructureCard member={divMulti} index={10} />
-              </div>
-            </div>
-          </div>
+          )}
 
         </div>
       </div>

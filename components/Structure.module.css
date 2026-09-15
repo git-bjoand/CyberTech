@@ -78,30 +78,21 @@
 }
 
 .verticalStemTop {
-  width: 2px;
-  height: 24px;
-  background: rgba(59, 130, 246, 0.35);
-  margin: 0 auto;
+  display: none;
 }
 
 .verticalStemBottom {
   width: 2px;
-  height: 24px;
-  background: rgba(59, 130, 246, 0.35);
+  height: 28px;
+  background: linear-gradient(180deg, var(--accent-cyan), rgba(59, 130, 246, 0.4));
   margin: 0 auto;
 }
 
 .verticalStemCenterL2 {
-  position: absolute;
-  bottom: -24px;
-  left: 50%;
-  transform: translateX(-50%);
-  width: 2px;
-  height: 24px;
-  background: rgba(59, 130, 246, 0.35);
+  display: none;
 }
 
-/* Level 1: Ketua Umum */
+/* Level 1: Root (Ketua Umum) */
 .treeLevel1 {
   display: flex;
   flex-direction: column;
@@ -109,75 +100,135 @@
   margin-bottom: 0;
 }
 
-/* Level 2 Branching Container */
-.branchContainerL2 {
+/* Dynamic Tree Row System */
+.treeRow {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
   position: relative;
-  width: 70%;
-  margin-bottom: 24px;
+  margin: 0 auto 28px auto;
+  padding-top: 24px;
 }
 
-.horizontalBarL2 {
+/* Vertical stem descending from above into row center */
+.treeRowStemIn {
   position: absolute;
   top: 0;
-  left: 16%;
-  right: 16%;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.35), var(--accent-cyan), rgba(59, 130, 246, 0.35));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), var(--accent-cyan));
 }
 
-.level2Grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.5rem;
-  width: 100%;
-}
-
-/* Level 3 Branching Container */
-.branchContainerL3 {
+/* Each node wrapper in a dynamic row */
+.treeNodeWrapper {
   position: relative;
-  width: 90%;
-  margin-top: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 16px;
 }
 
-.horizontalBarL3 {
+/* Dynamic Horizontal Branch Bar across siblings */
+.treeNodeWrapper::before {
+  content: '';
   position: absolute;
   top: 0;
-  left: 12.5%;
-  right: 12.5%;
+  left: 0;
+  right: 0;
   height: 2px;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.35), var(--accent-cyan), rgba(59, 130, 246, 0.35));
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), var(--accent-cyan), rgba(59, 130, 246, 0.45));
 }
 
-.level3Grid {
-  display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 1rem;
-  width: 100%;
+.treeNodeWrapper:first-child::before {
+  left: 50%;
 }
 
-/* Level 4 Branching Container - Right Aligned under Rofiqul (Dept. IT) */
-.branchContainerL4 {
-  position: relative;
-  width: 75%;
-  align-self: flex-end;
-  margin-right: 0;
-  margin-top: 24px;
+.treeNodeWrapper:last-child::before {
+  right: 50%;
 }
 
-.horizontalBarL4 {
+.treeNodeWrapper:only-child::before {
+  display: none;
+}
+
+/* Dynamic Vertical Stem dropping into each card */
+.treeNodeWrapper::after {
+  content: '';
   position: absolute;
   top: 0;
-  left: 16.66%;
-  right: 16.66%;
-  height: 2px;
-  background: linear-gradient(90deg, rgba(59, 130, 246, 0.35), var(--accent-cyan), rgba(59, 130, 246, 0.35));
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 24px;
+  background: rgba(59, 130, 246, 0.4);
 }
 
-.level4Grid {
-  display: grid;
-  grid-template-columns: repeat(3, 1fr);
-  gap: 1.25rem;
+/* Sub-branch container for Level 4 / Divisions & Staff attached under Dept IT or any parent */
+.subBranchContainer {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  position: relative;
   width: 100%;
+  margin-top: 14px;
+}
+
+.subBranchStemDown {
+  width: 2px;
+  height: 24px;
+  background: linear-gradient(180deg, rgba(59, 130, 246, 0.4), var(--accent-cyan));
+  margin: 0 auto;
+}
+
+.subBranchRow {
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  position: relative;
+  padding-top: 24px;
+}
+
+.subTreeNodeWrapper {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0 14px;
+}
+
+.subTreeNodeWrapper::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: linear-gradient(90deg, rgba(59, 130, 246, 0.45), var(--accent-cyan), rgba(59, 130, 246, 0.45));
+}
+
+.subTreeNodeWrapper:first-child::before {
+  left: 50%;
+}
+
+.subTreeNodeWrapper:last-child::before {
+  right: 50%;
+}
+
+.subTreeNodeWrapper:only-child::before {
+  display: none;
+}
+
+.subTreeNodeWrapper::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 2px;
+  height: 24px;
+  background: rgba(59, 130, 246, 0.4);
 }
 
 .treeNode {

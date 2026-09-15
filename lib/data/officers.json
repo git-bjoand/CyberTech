@@ -94,5 +94,13 @@
     "photo": "/images/primary/cyberlogo.png",
     "photo2": "/images/primary/multimedia.png",
     "period": "2025/2026"
+  },
+  {
+    "id": "off-1789509187551",
+    "name": "hsdg",
+    "positionId": "pos-0",
+    "photo": "/images/primary/cyberlogo.png",
+    "photo2": "/images/primary/maskot.png",
+    "period": "2025/2026"
   }
 ]

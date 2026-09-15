@@ -141,54 +141,67 @@ export function saveOfficersList(list: OfficerNode[]): boolean {
   }
 }
 
-// Merged Async Getters (reads direct from DB for zero latency & dynamic rendering)
+// Merged Async Getters (reads direct from DB/JSON for zero latency & dynamic rendering)
 export async function getStructureListAsync(): Promise<StructureNode[]> {
   try {
-    const fromDb = await getDphStructureFromDb();
-    if (fromDb && fromDb.length > 0) {
-      return fromDb.map((node: any) => ({
-        id: node.id,
-        name: node.name,
-        role: node.role,
-        description: node.description,
-        level: Number(node.level),
-        parentId: node.parentId,
-        positionId: node.positionId || node.id,
-        photo: node.photo || '/images/primary/cyberlogo.png',
-        photo2: node.photo2 || node.photo || '/images/primary/maskot.png',
-        period: node.period || '2025/2026',
-      }));
+    const [positions, officers] = await Promise.all([
+      getPositionsListAsync(),
+      getOfficersListAsync(),
+    ]);
+
+    if (positions && positions.length > 0) {
+      // Exclude Pembina (level: 0) from the landing tree
+      const validPositions = positions.filter((pos) => Number(pos.level) > 0);
+
+      // Deduplicate positions by title/id
+      const seenTitles = new Set<string>();
+      const dedupedPositions: PositionNode[] = [];
+      for (const pos of validPositions) {
+        const key = (pos.title || '').trim().toLowerCase();
+        if (!seenTitles.has(key)) {
+          seenTitles.add(key);
+          dedupedPositions.push(pos);
+        }
+      }
+
+      return dedupedPositions.map((pos) => {
+        const officer = officers.find((o) => o.positionId === pos.id);
+        if (officer) {
+          return {
+            id: officer.id,
+            name: officer.name,
+            role: pos.title,
+            description: pos.description,
+            level: Number(pos.level),
+            parentId: pos.parentId,
+            positionId: pos.id,
+            photo: officer.photo || '/images/primary/cyberlogo.png',
+            photo2: officer.photo2 || officer.photo || '/images/primary/maskot.png',
+            period: officer.period || '2025/2026',
+          };
+        }
+
+        // Vacant position (e.g. newly added "staff ahli mechine learning" in DB)
+        return {
+          id: `vacant-${pos.id}`,
+          name: 'Belum Terisi',
+          role: pos.title,
+          description: pos.description,
+          level: Number(pos.level),
+          parentId: pos.parentId,
+          positionId: pos.id,
+          photo: '/images/primary/cyberlogo.png',
+          photo2: '/images/primary/maskot.png',
+          period: '2025/2026',
+        };
+      });
     }
   } catch (err) {
-    console.error('getStructureListAsync DB fetch error:', err);
+    console.error('getStructureListAsync error:', err);
   }
 
   // Fallback to local files
-  const positions = getPositionsList();
-  const officers = getOfficersList();
-
-  return officers.map((off) => {
-    const pos = positions.find((p) => p.id === off.positionId) || {
-      id: off.positionId,
-      title: 'Jabatan Umum',
-      description: '',
-      level: 2,
-      parentId: null,
-    };
-
-    return {
-      id: off.id,
-      name: off.name,
-      role: pos.title,
-      description: pos.description,
-      level: pos.level,
-      parentId: pos.parentId,
-      positionId: pos.id,
-      photo: off.photo,
-      photo2: off.photo2 || off.photo,
-      period: off.period,
-    };
-  });
+  return getStructureList();
 }
 
 export async function saveStructureListAsync(list: StructureNode[]): Promise<boolean> {
@@ -196,27 +209,47 @@ export async function saveStructureListAsync(list: StructureNode[]): Promise<boo
 }
 
 export function getStructureList(): StructureNode[] {
-  const positions = getPositionsList();
+  const positions = getPositionsList().filter((pos) => Number(pos.level) > 0);
   const officers = getOfficersList();
-  return officers.map((off) => {
-    const pos = positions.find((p) => p.id === off.positionId) || {
-      id: off.positionId,
-      title: 'Jabatan Umum',
-      description: '',
-      level: 2,
-      parentId: null,
-    };
+
+  const seenTitles = new Set<string>();
+  const dedupedPositions: PositionNode[] = [];
+  for (const pos of positions) {
+    const key = (pos.title || '').trim().toLowerCase();
+    if (!seenTitles.has(key)) {
+      seenTitles.add(key);
+      dedupedPositions.push(pos);
+    }
+  }
+
+  return dedupedPositions.map((pos) => {
+    const officer = officers.find((o) => o.positionId === pos.id);
+    if (officer) {
+      return {
+        id: officer.id,
+        name: officer.name,
+        role: pos.title,
+        description: pos.description,
+        level: Number(pos.level),
+        parentId: pos.parentId,
+        positionId: pos.id,
+        photo: officer.photo || '/images/primary/cyberlogo.png',
+        photo2: officer.photo2 || officer.photo || '/images/primary/maskot.png',
+        period: officer.period || '2025/2026',
+      };
+    }
+
     return {
-      id: off.id,
-      name: off.name,
+      id: `vacant-${pos.id}`,
+      name: 'Belum Terisi',
       role: pos.title,
       description: pos.description,
-      level: pos.level,
+      level: Number(pos.level),
       parentId: pos.parentId,
       positionId: pos.id,
-      photo: off.photo,
-      photo2: off.photo2 || off.photo,
-      period: off.period,
+      photo: '/images/primary/cyberlogo.png',
+      photo2: '/images/primary/maskot.png',
+      period: '2025/2026',
     };
   });
 }
