@@ -25,7 +25,43 @@ export default function AdminStrukturPage() {
   const [offName, setOffName] = useState('');
   const [offPositionId, setOffPositionId] = useState('');
   const [offPhoto, setOffPhoto] = useState('/images/primary/cyberlogo.png');
+  const [offPhoto2, setOffPhoto2] = useState('/images/primary/maskot.png');
+  const [previewHover, setPreviewHover] = useState(false);
+  const [uploadingPhoto1, setUploadingPhoto1] = useState(false);
+  const [uploadingPhoto2, setUploadingPhoto2] = useState(false);
   const [offPeriod, setOffPeriod] = useState('2025/2026');
+
+  // Canvas image compression helper (identik dengan bukti pembayaran: auto compress file to data URL)
+  const compressImage = (file: File, maxWidth = 800, quality = 0.8): Promise<string> => {
+    return new Promise((resolve) => {
+      const reader = new FileReader();
+      reader.onload = (event) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            resolve(event.target?.result as string);
+            return;
+          }
+          ctx.drawImage(img, 0, 0, width, height);
+          resolve(canvas.toDataURL('image/jpeg', quality));
+        };
+        img.onerror = () => resolve(event.target?.result as string);
+        img.src = event.target?.result as string;
+      };
+      reader.onerror = () => resolve('');
+      reader.readAsDataURL(file);
+    });
+  };
 
   // Delete Confirmation State
   const [itemToDelete, setItemToDelete] = useState<{ type: 'position' | 'officer'; id: string; name: string } | null>(null);
@@ -126,12 +162,52 @@ export default function AdminStrukturPage() {
   };
 
   // --- HANDLERS UNTUK PEJABAT PENGURUS ---
+  const handlePhoto1Upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('File harus berupa gambar (JPG, PNG, WebP).');
+        return;
+      }
+      setUploadingPhoto1(true);
+      try {
+        const compressed = await compressImage(file, 800, 0.8);
+        if (compressed) setOffPhoto(compressed);
+      } catch (err) {
+        alert('Gagal memproses gambar foto 1.');
+      } finally {
+        setUploadingPhoto1(false);
+      }
+    }
+  };
+
+  const handlePhoto2Upload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('File harus berupa gambar (JPG, PNG, WebP).');
+        return;
+      }
+      setUploadingPhoto2(true);
+      try {
+        const compressed = await compressImage(file, 800, 0.8);
+        if (compressed) setOffPhoto2(compressed);
+      } catch (err) {
+        alert('Gagal memproses gambar foto 2.');
+      } finally {
+        setUploadingPhoto2(false);
+      }
+    }
+  };
+
   const openAddOffModal = () => {
     setEditingOff(null);
     setOffName('');
     setOffPositionId(positions.length > 0 ? positions[0].id : '');
     setOffPhoto('/images/primary/cyberlogo.png');
+    setOffPhoto2('/images/primary/maskot.png');
     setOffPeriod('2025/2026');
+    setPreviewHover(false);
     setOffModalOpen(true);
   };
 
@@ -140,14 +216,16 @@ export default function AdminStrukturPage() {
     setOffName(off.name);
     setOffPositionId(off.positionId);
     setOffPhoto(off.photo || '/images/primary/cyberlogo.png');
+    setOffPhoto2(off.photo2 || off.photo || '/images/primary/maskot.png');
     setOffPeriod(off.period || '2025/2026');
+    setPreviewHover(false);
     setOffModalOpen(true);
   };
 
   const handleSaveOfficer = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!offName.trim() || !offPositionId) {
-      alert('Nama Pejabat dan Pilihan wajib diisi.');
+      alert('Nama Pejabat dan Pilihan Jabatan wajib diisi.');
       return;
     }
 
@@ -160,6 +238,7 @@ export default function AdminStrukturPage() {
       name: offName.trim(),
       positionId: offPositionId,
       photo: offPhoto || '/images/primary/cyberlogo.png',
+      photo2: offPhoto2 || offPhoto || '/images/primary/maskot.png',
       period: offPeriod || '2025/2026',
     };
 
@@ -441,6 +520,7 @@ export default function AdminStrukturPage() {
               <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.875rem' }}>
                 <thead>
                   <tr style={{ background: 'var(--admin-th-bg)', color: 'var(--admin-th-color)', borderBottom: '1px solid var(--admin-border)' }}>
+                    <th style={{ padding: '0.85rem 1rem' }}>Foto (1: Utama / 2: Hover)</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Nama Pejabat</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Jabatan Organisasi (Relasi Master)</th>
                     <th style={{ padding: '0.85rem 1rem' }}>Periode Kepengurusan</th>
@@ -454,6 +534,27 @@ export default function AdminStrukturPage() {
 
                     return (
                       <tr key={off.id} style={{ borderBottom: '1px solid var(--admin-border)' }}>
+                        <td style={{ padding: '0.85rem 1rem' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                            <div title="Foto 1: Utama" style={{ position: 'relative' }}>
+                              <img
+                                src={off.photo || '/images/primary/cyberlogo.png'}
+                                alt="Foto 1"
+                                style={{ width: '38px', height: '38px', borderRadius: '6px', objectFit: 'cover', border: '1.5px solid #38bdf8', background: '#0f172a' }}
+                              />
+                              <span style={{ position: 'absolute', bottom: -3, right: -3, background: '#0284c7', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '1px 4px', borderRadius: '3px', lineHeight: '1' }}>1</span>
+                            </div>
+                            <div title="Foto 2: Hover Swap" style={{ position: 'relative' }}>
+                              <img
+                                src={off.photo2 || off.photo || '/images/primary/maskot.png'}
+                                alt="Foto 2"
+                                style={{ width: '38px', height: '38px', borderRadius: '6px', objectFit: 'cover', border: '1.5px solid #10b981', background: '#0f172a' }}
+                              />
+                              <span style={{ position: 'absolute', bottom: -3, right: -3, background: '#10b981', color: '#fff', fontSize: '9px', fontWeight: 800, padding: '1px 4px', borderRadius: '3px', lineHeight: '1' }}>2</span>
+                            </div>
+                          </div>
+                        </td>
+
                         <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: 'var(--admin-text-main)' }}>
                           👤 {off.name}
                         </td>
@@ -614,7 +715,7 @@ export default function AdminStrukturPage() {
           onClick={() => setOffModalOpen(false)}
         >
           <div
-            style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '500px', padding: '1.5rem', position: 'relative' }}
+            style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '580px', padding: '1.5rem', position: 'relative' }}
             onClick={(e) => e.stopPropagation()}
           >
             <button
@@ -662,32 +763,154 @@ export default function AdminStrukturPage() {
                 </select>
               </div>
 
-              <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr', gap: '1rem', marginBottom: '1.5rem' }}>
+              <div style={{ marginBottom: '1rem' }}>
+                <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
+                  Periode Kepengurusan:
+                </label>
+                <input
+                  type="text"
+                  value={offPeriod}
+                  onChange={(e) => setOffPeriod(e.target.value)}
+                  placeholder="2025/2026"
+                  style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                />
+              </div>
+
+              {/* DUAL PHOTO EDITORS (FOTO 1 UTAMA & FOTO 2 HOVER SWAP) */}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', marginBottom: '1.25rem', background: 'var(--admin-input-bg)', padding: '1rem', borderRadius: '8px', border: '1px solid var(--admin-border)' }}>
+                {/* FOTO 1: UTAMA */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
-                    URL Foto Profil Pejabat:
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 800 }}>
+                      📸 Foto 1 (Utama / Default)
+                    </label>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)' }}>Normal</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <img
+                      src={offPhoto || '/images/primary/cyberlogo.png'}
+                      alt="Preview Foto 1"
+                      style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover', border: '2px solid #38bdf8', background: '#020617' }}
+                    />
+                    <label
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.65rem',
+                        background: '#0284c7',
+                        color: '#fff',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: uploadingPhoto1 ? 'wait' : 'pointer',
+                        textAlign: 'center',
+                        display: 'block',
+                      }}
+                    >
+                      {uploadingPhoto1 ? 'Mengompres...' : '📁 Pilih File Foto 1'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhoto1Upload}
+                        disabled={uploadingPhoto1}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
                   <input
                     type="text"
                     value={offPhoto}
                     onChange={(e) => setOffPhoto(e.target.value)}
-                    placeholder="/images/primary/cyberlogo.png"
-                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                    placeholder="/images/... atau data:image/..."
+                    style={{ width: '100%', padding: '0.5rem', background: 'var(--admin-card-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '4px', fontSize: '13px', outline: 'none' }}
                   />
                 </div>
 
+                {/* FOTO 2: HOVER SWAP */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '0.85rem', color: 'var(--admin-text-main)', marginBottom: '0.35rem', fontWeight: 700 }}>
-                    Periode Kepengurusan:
-                  </label>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
+                    <label style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 800 }}>
+                      ✨ Foto 2 (Hover / Swap)
+                    </label>
+                    <span style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)' }}>Saat Kursor</span>
+                  </div>
+
+                  <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginBottom: '0.5rem' }}>
+                    <img
+                      src={offPhoto2 || offPhoto || '/images/primary/maskot.png'}
+                      alt="Preview Foto 2"
+                      style={{ width: '48px', height: '48px', borderRadius: '6px', objectFit: 'cover', border: '2px solid #10b981', background: '#020617' }}
+                    />
+                    <label
+                      style={{
+                        flex: 1,
+                        padding: '0.5rem 0.65rem',
+                        background: '#10b981',
+                        color: '#fff',
+                        borderRadius: '6px',
+                        fontSize: '0.75rem',
+                        fontWeight: 700,
+                        cursor: uploadingPhoto2 ? 'wait' : 'pointer',
+                        textAlign: 'center',
+                        display: 'block',
+                      }}
+                    >
+                      {uploadingPhoto2 ? 'Mengompres...' : '📁 Pilih File Foto 2'}
+                      <input
+                        type="file"
+                        accept="image/*"
+                        onChange={handlePhoto2Upload}
+                        disabled={uploadingPhoto2}
+                        style={{ display: 'none' }}
+                      />
+                    </label>
+                  </div>
+
                   <input
                     type="text"
-                    value={offPeriod}
-                    onChange={(e) => setOffPeriod(e.target.value)}
-                    placeholder="2025/2026"
-                    style={{ width: '100%', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontSize: '16px', outline: 'none' }}
+                    value={offPhoto2}
+                    onChange={(e) => setOffPhoto2(e.target.value)}
+                    placeholder="/images/... atau data:image/..."
+                    style={{ width: '100%', padding: '0.5rem', background: 'var(--admin-card-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '4px', fontSize: '13px', outline: 'none' }}
                   />
                 </div>
+              </div>
+
+              {/* INTERACTIVE PREVIEW BOX */}
+              <div style={{ marginBottom: '1.5rem', padding: '0.75rem', background: 'rgba(0,0,0,0.25)', borderRadius: '8px', border: '1px dashed var(--admin-border)', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '1rem' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                  <img
+                    src={previewHover ? (offPhoto2 || offPhoto) : offPhoto}
+                    alt="Live Test"
+                    style={{ width: '56px', height: '56px', borderRadius: '8px', objectFit: 'cover', border: previewHover ? '2px solid #10b981' : '2px solid #38bdf8', transition: 'all 0.2s ease', background: '#020617' }}
+                  />
+                  <div>
+                    <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--admin-text-main)' }}>
+                      {offName.trim() || 'Nama Pejabat'}
+                    </div>
+                    <div style={{ fontSize: '0.75rem', color: previewHover ? '#10b981' : '#38bdf8', fontWeight: 700 }}>
+                      {previewHover ? '✨ Menampilkan Foto 2 (Hover)' : '📸 Menampilkan Foto 1 (Utama)'}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setPreviewHover(!previewHover)}
+                  style={{
+                    padding: '0.45rem 0.85rem',
+                    background: previewHover ? '#10b981' : '#38bdf8',
+                    color: '#000',
+                    fontWeight: 800,
+                    fontSize: '0.75rem',
+                    border: 'none',
+                    borderRadius: '4px',
+                    cursor: 'pointer',
+                  }}
+                >
+                  {previewHover ? 'Kembalikan Foto 1' : 'Uji Coba Swap Foto 2'}
+                </button>
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>

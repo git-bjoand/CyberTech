@@ -64,7 +64,7 @@
   },
   {
     "id": "pos-9",
-    "title": "Kepala Divisi Programming",
+    "title": "PLT Divisi Programming",
     "description": "Mengkoordinasikan anggota divisi programming, pelatihan web/mobile app, mini project, dan persiapan lomba coding.",
     "level": 4,
     "parentId": "pos-8"
@@ -81,6 +81,6 @@
     "title": "Kepala Divisi Multimedia",
     "description": "Pelatihan bidang UI/UX design, videografi, motion graphic, dan desain materi publikasi visual UKM CyberTech.",
     "level": 4,
-    "parentId": "pos-7"
+    "parentId": "pos-8"
   }
 ]

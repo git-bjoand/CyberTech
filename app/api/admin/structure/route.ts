@@ -1,14 +1,22 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   getPositionsList,
+  getPositionsListAsync,
   savePositionsList,
   getOfficersList,
+  getOfficersListAsync,
   saveOfficersList,
   getStructureListAsync,
   PositionNode,
   OfficerNode,
 } from '@/lib/data/structure-store';
-import { getAdminAccountByUsername } from '@/lib/db';
+import {
+  getAdminAccountByUsername,
+  savePositionToDb,
+  deletePositionFromDb,
+  saveOfficerToDb,
+  deleteOfficerFromDb,
+} from '@/lib/db';
 
 async function verifyAuth(req: NextRequest): Promise<boolean> {
   const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
@@ -27,8 +35,8 @@ async function verifyAuth(req: NextRequest): Promise<boolean> {
 
 export async function GET(req: NextRequest) {
   try {
-    const positions = getPositionsList();
-    const officers = getOfficersList();
+    const positions = await getPositionsListAsync();
+    const officers = await getOfficersListAsync();
     const combined = await getStructureListAsync();
 
     return NextResponse.json({
@@ -70,7 +78,6 @@ export async function POST(req: NextRequest) {
         );
       }
 
-      const positions = getPositionsList();
       const newPos: PositionNode = {
         id: `pos-${Date.now()}`,
         title: title.trim(),
@@ -79,6 +86,11 @@ export async function POST(req: NextRequest) {
         parentId: parentId || null,
       };
 
+      // Simpan ke PostgreSQL DB (bekerja di Vercel)
+      await savePositionToDb(newPos);
+
+      // Sinkronisasi JSON lokal jika ada
+      const positions = getPositionsList();
       positions.push(newPos);
       savePositionsList(positions);
 
@@ -90,7 +102,7 @@ export async function POST(req: NextRequest) {
     }
 
     // 2. ASSIGN / TAMBAH PEJABAT PENGURUS
-    const { name, positionId, photo, period } = body;
+    const { name, positionId, photo, photo2, period } = body;
     if (!name || !name.trim() || !positionId) {
       return NextResponse.json(
         { success: false, error: 'Nama Pejabat dan Pilihan Jabatan wajib diisi.' },
@@ -98,15 +110,20 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const officers = getOfficersList();
     const newOfficer: OfficerNode = {
       id: `off-${Date.now()}`,
       name: name.trim(),
       positionId,
       photo: photo || '/images/primary/cyberlogo.png',
+      photo2: photo2 || photo || '/images/primary/maskot.png',
       period: period || '2025/2026',
     };
 
+    // Simpan ke PostgreSQL DB (bekerja di Vercel)
+    await saveOfficerToDb(newOfficer);
+
+    // Sinkronisasi JSON lokal jika ada
+    const officers = getOfficersList();
     officers.push(newOfficer);
     saveOfficersList(officers);
 
@@ -144,62 +161,67 @@ export async function PUT(req: NextRequest) {
       );
     }
 
-    // 1. UPDATE MASTER JABATAN
+    // 1. UPDATE MASTER JABATAN (Memperbaiki tombol edit struktur di Vercel)
     if (targetType === 'position') {
       const { title, description, level, parentId } = body;
-      let positions = getPositionsList();
-      const idx = positions.findIndex((p) => p.id === id);
+      const positions = await getPositionsListAsync();
+      const existing = positions.find((p) => p.id === id);
 
-      if (idx === -1) {
-        return NextResponse.json(
-          { success: false, error: 'Struktur Jabatan tidak ditemukan.' },
-          { status: 404 }
-        );
-      }
-
-      positions[idx] = {
-        ...positions[idx],
-        title: title ? title.trim() : positions[idx].title,
-        description: description !== undefined ? description.trim() : positions[idx].description,
-        level: level !== undefined ? Number(level) : positions[idx].level,
-        parentId: parentId !== undefined ? parentId : positions[idx].parentId,
+      const updatedPos: PositionNode = {
+        id,
+        title: title ? title.trim() : (existing?.title || 'Jabatan'),
+        description: description !== undefined ? description.trim() : (existing?.description || ''),
+        level: level !== undefined ? Number(level) : (existing?.level ?? 2),
+        parentId: parentId !== undefined ? parentId : (existing?.parentId || null),
       };
 
-      savePositionsList(positions);
+      // Simpan langsung ke PostgreSQL DB
+      await savePositionToDb(updatedPos);
+
+      // Update file cadangan JSON lokal jika ada
+      const localList = getPositionsList();
+      const idx = localList.findIndex((p) => p.id === id);
+      if (idx !== -1) {
+        localList[idx] = updatedPos;
+        savePositionsList(localList);
+      }
 
       return NextResponse.json({
         success: true,
-        message: `Struktur Jabatan "${positions[idx].title}" berhasil diperbarui.`,
-        data: positions[idx],
+        message: `Struktur Jabatan "${updatedPos.title}" berhasil diperbarui.`,
+        data: updatedPos,
       });
     }
 
-    // 2. UPDATE PEJABAT PENGURUS
-    const { name, positionId, photo, period } = body;
-    let officers = getOfficersList();
-    const idx = officers.findIndex((o) => o.id === id);
+    // 2. UPDATE PEJABAT PENGURUS (dengan photo & photo2)
+    const { name, positionId, photo, photo2, period } = body;
+    const officers = await getOfficersListAsync();
+    const existing = officers.find((o) => o.id === id);
 
-    if (idx === -1) {
-      return NextResponse.json(
-        { success: false, error: 'Data Pejabat tidak ditemukan.' },
-        { status: 404 }
-      );
-    }
-
-    officers[idx] = {
-      ...officers[idx],
-      name: name ? name.trim() : officers[idx].name,
-      positionId: positionId || officers[idx].positionId,
-      photo: photo || officers[idx].photo,
-      period: period || officers[idx].period,
+    const updatedOfficer: OfficerNode = {
+      id,
+      name: name ? name.trim() : (existing?.name || ''),
+      positionId: positionId || existing?.positionId || '',
+      photo: photo || existing?.photo || '/images/primary/cyberlogo.png',
+      photo2: photo2 !== undefined ? photo2 : (existing?.photo2 || existing?.photo || '/images/primary/maskot.png'),
+      period: period || existing?.period || '2025/2026',
     };
 
-    saveOfficersList(officers);
+    // Simpan langsung ke PostgreSQL DB
+    await saveOfficerToDb(updatedOfficer);
+
+    // Update file cadangan JSON lokal jika ada
+    const localOfficers = getOfficersList();
+    const idx = localOfficers.findIndex((o) => o.id === id);
+    if (idx !== -1) {
+      localOfficers[idx] = updatedOfficer;
+      saveOfficersList(localOfficers);
+    }
 
     return NextResponse.json({
       success: true,
-      message: `Data Pejabat "${officers[idx].name}" berhasil diperbarui.`,
-      data: officers[idx],
+      message: `Data Pejabat "${updatedOfficer.name}" berhasil diperbarui.`,
+      data: updatedOfficer,
     });
   } catch (error) {
     console.error('Error updating structure data:', error);
@@ -232,7 +254,9 @@ export async function DELETE(req: NextRequest) {
     }
 
     if (targetType === 'position') {
-      let positions = getPositionsList();
+      await deletePositionFromDb(id);
+
+      const positions = getPositionsList();
       const filtered = positions.filter((p) => p.id !== id);
       savePositionsList(filtered);
 
@@ -242,7 +266,9 @@ export async function DELETE(req: NextRequest) {
       });
     }
 
-    let officers = getOfficersList();
+    await deleteOfficerFromDb(id);
+
+    const officers = getOfficersList();
     const filtered = officers.filter((o) => o.id !== id);
     saveOfficersList(filtered);
 

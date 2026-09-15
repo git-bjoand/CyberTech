@@ -54,6 +54,15 @@ export async function initDb() {
         ALTER TABLE registrations ADD COLUMN IF NOT EXISTS alasan_divisi1 TEXT DEFAULT '';
         ALTER TABLE registrations ADD COLUMN IF NOT EXISTS alasan_divisi2 TEXT DEFAULT '';
 
+        CREATE TABLE IF NOT EXISTS dph_positions (
+          id VARCHAR(50) PRIMARY KEY,
+          title VARCHAR(150) NOT NULL,
+          description TEXT DEFAULT '',
+          level INT NOT NULL DEFAULT 2,
+          parent_id VARCHAR(50),
+          created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+        );
+
         CREATE TABLE IF NOT EXISTS dph_structure (
           id VARCHAR(50) PRIMARY KEY,
           name VARCHAR(150) NOT NULL,
@@ -62,11 +71,15 @@ export async function initDb() {
           level INT NOT NULL DEFAULT 1,
           parent_id VARCHAR(50),
           photo TEXT DEFAULT '',
+          photo2 TEXT DEFAULT '',
+          position_id VARCHAR(50),
           period VARCHAR(50) DEFAULT '2025/2026',
           created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
         );
 
         ALTER TABLE dph_structure ADD COLUMN IF NOT EXISTS description TEXT DEFAULT '';
+        ALTER TABLE dph_structure ADD COLUMN IF NOT EXISTS photo2 TEXT DEFAULT '';
+        ALTER TABLE dph_structure ADD COLUMN IF NOT EXISTS position_id VARCHAR(50);
 
         CREATE TABLE IF NOT EXISTS events (
           id SERIAL PRIMARY KEY,
@@ -400,14 +413,275 @@ export async function deleteRegistrationRecord(registrationId: string): Promise<
 }
 
 /**
- * Fetches DPH structure nodes from PostgreSQL DB (or null if DB not available)
+ * Fetches DPH positions (Master Struktur & Parent) from PostgreSQL DB (fallback to JSON)
+ */
+export async function getPositionsFromDb(): Promise<any[]> {
+  if (pool) {
+    try {
+      await initDb();
+      const result = await pool.query(
+        'SELECT id, title, COALESCE(description, \'\') AS "description", level, parent_id AS "parentId" FROM dph_positions ORDER BY level ASC, id ASC'
+      );
+      if (result.rows && result.rows.length > 0) {
+        return result.rows;
+      }
+    } catch (err) {
+      console.error('PostgreSQL getPositionsFromDb error:', err);
+    }
+  }
+
+  // Fallback to local JSON
+  try {
+    const fp = path.join(process.cwd(), 'lib', 'data', 'positions.json');
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) return JSON.parse(content);
+    }
+  } catch (err) {}
+  return [];
+}
+
+/**
+ * Inserts or updates a DPH position node in PostgreSQL DB
+ */
+export async function savePositionToDb(pos: { id: string; title: string; description?: string; level?: number; parentId?: string | null }): Promise<boolean> {
+  if (pool) {
+    try {
+      await initDb();
+      await pool.query(
+        `INSERT INTO dph_positions (id, title, description, level, parent_id)
+         VALUES ($1, $2, $3, $4, $5)
+         ON CONFLICT (id) DO UPDATE SET
+           title = EXCLUDED.title,
+           description = EXCLUDED.description,
+           level = EXCLUDED.level,
+           parent_id = EXCLUDED.parent_id`,
+        [pos.id, pos.title.trim(), pos.description ? pos.description.trim() : '', Number(pos.level ?? 2), pos.parentId || null]
+      );
+      return true;
+    } catch (err) {
+      console.error('PostgreSQL savePositionToDb error:', err);
+    }
+  }
+
+  // Fallback to JSON
+  try {
+    const dataDir = path.join(process.cwd(), 'lib', 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    const fp = path.join(dataDir, 'positions.json');
+    let list: any[] = [];
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) list = JSON.parse(content);
+    }
+    const idx = list.findIndex((p: any) => p.id === pos.id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...pos };
+    } else {
+      list.push(pos);
+    }
+    fs.writeFileSync(fp, JSON.stringify(list, null, 2));
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * Deletes a DPH position node from PostgreSQL DB
+ */
+export async function deletePositionFromDb(id: string): Promise<boolean> {
+  if (pool) {
+    try {
+      await initDb();
+      await pool.query('DELETE FROM dph_positions WHERE id = $1', [id]);
+      return true;
+    } catch (err) {
+      console.error('PostgreSQL deletePositionFromDb error:', err);
+    }
+  }
+
+  try {
+    const fp = path.join(process.cwd(), 'lib', 'data', 'positions.json');
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) {
+        const list = JSON.parse(content).filter((p: any) => p.id !== id);
+        fs.writeFileSync(fp, JSON.stringify(list, null, 2));
+        return true;
+      }
+    }
+  } catch (err) {}
+  return false;
+}
+
+/**
+ * Fetches DPH officers from PostgreSQL DB (or fallback to JSON)
+ */
+export async function getOfficersFromDb(): Promise<any[]> {
+  if (pool) {
+    try {
+      await initDb();
+      const result = await pool.query(
+        'SELECT id, name, position_id AS "positionId", COALESCE(photo, \'\') AS "photo", COALESCE(photo2, \'\') AS "photo2", period FROM dph_structure ORDER BY level ASC, id ASC'
+      );
+      if (result.rows && result.rows.length > 0) {
+        return result.rows;
+      }
+    } catch (err) {
+      console.error('PostgreSQL getOfficersFromDb error:', err);
+    }
+  }
+
+  try {
+    const fp = path.join(process.cwd(), 'lib', 'data', 'officers.json');
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) return JSON.parse(content);
+    }
+  } catch (err) {}
+  return [];
+}
+
+/**
+ * Inserts or updates an officer in PostgreSQL DB (supporting 2 photos: photo & photo2)
+ */
+export async function saveOfficerToDb(officer: {
+  id: string;
+  name: string;
+  positionId: string;
+  photo?: string;
+  photo2?: string;
+  period?: string;
+  role?: string;
+  level?: number;
+  parentId?: string | null;
+  description?: string;
+}): Promise<boolean> {
+  if (pool) {
+    try {
+      await initDb();
+      // Look up position info if role/level not provided
+      let role = officer.role;
+      let level = officer.level;
+      let parentId = officer.parentId;
+      let desc = officer.description || '';
+
+      if (!role || level === undefined) {
+        const posRes = await pool.query('SELECT title, level, parent_id, description FROM dph_positions WHERE id = $1', [officer.positionId]);
+        if (posRes.rows.length > 0) {
+          const p = posRes.rows[0];
+          role = p.title;
+          level = p.level;
+          parentId = p.parent_id;
+          desc = p.description || '';
+        }
+      }
+
+      await pool.query(
+        `INSERT INTO dph_structure (id, name, role, description, level, parent_id, photo, photo2, position_id, period)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
+         ON CONFLICT (id) DO UPDATE SET
+           name = EXCLUDED.name,
+           role = COALESCE(EXCLUDED.role, dph_structure.role),
+           description = COALESCE(EXCLUDED.description, dph_structure.description),
+           level = COALESCE(EXCLUDED.level, dph_structure.level),
+           parent_id = COALESCE(EXCLUDED.parent_id, dph_structure.parent_id),
+           photo = EXCLUDED.photo,
+           photo2 = EXCLUDED.photo2,
+           position_id = EXCLUDED.position_id,
+           period = EXCLUDED.period`,
+        [
+          officer.id,
+          officer.name.trim(),
+          role || 'Anggota Pengurus',
+          desc,
+          level !== undefined ? Number(level) : 2,
+          parentId || null,
+          officer.photo || '/images/primary/cyberlogo.png',
+          officer.photo2 || officer.photo || '/images/primary/maskot.png',
+          officer.positionId,
+          officer.period || '2025/2026',
+        ]
+      );
+      return true;
+    } catch (err) {
+      console.error('PostgreSQL saveOfficerToDb error:', err);
+    }
+  }
+
+  // Fallback to JSON
+  try {
+    const dataDir = path.join(process.cwd(), 'lib', 'data');
+    if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+    const fp = path.join(dataDir, 'officers.json');
+    let list: any[] = [];
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) list = JSON.parse(content);
+    }
+    const idx = list.findIndex((o: any) => o.id === officer.id);
+    if (idx >= 0) {
+      list[idx] = { ...list[idx], ...officer };
+    } else {
+      list.push(officer);
+    }
+    fs.writeFileSync(fp, JSON.stringify(list, null, 2));
+    return true;
+  } catch (err) {
+    return false;
+  }
+}
+
+/**
+ * Deletes an officer from PostgreSQL DB
+ */
+export async function deleteOfficerFromDb(id: string): Promise<boolean> {
+  if (pool) {
+    try {
+      await initDb();
+      await pool.query('DELETE FROM dph_structure WHERE id = $1', [id]);
+      return true;
+    } catch (err) {
+      console.error('PostgreSQL deleteOfficerFromDb error:', err);
+    }
+  }
+
+  try {
+    const fp = path.join(process.cwd(), 'lib', 'data', 'officers.json');
+    if (fs.existsSync(fp)) {
+      const content = fs.readFileSync(fp, 'utf8');
+      if (content.trim()) {
+        const list = JSON.parse(content).filter((o: any) => o.id !== id);
+        fs.writeFileSync(fp, JSON.stringify(list, null, 2));
+        return true;
+      }
+    }
+  } catch (err) {}
+  return false;
+}
+
+/**
+ * Fetches DPH structure nodes from PostgreSQL DB with both photo & photo2
  */
 export async function getDphStructureFromDb(): Promise<any[] | null> {
   if (!pool) return null;
   try {
     await initDb();
     const result = await pool.query(
-      'SELECT id, name, role, COALESCE(description, \'\') AS "description", level, parent_id AS "parentId", photo, period FROM dph_structure ORDER BY level ASC, id ASC'
+      `SELECT 
+        id, 
+        name, 
+        role, 
+        COALESCE(description, '') AS "description", 
+        level, 
+        parent_id AS "parentId", 
+        COALESCE(photo, '/images/primary/cyberlogo.png') AS "photo", 
+        COALESCE(photo2, photo, '/images/primary/maskot.png') AS "photo2", 
+        COALESCE(position_id, '') AS "positionId",
+        period 
+      FROM dph_structure 
+      ORDER BY level ASC, id ASC`
     );
     return result.rows;
   } catch (err) {
@@ -423,12 +697,23 @@ export async function saveDphStructureToDb(list: any[]): Promise<boolean> {
   if (!pool) return false;
   try {
     await initDb();
-    // Re-sync full structure list
     await pool.query('DELETE FROM dph_structure');
     for (const node of list) {
       await pool.query(
-        'INSERT INTO dph_structure (id, name, role, description, level, parent_id, photo, period) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [node.id, node.name, node.role, node.description || '', node.level, node.parentId || null, node.photo || '', node.period || '2025/2026']
+        `INSERT INTO dph_structure (id, name, role, description, level, parent_id, photo, photo2, position_id, period)
+         VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
+        [
+          node.id,
+          node.name,
+          node.role,
+          node.description || '',
+          node.level,
+          node.parentId || null,
+          node.photo || '/images/primary/cyberlogo.png',
+          node.photo2 || node.photo || '/images/primary/maskot.png',
+          node.positionId || null,
+          node.period || '2025/2026',
+        ]
       );
     }
     return true;

@@ -1,5 +1,14 @@
 import fs from 'fs';
 import path from 'path';
+import {
+  getPositionsFromDb,
+  savePositionToDb,
+  deletePositionFromDb,
+  getOfficersFromDb,
+  saveOfficerToDb,
+  deleteOfficerFromDb,
+  getDphStructureFromDb,
+} from '@/lib/db';
 
 export interface PositionNode {
   id: string;
@@ -14,6 +23,7 @@ export interface OfficerNode {
   name: string;
   positionId: string; // References PositionNode.id
   photo: string;
+  photo2?: string; // Hover swap photo
   period: string;
 }
 
@@ -26,6 +36,7 @@ export interface StructureNode {
   parentId?: string | null;
   positionId?: string;
   photo?: string;
+  photo2?: string;
   period?: string;
 }
 
@@ -40,24 +51,24 @@ export const DEFAULT_POSITIONS: PositionNode[] = [
   { id: 'pos-6', title: 'Kepala Departemen PR', description: 'Penanggung jawab hubungan masyarakat, kerjasama eksternal, kemitraan sponsorship, dan komunikasi publik.', level: 3, parentId: 'pos-1' },
   { id: 'pos-7', title: 'Kepala Departemen CIM', description: 'Mengelola informasi publik, media kreatif, publikasi sosial media, dan dokumentasi visual kegiatan UKM.', level: 3, parentId: 'pos-1' },
   { id: 'pos-8', title: 'Kepala Departemen IT', description: 'Mengendalikan infrastruktur IT, pengembangan teknologi internal, serta pembina teknis Divisi Programming & Networking.', level: 3, parentId: 'pos-1' },
-  { id: 'pos-9', title: 'Kepala Divisi Programming', description: 'Mengkoordinasikan anggota divisi programming, pelatihan web/mobile app, mini project, dan persiapan lomba coding.', level: 4, parentId: 'pos-8' },
+  { id: 'pos-9', title: 'PLT Divisi Programming', description: 'Mengkoordinasikan anggota divisi programming, pelatihan web/mobile app, mini project, dan persiapan lomba coding.', level: 4, parentId: 'pos-8' },
   { id: 'pos-10', title: 'Kepala Divisi Networking', description: 'Pelatihan bidang jaringan komputer, MikroTik, Cisco, cybersecurity, dan pengelolaan infrastruktur lab/server.', level: 4, parentId: 'pos-8' },
   { id: 'pos-11', title: 'Kepala Divisi Multimedia', description: 'Pelatihan bidang UI/UX design, videografi, motion graphic, dan desain materi publikasi visual UKM CyberTech.', level: 4, parentId: 'pos-7' },
 ];
 
 export const DEFAULT_OFFICERS: OfficerNode[] = [
-  { id: 'off-0', name: 'Fazrol Rozi, M.Cs.', positionId: 'pos-0', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-1', name: 'Rayhan Ramadhan', positionId: 'pos-1', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-2', name: 'Farel Al Furqan', positionId: 'pos-2', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-3', name: 'Dhannisya', positionId: 'pos-3', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-4', name: 'Sukra Sriwita', positionId: 'pos-4', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-5', name: 'Rayfo Huda', positionId: 'pos-5', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-6', name: 'Muhammad Raihan Pramana Wiguna', positionId: 'pos-6', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-7', name: 'Muhammad Hafizh Boyensa', positionId: 'pos-7', photo: '/images/primary/cyberlogo.png', period: '2025/2026' },
-  { id: 'off-8', name: 'Muhammad Rofiqul Islamy', positionId: 'pos-8', photo: '/images/primary/programming.png', period: '2025/2026' },
-  { id: 'off-9', name: 'Bagastio Putra Joandri', positionId: 'pos-9', photo: '/images/primary/programming.png', period: '2025/2026' },
-  { id: 'off-10', name: 'Muhammad Luthfi', positionId: 'pos-10', photo: '/images/primary/networking.png', period: '2025/2026' },
-  { id: 'off-11', name: 'Zahwa Rahmadhania', positionId: 'pos-11', photo: '/images/primary/multimedia.png', period: '2025/2026' },
+  { id: 'off-0', name: 'Fazrol Rozi, M.Cs.', positionId: 'pos-0', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-1', name: 'Rayhan Ramadhan', positionId: 'pos-1', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-2', name: 'Farel Al Furqan', positionId: 'pos-2', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-3', name: 'Dhannisya', positionId: 'pos-3', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-4', name: 'Sukra Sriwita', positionId: 'pos-4', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-5', name: 'Rayfo Huda', positionId: 'pos-5', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-6', name: 'Muhammad Raihan Pramana Wiguna', positionId: 'pos-6', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-7', name: 'Muhammad Hafizh Boyensa', positionId: 'pos-7', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/maskot.png', period: '2025/2026' },
+  { id: 'off-8', name: 'Muhammad Rofiqul Islamy', positionId: 'pos-8', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/programming.png', period: '2025/2026' },
+  { id: 'off-9', name: 'Bagastio Putra Joandri', positionId: 'pos-9', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/programming.png', period: '2025/2026' },
+  { id: 'off-10', name: 'Muhammad Luthfi', positionId: 'pos-10', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/networking.png', period: '2025/2026' },
+  { id: 'off-11', name: 'Zahwa Rahmadhania', positionId: 'pos-11', photo: '/images/primary/cyberlogo.png', photo2: '/images/primary/multimedia.png', period: '2025/2026' },
 ];
 
 function getPositionsFilePath(): string {
@@ -78,6 +89,14 @@ export function getPositionsList(): PositionNode[] {
     }
   } catch (err) {}
   return DEFAULT_POSITIONS;
+}
+
+export async function getPositionsListAsync(): Promise<PositionNode[]> {
+  try {
+    const fromDb = await getPositionsFromDb();
+    if (fromDb && fromDb.length > 0) return fromDb;
+  } catch (err) {}
+  return getPositionsList();
 }
 
 export function savePositionsList(list: PositionNode[]): boolean {
@@ -103,6 +122,14 @@ export function getOfficersList(): OfficerNode[] {
   return DEFAULT_OFFICERS;
 }
 
+export async function getOfficersListAsync(): Promise<OfficerNode[]> {
+  try {
+    const fromDb = await getOfficersFromDb();
+    if (fromDb && fromDb.length > 0) return fromDb;
+  } catch (err) {}
+  return getOfficersList();
+}
+
 export function saveOfficersList(list: OfficerNode[]): boolean {
   try {
     const dataDir = path.join(process.cwd(), 'lib', 'data');
@@ -114,8 +141,29 @@ export function saveOfficersList(list: OfficerNode[]): boolean {
   }
 }
 
-// Merged Async Getters (for compatibility & tree rendering)
+// Merged Async Getters (reads direct from DB for zero latency & dynamic rendering)
 export async function getStructureListAsync(): Promise<StructureNode[]> {
+  try {
+    const fromDb = await getDphStructureFromDb();
+    if (fromDb && fromDb.length > 0) {
+      return fromDb.map((node: any) => ({
+        id: node.id,
+        name: node.name,
+        role: node.role,
+        description: node.description,
+        level: Number(node.level),
+        parentId: node.parentId,
+        positionId: node.positionId || node.id,
+        photo: node.photo || '/images/primary/cyberlogo.png',
+        photo2: node.photo2 || node.photo || '/images/primary/maskot.png',
+        period: node.period || '2025/2026',
+      }));
+    }
+  } catch (err) {
+    console.error('getStructureListAsync DB fetch error:', err);
+  }
+
+  // Fallback to local files
   const positions = getPositionsList();
   const officers = getOfficersList();
 
@@ -137,6 +185,7 @@ export async function getStructureListAsync(): Promise<StructureNode[]> {
       parentId: pos.parentId,
       positionId: pos.id,
       photo: off.photo,
+      photo2: off.photo2 || off.photo,
       period: off.period,
     };
   });
@@ -166,6 +215,7 @@ export function getStructureList(): StructureNode[] {
       parentId: pos.parentId,
       positionId: pos.id,
       photo: off.photo,
+      photo2: off.photo2 || off.photo,
       period: off.period,
     };
   });
@@ -174,3 +224,4 @@ export function getStructureList(): StructureNode[] {
 export function saveStructureList(list: StructureNode[]): boolean {
   return true;
 }
+

@@ -75,6 +75,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
   }, []);
 
   const displayedPhoto = photoMode === 'hover' ? fullPhoto : primaryPhoto;
+  const isDataOrExternalUrl = displayedPhoto.startsWith('data:') || displayedPhoto.startsWith('http');
 
   return (
     <div
@@ -102,6 +103,7 @@ const StructureCard = ({ member, isKetua = false }: StructureCardProps) => {
           alt={member.name}
           width={320}
           height={320}
+          unoptimized={isDataOrExternalUrl}
           className={`${styles.photo} ${photoMode === 'hover' ? styles.photoFull : ''}`}
         />
       </div>
@@ -120,7 +122,14 @@ export default function Structure() {
   const [isVisible, setIsVisible] = useState(false);
   const sectionRef = useRef<HTMLElement>(null);
 
+  // Dynamic DPH state from PostgreSQL Database
+  const [ketua, setKetua] = useState<Member>(ketuaUmum);
+  const [l2, setL2] = useState<Member[]>(level2);
+  const [l3, setL3] = useState<Member[]>(level3);
+  const [l4, setL4] = useState<Member[]>(level4);
+
   useEffect(() => {
+    // Intersection observer for section entrance animation
     const observer = new IntersectionObserver(
       ([entry]) => {
         setIsVisible(entry.isIntersecting);
@@ -132,21 +141,116 @@ export default function Structure() {
       observer.observe(sectionRef.current);
     }
 
+    // Fetch dynamic DPH structure from database
+    fetch('/api/structure')
+      .then((res) => res.json())
+      .then((resData) => {
+        if (resData.success && Array.isArray(resData.data) && resData.data.length > 0) {
+          const all: any[] = resData.data;
+
+          // Level 1: Ketua Umum
+          const foundKetua = all.find((m) => m.level === 1 || m.role?.toLowerCase().includes('ketua umum'));
+          if (foundKetua) {
+            setKetua({
+              id: typeof foundKetua.id === 'number' ? foundKetua.id : 1,
+              name: foundKetua.name,
+              role: foundKetua.role,
+              photo: foundKetua.photo || '/images/primary/cyberlogo.png',
+              photo2: foundKetua.photo2 || foundKetua.photo || '/images/primary/maskot.png',
+              level: 'ketua',
+            });
+          }
+
+          // Level 2: Sekretaris Umum, Wakil Ketua Umum, Bendahara Umum
+          const foundL2 = all.filter((m) => m.level === 2);
+          if (foundL2.length > 0) {
+            const sortedL2 = [...foundL2].sort((a, b) => {
+              const order = (role: string) => {
+                const s = (role || '').toLowerCase();
+                if (s.includes('sekretaris')) return 1;
+                if (s.includes('wakil')) return 2;
+                if (s.includes('bendahara')) return 3;
+                return 4;
+              };
+              return order(a.role) - order(b.role);
+            });
+            setL2(sortedL2.map((m, idx) => ({
+              id: typeof m.id === 'number' ? m.id : idx + 2,
+              name: m.name,
+              role: m.role,
+              photo: m.photo || '/images/primary/cyberlogo.png',
+              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+              level: (m.role?.toLowerCase().includes('wakil') ? 'wakil' : 'sekretaris_bendahara') as any,
+            })));
+          }
+
+          // Level 3: Kepala Departemen (HRD, PR, CIM, IT)
+          const foundL3 = all.filter((m) => m.level === 3);
+          if (foundL3.length > 0) {
+            const sortedL3 = [...foundL3].sort((a, b) => {
+              const order = (role: string) => {
+                const s = (role || '').toLowerCase();
+                if (s.includes('hrd')) return 1;
+                if (s.includes('pr')) return 2;
+                if (s.includes('cim')) return 3;
+                if (s.includes('it')) return 4;
+                return 5;
+              };
+              return order(a.role) - order(b.role);
+            });
+            setL3(sortedL3.map((m, idx) => ({
+              id: typeof m.id === 'number' ? m.id : idx + 5,
+              name: m.name,
+              role: m.role,
+              photo: m.photo || '/images/primary/cyberlogo.png',
+              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+              level: 'departemen',
+            })));
+          }
+
+          // Level 4: Kepala Divisi (Networking, Programming, Multimedia)
+          const foundL4 = all.filter((m) => m.level === 4);
+          if (foundL4.length > 0) {
+            const sortedL4 = [...foundL4].sort((a, b) => {
+              const order = (role: string) => {
+                const s = (role || '').toLowerCase();
+                if (s.includes('networking')) return 1;
+                if (s.includes('programming')) return 2;
+                if (s.includes('multimedia')) return 3;
+                return 4;
+              };
+              return order(a.role) - order(b.role);
+            });
+            setL4(sortedL4.map((m, idx) => ({
+              id: typeof m.id === 'number' ? m.id : idx + 9,
+              name: m.name,
+              role: m.role,
+              photo: m.photo || '/images/primary/cyberlogo.png',
+              photo2: m.photo2 || m.photo || '/images/primary/maskot.png',
+              level: 'divisi',
+            })));
+          }
+        }
+      })
+      .catch((err) => {
+        console.error('Error fetching dynamic structure from DB:', err);
+      });
+
     return () => observer.disconnect();
   }, []);
 
-  const sekUm = level2[0];
-  const wakil = level2[1];
-  const benUm = level2[2];
+  const sekUm = l2[0] || level2[0];
+  const wakil = l2[1] || level2[1];
+  const benUm = l2[2] || level2[2];
 
-  const deptHRD = level3[0];
-  const deptPR = level3[1];
-  const deptCIM = level3[2];
-  const deptIT = level3[3];
+  const deptHRD = l3[0] || level3[0];
+  const deptPR = l3[1] || level3[1];
+  const deptCIM = l3[2] || level3[2];
+  const deptIT = l3[3] || level3[3];
 
-  const divNet = level4[0];
-  const divProg = level4[1];
-  const divMulti = level4[2];
+  const divNet = l4[0] || level4[0];
+  const divProg = l4[1] || level4[1];
+  const divMulti = l4[2] || level4[2];
 
   return (
     <section id="structure" ref={sectionRef} className={`${styles.container} ${isVisible ? styles.visible : ''}`}>
@@ -161,7 +265,7 @@ export default function Structure() {
 
           {/* Level 1: Root Node (Ketua Umum) */}
           <div className={styles.treeLevel1}>
-            <StructureCard member={ketuaUmum} isKetua={true} index={0} />
+            <StructureCard member={ketua} isKetua={true} index={0} />
             <div className={styles.verticalStem} />
           </div>
 
