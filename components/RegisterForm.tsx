@@ -492,7 +492,7 @@ export default function RegisterForm() {
                 onChange={handleJurusanChange}
                 required
               >
-                <option value="">-- Pilih Jurusan PNP --</option>
+                <option value="">Pilih Jurusan</option>
                 {JURUSAN_LIST.map((item) => (
                   <option key={item.id} value={item.name}>
                     {item.name}
@@ -513,7 +513,7 @@ export default function RegisterForm() {
                 required
               >
                 <option value="">
-                  {!jurusan ? '-- Pilih Jurusan Terlebih Dahulu --' : '-- Pilih Program Studi --'}
+                  {!jurusan ? ' Pilih Jurusan Terlebih Dahulu ' : ' Pilih Program Studi '}
                 </option>
                 {availableProdi.map((p, idx) => (
                   <option key={idx} value={p}>
@@ -536,7 +536,7 @@ export default function RegisterForm() {
                 onChange={(e) => setDivisi1(e.target.value)}
                 required
               >
-                <option value="">-- Pilih Divisi Utama --</option>
+                <option value=""> Pilih Divisi Utama </option>
                 {DIVISI_LIST.map((div) => (
                   <option key={div.id} value={div.name}>
                     {div.name} ({div.badge})
@@ -547,13 +547,15 @@ export default function RegisterForm() {
             </div>
 
             <div className={styles.fieldGroup}>
-              <label className={styles.label}>Divisi Pilihan 2 (Opsional)</label>
+              <label className={styles.label}>
+                Divisi Pilihan 2 <span className={styles.required}>*</span>
+              </label>
               <select
                 className={styles.select}
                 value={divisi2}
                 onChange={(e) => setDivisi2(e.target.value)}
               >
-                <option value="">-- Tidak ada / Pilihan 2 Opsional --</option>
+                <option value=""> Pilih Divisi Cadangan </option>
                 {DIVISI_LIST.filter((div) => div.name !== divisi1).map((div) => (
                   <option key={div.id} value={div.name}>
                     {div.name} ({div.badge})
