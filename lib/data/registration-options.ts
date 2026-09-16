@@ -6,16 +6,45 @@ export interface JurusanOption {
 
 export const JURUSAN_LIST: JurusanOption[] = [
   {
+    id: 'ti',
+    name: 'Teknologi Informasi',
+    prodi: [
+      'D4 Teknologi Rekayasa Perangkat Lunak',
+      'D4 Animasi',
+      'D3 Teknik Komputer',
+      'D3 Manajemen Informatika',
+    ],
+  },
+  {
+    id: 'an',
+    name: 'Administrasi Niaga',
+    prodi: [
+      'D3 Administrasi Bisnis',
+      'D4 Bisnis Digital',
+      'D4 Usaha Perjalanan Wisata',
+      'D4 Destinasi Pariwisata',
+      'D4 Logistik Perdagangan Internasional',
+    ],
+  },
+  {
     id: 'elektro',
     name: 'Teknik Elektro',
     prodi: [
       'D3 Teknik Listrik',
       'D3 Teknik Elektronika',
       'D3 Teknik Telekomunikasi',
-      'D4 Teknik Elektronika',
-      'D4 Teknik Telekomunikasi',
       'D4 Teknologi Rekayasa Instalasi Listrik',
-      'D4 Teknologi Rekayasa Mekatronika',
+      'D4 Teknik Elektronika Industri',
+      'D4 Teknik Telekomunikasi',
+      'D4 Teknologi Rekayasa Internet',
+    ],
+  },
+  {
+    id: 'bi',
+    name: 'Bahasa Inggris',
+    prodi: [
+      'D3 Bahasa Inggris',
+      'D4 Bahasa Inggris untuk Komunikasi Bisnis dan Profesional',
     ],
   },
   {
@@ -29,51 +58,20 @@ export const JURUSAN_LIST: JurusanOption[] = [
     ],
   },
   {
-    id: 'sipil',
-    name: 'Teknik Sipil',
-    prodi: [
-      'D3 Teknik Sipil',
-      'D4 Perancangan Jalan dan Jembatan',
-      'D4 Manajemen Rekayasa Konstruksi',
-      'D4 Teknik Perencanaan Irigasi dan Rawa',
-      'S2 Terapan Rekayasa Perawatan dan Restorasi Jembatan',
-    ],
-  },
-  {
-    id: 'ti',
-    name: 'Teknologi Informasi',
-    prodi: [
-      'D3 Teknik Komputer',
-      'D3 Manajemen Informatika',
-      'D4 Teknologi Rekayasa Perangkat Lunak',
-      'D4 Animasi',
-    ],
-  },
-  {
     id: 'akuntansi',
     name: 'Akuntansi',
     prodi: [
       'D3 Akuntansi',
       'D4 Akuntansi',
-      'D4 Akuntansi Keuangan Publik',
     ],
   },
   {
-    id: 'an',
-    name: 'Administrasi Niaga',
+    id: 'sipil',
+    name: 'Teknik Sipil',
     prodi: [
-      'D3 Administrasi Bisnis',
-      'D3 Usaha Perjalanan Wisata',
-      'D4 Usaha Perjalanan Wisata',
-      'D4 Manajemen Bisnis Internasional',
-    ],
-  },
-  {
-    id: 'bi',
-    name: 'Bahasa Inggris',
-    prodi: [
-      'D3 Bahasa Inggris',
-      'D4 Bahasa Inggris untuk Komunikasi Bisnis dan Profesional',
+      'D4 Teknik Perencanaan Irigasi dan Rawa',
+      'D4 Manajemen Rekayasa Konstruksi',
+      'D4 Perancangan Jalan dan Jembatan',
     ],
   },
 ];
