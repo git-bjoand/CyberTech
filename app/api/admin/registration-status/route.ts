@@ -1,19 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getRegistrationStatusFromDb, saveRegistrationStatusToDb, getAdminAccountByUsername } from '@/lib/db';
+import { getRegistrationStatusFromDb, saveRegistrationStatusToDb } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
-async function verifyAuth(req: NextRequest): Promise<boolean> {
-  const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
-  if (process.env.ADMIN_SECRET_KEY && secret === process.env.ADMIN_SECRET_KEY) {
-    return true;
-  }
-
-  const requester = req.headers.get('x-admin-username') || new URL(req.url).searchParams.get('requester');
-  if (requester) {
-    const user = await getAdminAccountByUsername(requester);
-    if (user || requester.toLowerCase() === 'admin') return true;
-  }
-  return false;
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET() {
   try {
@@ -34,16 +23,25 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
-    const { isOpen, title, message } = body;
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Format body JSON tidak valid.' },
+        { status: 400 }
+      );
+    }
+
+    const { isOpen, title, message } = body || {};
 
     if (typeof isOpen !== 'boolean') {
       return NextResponse.json(

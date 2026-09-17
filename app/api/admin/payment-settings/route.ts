@@ -1,22 +1,19 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getPaymentSettingsFromDb, savePaymentSettingsToDb, getAdminAccountByUsername } from '@/lib/db';
+import { getPaymentSettingsFromDb, savePaymentSettingsToDb } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
-async function verifyAuth(req: NextRequest): Promise<boolean> {
-  const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
-  if (process.env.ADMIN_SECRET_KEY && secret === process.env.ADMIN_SECRET_KEY) {
-    return true;
-  }
+export const dynamic = 'force-dynamic';
 
-  const requester = req.headers.get('x-admin-username') || new URL(req.url).searchParams.get('requester');
-  if (requester) {
-    const user = await getAdminAccountByUsername(requester);
-    if (user || requester.toLowerCase() === 'admin') return true;
-  }
-  return false;
-}
-
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { status: 401 }
+      );
+    }
+
     const paymentSettings = await getPaymentSettingsFromDb();
     return NextResponse.json({
       success: true,
@@ -33,16 +30,25 @@ export async function GET() {
 
 export async function POST(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
-    const { bankName, accountNumber, accountHolder, notes } = body;
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Format body JSON tidak valid.' },
+        { status: 400 }
+      );
+    }
+
+    const { bankName, accountNumber, accountHolder, notes } = body || {};
 
     if (!bankName || !accountNumber || !accountHolder) {
       return NextResponse.json(

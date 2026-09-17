@@ -6,6 +6,19 @@ import Image from 'next/image';
 import { usePathname } from 'next/navigation';
 import { useTheme } from '@/lib/context/ThemeContext';
 import styles from './AdminLayout.module.css';
+import {
+  ChartBar,
+  ClipboardText,
+  TreeStructure,
+  Article,
+  UsersThree,
+  Sun,
+  Moon,
+  List,
+  X,
+  SignOut,
+  ArrowSquareOut,
+} from '@phosphor-icons/react';
 
 interface AdminLayoutProps {
   children: React.ReactNode;
@@ -13,11 +26,11 @@ interface AdminLayoutProps {
 }
 
 const navItems = [
-  { href: '/admin', label: 'Overview', icon: '📊' },
-  { href: '/admin/pendaftaran', label: 'Data Pendaftaran', icon: '📋' },
-  { href: '/admin/struktur', label: 'Struktur DPH & Org', icon: '🏛️' },
-  { href: '/admin/konten', label: 'Konten Landing', icon: '📝' },
-  { href: '/admin/akun', label: 'Kelola Akun Admin', icon: '👤' },
+  { href: '/admin', label: 'Overview', icon: <ChartBar size={18} weight="duotone" /> },
+  { href: '/admin/pendaftaran', label: 'Data Pendaftaran', icon: <ClipboardText size={18} weight="duotone" /> },
+  { href: '/admin/struktur', label: 'Struktur DPH & Org', icon: <TreeStructure size={18} weight="duotone" /> },
+  { href: '/admin/konten', label: 'Konten Landing', icon: <Article size={18} weight="duotone" /> },
+  { href: '/admin/akun', label: 'Kelola Akun Admin', icon: <UsersThree size={18} weight="duotone" /> },
 ];
 
 export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
@@ -49,27 +62,17 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     }
 
     const checkSession = async () => {
-      const currentSession = sessionStorage.getItem('cybertech_admin_user');
-      if (!currentSession) {
-        setIsAuthenticated(false);
-        setCurrentUser(null);
-        return;
-      }
-
       try {
-        const u = JSON.parse(currentSession);
-        if (!u || !u.username) {
-          sessionStorage.removeItem('cybertech_admin_user');
-          setIsAuthenticated(false);
-          setCurrentUser(null);
-          return;
+        const token = sessionStorage.getItem('cybertech_admin_token');
+        const headers: Record<string, string> = { 'Content-Type': 'application/json' };
+        if (token) {
+          headers['Authorization'] = `Bearer ${token}`;
         }
 
-        // Verify session against database in background
+        // Verify session against server (cookie or Bearer token)
         const res = await fetch('/api/admin/verify-session', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username: u.username }),
+          method: 'GET',
+          headers,
         });
         const data = await res.json();
 
@@ -78,8 +81,9 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
           setIsAuthenticated(true);
           sessionStorage.setItem('cybertech_admin_user', JSON.stringify(data.user));
         } else if (res.status === 401) {
-          // Account deleted or session invalid in DB
+          // Account deleted or session expired
           sessionStorage.removeItem('cybertech_admin_user');
+          sessionStorage.removeItem('cybertech_admin_token');
           sessionStorage.removeItem('cybertech_admin_secret');
           setCurrentUser(null);
           setIsAuthenticated(false);
@@ -109,6 +113,9 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
         setCurrentUser(data.user);
         setIsAuthenticated(true);
         sessionStorage.setItem('cybertech_admin_user', JSON.stringify(data.user));
+        if (data.token) {
+          sessionStorage.setItem('cybertech_admin_token', data.token);
+        }
         setErrorMsg(null);
       } else {
         setErrorMsg(data.error || 'Username atau Password Administrator salah.');
@@ -121,8 +128,13 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
     }
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try {
+      await fetch('/api/admin/logout', { method: 'POST' });
+    } catch (e) {}
+
     sessionStorage.removeItem('cybertech_admin_user');
+    sessionStorage.removeItem('cybertech_admin_token');
     sessionStorage.removeItem('cybertech_admin_secret');
     setCurrentUser(null);
     setIsAuthenticated(false);
@@ -151,9 +163,17 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
             onClick={(e) => toggleTheme(e)}
             className={styles.themeToggleBtn}
             title="Ganti Mode Tampilan"
-            style={{ position: 'absolute', top: '1.25rem', right: '1.25rem' }}
+            style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            {theme === 'dark' ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
+            {theme === 'dark' ? (
+              <>
+                <Sun size={16} weight="bold" /> Mode Terang
+              </>
+            ) : (
+              <>
+                <Moon size={16} weight="bold" /> Mode Gelap
+              </>
+            )}
           </button>
 
           {/* Centered Large CyberTech Logo & Header */}
@@ -225,8 +245,9 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
           className={styles.menuBtn}
           onClick={() => setMobileDrawerOpen(true)}
           aria-label="Buka Menu Navigation"
+          style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
         >
-          ☰
+          <List size={22} weight="bold" />
         </button>
       </header>
 
@@ -240,7 +261,9 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
                   <Image src="/images/primary/cyberlogo.png" alt="Logo" width={24} height={24} />
                   <span className={styles.brandTitle}>Navigasi Admin</span>
                 </div>
-                <button className={styles.closeBtn} onClick={() => setMobileDrawerOpen(false)}>✕</button>
+                <button className={styles.closeBtn} onClick={() => setMobileDrawerOpen(false)} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <X size={20} weight="bold" />
+                </button>
               </div>
 
               <div className={styles.navSectionTitle}>Menu Utama</div>
@@ -268,9 +291,17 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
                 type="button"
                 onClick={(e) => toggleTheme(e)}
                 className={styles.themeToggleBtn}
-                style={{ width: '100%', justifyContent: 'center' }}
+                style={{ width: '100%', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
               >
-                {theme === 'dark' ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
+                {theme === 'dark' ? (
+                  <>
+                    <Sun size={16} weight="bold" /> Mode Terang
+                  </>
+                ) : (
+                  <>
+                    <Moon size={16} weight="bold" /> Mode Gelap
+                  </>
+                )}
               </button>
 
               {currentUser && (
@@ -283,8 +314,9 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               <button
                 onClick={handleLogout}
                 className={styles.logoutBtn}
+                style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
               >
-                🚪 Keluar (Logout)
+                <SignOut size={16} weight="bold" /> Keluar (Logout)
               </button>
 
               <Link href="/" className={styles.linkSubtle}>
@@ -329,9 +361,17 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
               type="button"
               onClick={(e) => toggleTheme(e)}
               className={styles.themeToggleBtn}
-              style={{ width: '100%', justifyContent: 'center' }}
+              style={{ width: '100%', justifyContent: 'center', display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}
             >
-              {theme === 'dark' ? '☀️ Mode Terang' : '🌙 Mode Gelap'}
+              {theme === 'dark' ? (
+                <>
+                  <Sun size={16} weight="bold" /> Mode Terang
+                </>
+              ) : (
+                <>
+                  <Moon size={16} weight="bold" /> Mode Gelap
+                </>
+              )}
             </button>
 
             {currentUser && (
@@ -344,12 +384,13 @@ export default function AdminLayout({ children, pageTitle }: AdminLayoutProps) {
             <button
               onClick={handleLogout}
               className={styles.logoutBtn}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
             >
-              🚪 Keluar (Logout)
+              <SignOut size={16} weight="bold" /> Keluar (Logout)
             </button>
 
-            <Link href="/" className={styles.linkSubtle}>
-              🌐 Lihat Website Utama
+            <Link href="/" className={styles.linkSubtle} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+              <ArrowSquareOut size={16} /> Lihat Website Utama
             </Link>
           </div>
         </aside>

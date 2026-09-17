@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { ClipboardText, Buildings, Article, ArrowRight } from '@phosphor-icons/react';
 
 interface StatsOverview {
   total: number;
@@ -20,18 +21,13 @@ export default function AdminPage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const sessionStr = sessionStorage.getItem('cybertech_admin_user');
-    let username = '';
-    if (sessionStr) {
-      try {
-        const u = JSON.parse(sessionStr);
-        username = u?.username || '';
-      } catch (e) {}
+    const token = sessionStorage.getItem('cybertech_admin_token');
+    const headers: Record<string, string> = {};
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
     }
 
-    fetch('/api/admin/registrations', {
-      headers: { 'x-admin-username': username },
-    })
+    fetch('/api/admin/registrations', { headers })
       .then((res) => res.json())
       .then((data) => {
         if (data.success && data.data) {
@@ -104,7 +100,9 @@ export default function AdminPage() {
         {/* Card 1: Pendaftaran */}
         <div style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>📋</div>
+            <div style={{ marginBottom: '0.75rem', color: '#10b981' }}>
+              <ClipboardText size={32} weight="duotone" />
+            </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.4rem 0', color: 'var(--admin-text-main)' }}>
               Kelola Pendaftaran Anggota
             </h3>
@@ -112,15 +110,18 @@ export default function AdminPage() {
               Lihat daftar calon anggota, cek foto bukti transfer, hubungi WhatsApp pendaftar, dan hapus/export data.
             </p>
           </div>
-          <Link href="/admin/pendaftaran" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#10b981', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
-            Buka Rekap Pendaftaran →
+          <Link href="/admin/pendaftaran" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#10b981', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
+            <span>Buka Rekap Pendaftaran</span>
+            <ArrowRight size={16} weight="bold" />
           </Link>
         </div>
 
         {/* Card 2: DPH & Struktur */}
         <div style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>🏛️</div>
+            <div style={{ marginBottom: '0.75rem', color: '#0284c7' }}>
+              <Buildings size={32} weight="duotone" />
+            </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.4rem 0', color: 'var(--admin-text-main)' }}>
               Kelola DPH & Struktur Org
             </h3>
@@ -128,15 +129,18 @@ export default function AdminPage() {
               Atur hirarki DPH (Pembina → Ketua → BPH → Dept → Divisi), tambah/edit/hapus pejabat jika terjadi pergantian kepengurusan.
             </p>
           </div>
-          <Link href="/admin/struktur" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#0284c7', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
-            Kelola Hirarki DPH →
+          <Link href="/admin/struktur" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#0284c7', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
+            <span>Kelola Hirarki DPH</span>
+            <ArrowRight size={16} weight="bold" />
           </Link>
         </div>
 
         {/* Card 3: Konten Landing */}
         <div style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', padding: '1.5rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
           <div>
-            <div style={{ fontSize: '1.75rem', marginBottom: '0.75rem' }}>📝</div>
+            <div style={{ marginBottom: '0.75rem', color: '#8b5cf6' }}>
+              <Article size={32} weight="duotone" />
+            </div>
             <h3 style={{ fontSize: '1.1rem', fontWeight: 700, margin: '0 0 0.4rem 0', color: 'var(--admin-text-main)' }}>
               Kelola Konten Landing
             </h3>
@@ -144,8 +148,9 @@ export default function AdminPage() {
               Kelola daftar Acara/Events, Portofolio karya, dan foto Galeri kegiatan secara teratur dari dashboard.
             </p>
           </div>
-          <Link href="/admin/konten" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#334155', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
-            Kelola Data Konten →
+          <Link href="/admin/konten" style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', marginTop: '1.25rem', padding: '0.75rem 1rem', background: '#334155', color: '#ffffff', borderRadius: '6px', textDecoration: 'none', fontWeight: 700, fontSize: '0.9rem', minHeight: '44px' }}>
+            <span>Kelola Data Konten</span>
+            <ArrowRight size={16} weight="bold" />
           </Link>
         </div>
       </div>

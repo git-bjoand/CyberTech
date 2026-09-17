@@ -6,6 +6,7 @@ import styles from './RegisterForm.module.css';
 import { JURUSAN_LIST, DIVISI_LIST } from '@/lib/data/registration-options';
 import { useLang } from '@/lib/context/LangContext';
 import { useTheme } from '@/lib/context/ThemeContext';
+import { CheckCircle, Copy, Lock, CreditCard, Warning, X, Info, InstagramLogo } from '@phosphor-icons/react';
 
 interface SuccessData {
   registrationId: string;
@@ -318,8 +319,16 @@ export default function RegisterForm() {
           </p>
 
           <div className={styles.btnGroup}>
-            <button className={styles.copyIdBtn} onClick={copyTicketId}>
-              {copied ? '✓ Kode Tersalin!' : '📋 Salin Kode Registrasi'}
+            <button className={styles.copyIdBtn} onClick={copyTicketId} style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}>
+              {copied ? (
+                <>
+                  <CheckCircle size={18} weight="bold" /> Kode Tersalin!
+                </>
+              ) : (
+                <>
+                  <Copy size={18} /> Salin Kode Registrasi
+                </>
+              )}
             </button>
             <Link href="/" className={styles.backHomeBtn}>
               Kembali ke Beranda
@@ -346,7 +355,7 @@ export default function RegisterForm() {
       <div className={styles.wrapper}>
         <div className={styles.closedCard}>
           <div className={styles.closedIconWrap}>
-            <span style={{ fontSize: '2.25rem' }}>🔒</span>
+            <Lock size={36} color="#ef4444" weight="duotone" />
           </div>
           <div className={styles.closedBadge}>
             <span className={styles.dotRed}></span> Pendaftaran Ditutup
@@ -359,8 +368,8 @@ export default function RegisterForm() {
           </p>
 
           <div className={styles.closedNoticeBox}>
-            <div style={{ fontWeight: 700, color: '#38bdf8', marginBottom: '0.35rem', fontSize: '0.9rem' }}>
-              💡 Informasi Selanjutnya
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontWeight: 700, color: '#38bdf8', marginBottom: '0.35rem', fontSize: '0.9rem' }}>
+              <Info size={18} /> Informasi Selanjutnya
             </div>
             <p style={{ margin: 0, fontSize: '0.85rem', color: '#94a3b8', lineHeight: '1.5' }}>
               Pantau jadwal wawancara, pengumuman hasil seleksi, dan informasi kegiatan UKM CyberTech PNP melalui Instagram resmi kami di <strong style={{ color: '#10b981' }}>@cybertech_pnp</strong>.
@@ -373,9 +382,9 @@ export default function RegisterForm() {
               target="_blank"
               rel="noopener noreferrer"
               className={styles.copyIdBtn}
-              style={{ textDecoration: 'none' }}
+              style={{ textDecoration: 'none', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
             >
-              📱 Kunjungi Instagram @cybertech_pnp
+              <InstagramLogo size={18} /> Kunjungi Instagram @cybertech_pnp
             </a>
             <Link href="/" className={styles.backHomeBtn}>
               Kembali ke Beranda
@@ -570,7 +579,7 @@ export default function RegisterForm() {
           <div style={{ background: 'rgba(16, 185, 129, 0.08)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '10px', padding: '1.1rem 1.25rem', marginBottom: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem', marginBottom: '0.75rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                <span style={{ fontSize: '1.25rem' }}>💳</span>
+                <CreditCard size={20} color="#10b981" />
                 <h3 style={{ margin: 0, fontSize: '1rem', fontWeight: 700, color: '#10b981' }}>
                   Informasi Rekening Transfer Pembayaran
                 </h3>
@@ -600,6 +609,9 @@ export default function RegisterForm() {
                   type="button"
                   onClick={copyAccountNumber}
                   style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '0.4rem',
                     padding: '0.55rem 0.9rem',
                     background: copiedAccount ? '#10b981' : '#0284c7',
                     color: '#ffffff',
@@ -611,13 +623,22 @@ export default function RegisterForm() {
                     transition: 'all 0.2s ease',
                   }}
                 >
-                  {copiedAccount ? '✓ Rekening Tersalin!' : '📋 Salin No. Rekening'}
+                  {copiedAccount ? (
+                    <>
+                      <CheckCircle size={16} weight="bold" /> Rekening Tersalin!
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} /> Salin No. Rekening
+                    </>
+                  )}
                 </button>
               </div>
             </div>
 
-            <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.825rem', color: '#94a3b8', lineHeight: '1.45' }}>
-              💡 {paymentSettings.notes || 'Silakan lakukan transfer ke rekening di atas, lalu unggah foto / screenshot bukti transfer pada kolom di bawah ini.'}
+            <p style={{ margin: '0.75rem 0 0 0', fontSize: '0.825rem', color: '#94a3b8', lineHeight: '1.45', display: 'flex', alignItems: 'flex-start', gap: '0.4rem' }}>
+              <Info size={16} style={{ flexShrink: 0, marginTop: '2px', color: '#38bdf8' }} />
+              <span>{paymentSettings.notes || 'Silakan lakukan transfer ke rekening di atas, lalu unggah foto / screenshot bukti transfer pada kolom di bawah ini.'}</span>
             </p>
           </div>
 
@@ -666,7 +687,7 @@ export default function RegisterForm() {
                   onClick={handleRemoveFile}
                   title="Hapus gambar"
                 >
-                  ✕
+                  <X size={16} />
                 </button>
                 <div className={styles.fileMeta}>
                   <span style={{ textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', maxWidth: '200px' }}>
@@ -718,8 +739,8 @@ export default function RegisterForm() {
           {/* Realtime Confirmation Checklist */}
           {!isFormValid ? (
             <div className={styles.missingBox}>
-              <div className={styles.missingTitle}>
-                ⚠️ Harap Lengkapi Bidang Isian Berikut Untuk Mengirim:
+              <div className={styles.missingTitle} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <Warning size={18} color="#f59e0b" weight="bold" /> Harap Lengkapi Bidang Isian Berikut Untuk Mengirim:
               </div>
               <ul className={styles.missingList}>
                 {missingFields.map((field, idx) => (
@@ -730,8 +751,8 @@ export default function RegisterForm() {
               </ul>
             </div>
           ) : (
-            <div className={styles.validBox}>
-              ✓ Formulir telah diisi dengan lengkap. Siap dikirim!
+            <div className={styles.validBox} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+              <CheckCircle size={18} color="#10b981" weight="bold" /> Formulir telah diisi dengan lengkap. Siap dikirim!
             </div>
           )}
 
@@ -748,7 +769,9 @@ export default function RegisterForm() {
               </>
             ) : !isFormValid ? (
               <>
-                <span>🔒 Lengkapi Data di Atas</span>
+                <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Lock size={16} /> Lengkapi Data di Atas
+                </span>
               </>
             ) : (
               <>

@@ -1,27 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { getAllRegistrations, getRegistrationById, deleteRegistrationRecord, getAdminAccountByUsername } from '@/lib/db';
+import { getAllRegistrations, getRegistrationById, deleteRegistrationRecord } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
-async function verifyAuth(req: NextRequest): Promise<boolean> {
-  const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
-  if (process.env.ADMIN_SECRET_KEY && secret === process.env.ADMIN_SECRET_KEY) {
-    return true;
-  }
-
-  const requester = req.headers.get('x-admin-username') || new URL(req.url).searchParams.get('requester');
-  if (requester) {
-    const user = await getAdminAccountByUsername(requester);
-    if (user) return true;
-  }
-
-  return false;
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid atau tidak ditemukan.' },
         { status: 401 }
       );
     }
@@ -55,10 +43,10 @@ export async function GET(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid atau tidak ditemukan.' },
         { status: 401 }
       );
     }

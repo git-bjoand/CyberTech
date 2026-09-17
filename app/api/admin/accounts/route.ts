@@ -4,28 +4,15 @@ import {
   createAdminAccountInDb,
   deleteAdminAccountFromDb,
   updateAdminAccountInDb,
-  getAdminAccountByUsername,
 } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
-async function verifyAuth(req: NextRequest): Promise<boolean> {
-  const secret = req.headers.get('x-admin-secret') || new URL(req.url).searchParams.get('secret');
-  if (process.env.ADMIN_SECRET_KEY && secret === process.env.ADMIN_SECRET_KEY) {
-    return true;
-  }
-
-  const requester = req.headers.get('x-admin-username') || new URL(req.url).searchParams.get('requester');
-  if (requester) {
-    const user = await getAdminAccountByUsername(requester);
-    if (user) return true;
-  }
-
-  return false;
-}
+export const dynamic = 'force-dynamic';
 
 export async function GET(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
         { status: 401 }
@@ -48,16 +35,22 @@ export async function GET(req: NextRequest) {
 
 export async function POST(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak. Pembuatan akun hanya dapat dilakukan di portal admin yang sah.' },
         { status: 401 }
       );
     }
 
-    const body = await req.json();
-    const { username, password, fullName, role } = body;
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Body permintaan tidak valid.' }, { status: 400 });
+    }
+
+    const { username, password, fullName, role } = body || {};
 
     if (!username || !password || !fullName) {
       return NextResponse.json(
@@ -66,7 +59,7 @@ export async function POST(req: NextRequest) {
       );
     }
 
-    const success = await createAdminAccountInDb(username, password, fullName, role || 'admin');
+    const success = await createAdminAccountInDb(username.trim(), password, fullName.trim(), role || 'admin');
 
     if (!success) {
       return NextResponse.json(
@@ -90,27 +83,25 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { id, username, newUsername, fullName, role, newPassword, requesterUsername } = body;
-
-    const requester = requesterUsername || req.headers.get('x-admin-username');
-    if (!requester) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
-        { success: false, error: 'Identitas pemohon wajib disertakan.' },
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
         { status: 401 }
       );
     }
 
-    const reqUser = await getAdminAccountByUsername(requester);
-    if (!reqUser) {
-      return NextResponse.json(
-        { success: false, error: 'Sesi pemohon tidak valid.' },
-        { status: 401 }
-      );
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Body permintaan tidak valid.' }, { status: 400 });
     }
 
-    const isSuperAdmin = reqUser.role === 'superadmin' || reqUser.username.toLowerCase() === 'admin';
-    const isTargetSelf = username && reqUser.username.toLowerCase() === username.toLowerCase();
+    const { id, username, newUsername, fullName, role, newPassword } = body || {};
+
+    const isSuperAdmin = adminUser.role === 'superadmin' || adminUser.username.toLowerCase() === 'admin';
+    const isTargetSelf = username && adminUser.username.toLowerCase() === username.toLowerCase();
 
     if (!isSuperAdmin && !isTargetSelf) {
       return NextResponse.json(
@@ -151,8 +142,8 @@ export async function PUT(req: NextRequest) {
 
 export async function DELETE(req: NextRequest) {
   try {
-    const authorized = await verifyAuth(req);
-    if (!authorized) {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
       return NextResponse.json(
         { success: false, error: 'Akses ditolak.' },
         { status: 401 }

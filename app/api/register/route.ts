@@ -37,7 +37,8 @@ function checkRateLimit(ip: string): { allowed: boolean; remaining: number } {
 export async function GET() {
   try {
     const settings = await getRegistrationStatusFromDb();
-    const paymentSettings = await getPaymentSettingsFromDb();
+    // Only disclose bank payment settings if registration is currently open
+    const paymentSettings = settings.isOpen ? await getPaymentSettingsFromDb() : null;
     return NextResponse.json({
       success: true,
       settings,
@@ -65,7 +66,7 @@ export async function POST(req: NextRequest) {
     }
 
     const ip = getClientIp(req);
-    
+
     // 1. Rate Limiting Check
     const rateCheck = checkRateLimit(ip);
     if (!rateCheck.allowed) {
@@ -177,7 +178,7 @@ export async function POST(req: NextRequest) {
       jurusan: jurusan.trim(),
       prodi: prodi.trim(),
       divisi1: divisi1.trim(),
-      divisi2: hasDivisi2 ? divisi2.trim() : 'Tidak ada',
+      divisi2: divisi2.trim(),
       buktiPembayaran,
       alasanDivisi1: finalAlasanDiv1,
       alasanDivisi2: finalAlasanDiv2 || 'Tidak ada',

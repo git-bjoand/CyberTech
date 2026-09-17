@@ -1,6 +1,18 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import {
+  Lock,
+  LockOpen,
+  ArrowClockwise,
+  CreditCard,
+  FileCsv,
+  WhatsappLogo,
+  X,
+  Warning,
+  FloppyDisk,
+  Camera,
+} from '@phosphor-icons/react';
 
 interface RegistrationItem {
   registrationId: string;
@@ -37,20 +49,20 @@ export default function AdminPendaftaranPage() {
   const [regStatus, setRegStatus] = useState<{ isOpen: boolean; title: string; message: string } | null>(null);
   const [updatingStatus, setUpdatingStatus] = useState(false);
 
-  const getAdminUsername = () => {
-    try {
-      const sessionStr = sessionStorage.getItem('cybertech_admin_user');
-      if (sessionStr) {
-        const u = JSON.parse(sessionStr);
-        return u?.username || '';
-      }
-    } catch (e) {}
-    return '';
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('cybertech_admin_token') : null;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   };
 
   const fetchStatus = async () => {
     try {
-      const res = await fetch('/api/admin/registration-status');
+      const res = await fetch('/api/admin/registration-status', {
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       if (res.ok && data.success) {
         setRegStatus(data.settings);
@@ -62,9 +74,8 @@ export default function AdminPendaftaranPage() {
     setLoading(true);
     setErrorMsg(null);
     try {
-      const username = getAdminUsername();
       const res = await fetch('/api/admin/registrations', {
-        headers: { 'x-admin-username': username },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
 
@@ -99,7 +110,9 @@ export default function AdminPendaftaranPage() {
 
   const fetchPaymentSettings = async () => {
     try {
-      const res = await fetch('/api/admin/payment-settings');
+      const res = await fetch('/api/admin/payment-settings', {
+        headers: getAuthHeaders(),
+      });
       const data = await res.json();
       if (res.ok && data.success && data.paymentSettings) {
         setPaymentSettings(data.paymentSettings);
@@ -113,13 +126,12 @@ export default function AdminPendaftaranPage() {
   const handleSavePaymentSettings = async (e: React.FormEvent) => {
     e.preventDefault();
     setSavingPaymentSettings(true);
-    const username = getAdminUsername();
     try {
       const res = await fetch('/api/admin/payment-settings', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': username,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           bankName: editBankName,
@@ -149,11 +161,10 @@ export default function AdminPendaftaranPage() {
     if (!item.buktiPembayaran) {
       setLoadingDetail(true);
       try {
-        const username = getAdminUsername();
         const res = await fetch(
           `/api/admin/registrations?registrationId=${encodeURIComponent(item.registrationId)}`,
           {
-            headers: { 'x-admin-username': username },
+            headers: getAuthHeaders(),
           }
         );
         const data = await res.json();
@@ -173,13 +184,12 @@ export default function AdminPendaftaranPage() {
 
   const handleToggleStatus = async (newIsOpen: boolean) => {
     setUpdatingStatus(true);
-    const username = getAdminUsername();
     try {
       const res = await fetch('/api/admin/registration-status', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': username,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ isOpen: newIsOpen }),
       });
@@ -200,12 +210,11 @@ export default function AdminPendaftaranPage() {
     if (!itemToDelete) return;
     setIsDeleting(true);
     try {
-      const username = getAdminUsername();
       const res = await fetch(
         `/api/admin/registrations?registrationId=${encodeURIComponent(itemToDelete.registrationId)}`,
         {
           method: 'DELETE',
-          headers: { 'x-admin-username': username },
+          headers: getAuthHeaders(),
         }
       );
       const data = await res.json();
@@ -314,8 +323,9 @@ export default function AdminPendaftaranPage() {
                 <div style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)', fontWeight: 700, textTransform: 'uppercase' }}>
                   Status Pendaftaran Publik:
                 </div>
-                <div style={{ fontSize: '0.875rem', fontWeight: 800, color: regStatus.isOpen ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                  {regStatus.isOpen ? '🟢 DIBUKA (OPEN)' : '🔴 DITUTUP (CLOSED)'}
+                <div style={{ fontSize: '0.875rem', fontWeight: 800, color: regStatus.isOpen ? '#10b981' : '#ef4444', display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                  <span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', background: regStatus.isOpen ? '#10b981' : '#ef4444' }} />
+                  <span>{regStatus.isOpen ? 'DIBUKA (OPEN)' : 'DITUTUP (CLOSED)'}</span>
                 </div>
               </div>
 
@@ -323,6 +333,9 @@ export default function AdminPendaftaranPage() {
                 onClick={() => handleToggleStatus(!regStatus.isOpen)}
                 disabled={updatingStatus}
                 style={{
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.4rem',
                   padding: '0.55rem 1rem',
                   background: regStatus.isOpen ? '#ef4444' : '#10b981',
                   color: '#ffffff',
@@ -334,7 +347,17 @@ export default function AdminPendaftaranPage() {
                   whiteSpace: 'nowrap',
                 }}
               >
-                {updatingStatus ? 'Memproses...' : regStatus.isOpen ? '🔒 Tutup Pendaftaran' : '🔓 Buka Pendaftaran'}
+                {updatingStatus ? (
+                  'Memproses...'
+                ) : regStatus.isOpen ? (
+                  <>
+                    <Lock size={15} weight="bold" /> Tutup Pendaftaran
+                  </>
+                ) : (
+                  <>
+                    <LockOpen size={15} weight="bold" /> Buka Pendaftaran
+                  </>
+                )}
               </button>
             </div>
           )}
@@ -371,22 +394,25 @@ export default function AdminPendaftaranPage() {
           <div style={{ display: 'flex', gap: '0.65rem', width: '100%', flexWrap: 'wrap' }}>
             <button
               onClick={fetchRegistrations}
-              style={{ flex: '1 1 120px', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', flex: '1 1 120px', padding: '0.75rem', background: 'var(--admin-input-bg)', border: '1px solid var(--admin-input-border)', color: 'var(--admin-text-main)', borderRadius: '6px', fontWeight: 600, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
             >
-              🔄 Refresh
+              <ArrowClockwise size={16} />
+              <span>Refresh</span>
             </button>
             <button
               onClick={() => setIsPaymentModalOpen(true)}
-              style={{ flex: '1 1 160px', padding: '0.75rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', flex: '1 1 160px', padding: '0.75rem', background: '#0284c7', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
             >
-              💳 Pengaturan Rekening
+              <CreditCard size={16} />
+              <span>Pengaturan Rekening</span>
             </button>
             <button
               onClick={exportToCSV}
               disabled={filteredItems.length === 0}
-              style={{ flex: '1 1 140px', padding: '0.75rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
+              style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', flex: '1 1 140px', padding: '0.75rem', background: '#059669', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', minHeight: '44px' }}
             >
-              📊 Export CSV ({filteredItems.length})
+              <FileCsv size={16} />
+              <span>Export CSV ({filteredItems.length})</span>
             </button>
           </div>
         </div>
@@ -430,9 +456,9 @@ export default function AdminPendaftaranPage() {
                             href={formatWaUrl(item.noHp)}
                             target="_blank"
                             rel="noreferrer"
-                            style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.25rem' }}
+                            style={{ color: '#22c55e', textDecoration: 'none', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}
                           >
-                            💬 {item.noHp}
+                            <WhatsappLogo size={16} weight="fill" /> {item.noHp}
                           </a>
                         ) : (
                           <span style={{ color: 'var(--admin-text-muted)' }}>-</span>
@@ -486,9 +512,9 @@ export default function AdminPendaftaranPage() {
             >
               <button
                 onClick={() => setSelectedItem(null)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <X size={18} weight="bold" />
               </button>
 
               <div style={{ display: 'inline-block', padding: '0.2rem 0.6rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 700, marginBottom: '0.5rem' }}>
@@ -508,8 +534,8 @@ export default function AdminPendaftaranPage() {
                   <div style={{ fontSize: '0.75rem', color: 'var(--admin-text-muted)' }}>No. WhatsApp:</div>
                   <div style={{ fontWeight: 600, color: '#22c55e' }}>
                     {selectedItem.noHp ? (
-                      <a href={formatWaUrl(selectedItem.noHp)} target="_blank" rel="noreferrer" style={{ color: '#22c55e' }}>
-                        💬 {selectedItem.noHp}
+                      <a href={formatWaUrl(selectedItem.noHp)} target="_blank" rel="noreferrer" style={{ color: '#22c55e', display: 'inline-flex', alignItems: 'center', gap: '0.35rem', textDecoration: 'none' }}>
+                        <WhatsappLogo size={16} weight="fill" /> {selectedItem.noHp}
                       </a>
                     ) : (
                       '-'
@@ -554,8 +580,8 @@ export default function AdminPendaftaranPage() {
 
               {/* Bukti Pembayaran */}
               <div style={{ borderTop: '1px solid var(--admin-border)', paddingTop: '1rem' }}>
-                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.75rem' }}>
-                  📷 Foto Bukti Pembayaran Transfer:
+                <div style={{ fontSize: '0.95rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                  <Camera size={18} /> Foto Bukti Pembayaran Transfer:
                 </div>
                 {loadingDetail ? (
                   <div style={{ color: '#0284c7', fontStyle: 'italic', padding: '1rem', background: 'var(--admin-input-bg)', borderRadius: '6px', textAlign: 'center', fontSize: '0.875rem' }}>
@@ -596,7 +622,9 @@ export default function AdminPendaftaranPage() {
               style={{ background: 'var(--admin-card-bg)', border: '1px solid #ef4444', borderRadius: '8px', width: '100%', maxWidth: '420px', padding: '1.5rem', textAlign: 'center' }}
               onClick={(e) => e.stopPropagation()}
             >
-              <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+              <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.5rem' }}>
+                <Warning size={42} color="#ef4444" weight="duotone" />
+              </div>
               <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.5rem' }}>Hapus Data Pendaftaran?</h3>
               <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', marginBottom: '1.5rem', lineHeight: '1.45' }}>
                 Apakah Anda yakin ingin menghapus data pendaftaran milik <strong style={{ color: 'var(--admin-text-main)' }}>{itemToDelete.nama}</strong> ({itemToDelete.registrationId})? Tindakan ini tidak dapat dibatalkan.
@@ -633,13 +661,13 @@ export default function AdminPendaftaranPage() {
             >
               <button
                 onClick={() => setIsPaymentModalOpen(false)}
-                style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+                style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
               >
-                ✕
+                <X size={18} weight="bold" />
               </button>
 
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                <span style={{ fontSize: '1.5rem' }}>💳</span>
+                <CreditCard size={24} color="#0284c7" weight="duotone" />
                 <h3 style={{ fontSize: '1.2rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
                   Pengaturan Rekening Transfer
                 </h3>
@@ -702,9 +730,10 @@ export default function AdminPendaftaranPage() {
                   <button
                     type="submit"
                     disabled={savingPaymentSettings}
-                    style={{ padding: '0.75rem 1.25rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
+                    style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.75rem 1.25rem', background: '#10b981', color: '#fff', border: 'none', borderRadius: '6px', fontWeight: 700, cursor: 'pointer' }}
                   >
-                    {savingPaymentSettings ? 'Menyimpan...' : '💾 Simpan Rekening'}
+                    <FloppyDisk size={16} />
+                    <span>{savingPaymentSettings ? 'Menyimpan...' : 'Simpan Rekening'}</span>
                   </button>
                 </div>
               </form>

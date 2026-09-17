@@ -1170,7 +1170,7 @@ export interface RegistrationSettings {
 
 export async function getRegistrationStatusFromDb(): Promise<RegistrationSettings> {
   const defaultSettings: RegistrationSettings = {
-    isOpen: true,
+    isOpen: false,
     title: 'Pendaftaran Recruitment CyberTech Saat Ini Ditutup',
     message: 'Terima kasih atas antusiasme Anda. Pendaftaran pendaftar baru UKM Cybertech PNP di tutup. Sampai jumpa di Recruitment periode berikutnya!',
   };
@@ -1248,9 +1248,9 @@ export interface PaymentSettings {
 
 export async function getPaymentSettingsFromDb(): Promise<PaymentSettings> {
   const defaultSettings: PaymentSettings = {
-    bankName: 'BNI',
-    accountNumber: '1868208198',
-    accountHolder: 'RahmaDani',
+    bankName: process.env.PAYMENT_BANK_NAME || 'BNI',
+    accountNumber: process.env.PAYMENT_ACCOUNT_NUMBER || '1868208198',
+    accountHolder: process.env.PAYMENT_ACCOUNT_HOLDER || 'RahmaDani',
     notes: 'Silakan lakukan transfer ke rekening di atas sebelum mengunggah bukti transfer.',
   };
 

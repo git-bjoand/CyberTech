@@ -5,6 +5,7 @@ import Image from 'next/image';
 import styles from './Gallery.module.css';
 import { useLang } from '@/lib/context/LangContext';
 import { photos as defaultPhotos, GalleryPhoto, GalleryCategory } from '@/lib/data/gallery';
+import { Trophy, Laptop, Users, Camera, MagnifyingGlassPlus } from '@phosphor-icons/react';
 
 interface GalleryProps {
   initialData?: GalleryPhoto[];
@@ -112,10 +113,10 @@ export default function Gallery({ initialData }: GalleryProps) {
 
   const getCategoryIcon = (category: string) => {
     switch(category) {
-      case 'hackathon': return '🏆';
-      case 'workshop': return '💻';
-      case 'internal': return '🤝';
-      default: return '📸';
+      case 'hackathon': return <Trophy size={18} color="#f59e0b" />;
+      case 'workshop': return <Laptop size={18} color="#38bdf8" />;
+      case 'internal': return <Users size={18} color="#10b981" />;
+      default: return <Camera size={18} color="#a855f7" />;
     }
   };
 
@@ -206,7 +207,7 @@ export default function Gallery({ initialData }: GalleryProps) {
                   </div>
                 )}
                 <div className={styles.overlay}>
-                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.zoomIcon}><MagnifyingGlassPlus size={22} weight="bold" /></span>
                   <span className={styles.altText}>{photo.alt}</span>
                 </div>
               </div>
@@ -247,7 +248,7 @@ export default function Gallery({ initialData }: GalleryProps) {
                   </div>
                 )}
                 <div className={styles.overlay}>
-                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.zoomIcon}><MagnifyingGlassPlus size={22} weight="bold" /></span>
                   <span className={styles.altText}>{photo.alt}</span>
                 </div>
               </div>
@@ -288,7 +289,7 @@ export default function Gallery({ initialData }: GalleryProps) {
                   </div>
                 )}
                 <div className={styles.overlay}>
-                  <span className={styles.zoomIcon}>🔍</span>
+                  <span className={styles.zoomIcon}><MagnifyingGlassPlus size={22} weight="bold" /></span>
                   <span className={styles.altText}>{photo.alt}</span>
                 </div>
               </div>

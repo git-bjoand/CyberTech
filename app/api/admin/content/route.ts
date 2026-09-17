@@ -1,4 +1,4 @@
-import { NextResponse } from 'next/server';
+import { NextRequest, NextResponse } from 'next/server';
 import {
   getEventsFromDb,
   saveEventToDb,
@@ -10,6 +10,7 @@ import {
   saveGalleryPhotoToDb,
   deleteGalleryPhotoFromDb,
 } from '@/lib/db';
+import { verifyAdminSession } from '@/lib/admin-auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -29,10 +30,24 @@ export async function GET() {
   }
 }
 
-export async function POST(req: Request) {
+export async function POST(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { type, data } = body;
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { status: 401 }
+      );
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Format body JSON tidak valid.' }, { status: 400 });
+    }
+
+    const { type, data } = body || {};
 
     if (type === 'event') {
       const ok = await saveEventToDb(data);
@@ -45,16 +60,30 @@ export async function POST(req: Request) {
       return NextResponse.json({ success: ok });
     }
 
-    return NextResponse.json({ success: false, error: 'Invalid content type' }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Tipe konten tidak valid.' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
 
-export async function PUT(req: Request) {
+export async function PUT(req: NextRequest) {
   try {
-    const body = await req.json();
-    const { type, data } = body;
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { status: 401 }
+      );
+    }
+
+    let body: any;
+    try {
+      body = await req.json();
+    } catch {
+      return NextResponse.json({ success: false, error: 'Format body JSON tidak valid.' }, { status: 400 });
+    }
+
+    const { type, data } = body || {};
 
     if (type === 'event') {
       const ok = await saveEventToDb(data);
@@ -67,20 +96,28 @@ export async function PUT(req: Request) {
       return NextResponse.json({ success: ok });
     }
 
-    return NextResponse.json({ success: false, error: 'Invalid content type' }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Tipe konten tidak valid.' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }
 }
 
-export async function DELETE(req: Request) {
+export async function DELETE(req: NextRequest) {
   try {
+    const adminUser = await verifyAdminSession(req);
+    if (!adminUser) {
+      return NextResponse.json(
+        { success: false, error: 'Akses ditolak. Sesi admin tidak valid.' },
+        { status: 401 }
+      );
+    }
+
     const { searchParams } = new URL(req.url);
     const type = searchParams.get('type');
     const id = searchParams.get('id');
 
     if (!type || !id) {
-      return NextResponse.json({ success: false, error: 'Missing type or id' }, { status: 400 });
+      return NextResponse.json({ success: false, error: 'Parameter type dan id wajib disertakan.' }, { status: 400 });
     }
 
     if (type === 'event') {
@@ -94,7 +131,7 @@ export async function DELETE(req: Request) {
       return NextResponse.json({ success: ok });
     }
 
-    return NextResponse.json({ success: false, error: 'Invalid content type' }, { status: 400 });
+    return NextResponse.json({ success: false, error: 'Tipe konten tidak valid.' }, { status: 400 });
   } catch (err: any) {
     return NextResponse.json({ success: false, error: err.message }, { status: 500 });
   }

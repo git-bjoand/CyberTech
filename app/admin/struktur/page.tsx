@@ -2,6 +2,18 @@
 
 import React, { useState, useEffect } from 'react';
 import { PositionNode, OfficerNode } from '@/lib/data/structure-store';
+import {
+  TreeStructure,
+  Users,
+  User,
+  Plus,
+  X,
+  Lightbulb,
+  Camera,
+  Sparkle,
+  UploadSimple,
+  Warning,
+} from '@phosphor-icons/react';
 
 export default function AdminStrukturPage() {
   const [activeTab, setActiveTab] = useState<'positions' | 'officers'>('positions');
@@ -90,15 +102,13 @@ export default function AdminStrukturPage() {
     fetchData();
   }, []);
 
-  const getAdminUsername = () => {
-    try {
-      const sessionStr = sessionStorage.getItem('cybertech_admin_user');
-      if (sessionStr) {
-        const u = JSON.parse(sessionStr);
-        return u?.username || '';
-      }
-    } catch (e) { }
-    return '';
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('cybertech_admin_token') : null;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   };
 
   // --- HANDLERS UNTUK MASTER JABATAN ---
@@ -127,7 +137,6 @@ export default function AdminStrukturPage() {
       return;
     }
 
-    const username = getAdminUsername();
     const method = editingPos ? 'PUT' : 'POST';
 
     const payload = {
@@ -144,7 +153,7 @@ export default function AdminStrukturPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': username,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -229,7 +238,6 @@ export default function AdminStrukturPage() {
       return;
     }
 
-    const username = getAdminUsername();
     const method = editingOff ? 'PUT' : 'POST';
 
     const payload = {
@@ -247,7 +255,7 @@ export default function AdminStrukturPage() {
         method,
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': username,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify(payload),
       });
@@ -267,14 +275,12 @@ export default function AdminStrukturPage() {
   // --- DELETE CONFIRMATION ---
   const handleDeleteConfirmed = async () => {
     if (!itemToDelete) return;
-    const username = getAdminUsername();
-
     try {
       const res = await fetch(
         `/api/admin/structure?id=${encodeURIComponent(itemToDelete.id)}&targetType=${itemToDelete.type}`,
         {
           method: 'DELETE',
-          headers: { 'x-admin-username': username },
+          headers: getAuthHeaders(),
         }
       );
       const data = await res.json();
@@ -312,8 +318,9 @@ export default function AdminStrukturPage() {
       {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            🏛️ Kelola Struktur & Pejabat DPH
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <TreeStructure size={26} weight="duotone" color="#38bdf8" />
+            Kelola Struktur & Pejabat DPH
           </h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
             Pemisahan tabel <strong style={{ color: '#38bdf8' }}>Struktur</strong> (Hirarki, Fungsi, Komisi) dan <strong style={{ color: '#10b981' }}>Pejabat Pengurus</strong> per periode.
@@ -333,13 +340,13 @@ export default function AdminStrukturPage() {
               fontWeight: 700,
               fontSize: '0.875rem',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.4rem',
+              gap: '0.45rem',
               minHeight: '44px',
             }}
           >
-            🏛️ + Tambah Struktur Baru
+            <Plus size={16} weight="bold" /> Tambah Struktur Baru
           </button>
 
           <button
@@ -353,13 +360,13 @@ export default function AdminStrukturPage() {
               fontWeight: 700,
               fontSize: '0.875rem',
               cursor: 'pointer',
-              display: 'flex',
+              display: 'inline-flex',
               alignItems: 'center',
-              gap: '0.4rem',
+              gap: '0.45rem',
               minHeight: '44px',
             }}
           >
-            👤 + Tambah Pengurus Baru
+            <Plus size={16} weight="bold" /> Tambah Pengurus Baru
           </button>
         </div>
       </div>
@@ -385,9 +392,12 @@ export default function AdminStrukturPage() {
             fontSize: '0.875rem',
             cursor: 'pointer',
             minHeight: '44px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
           }}
         >
-          🏛️ Tabel 1: Struktur & Hirarki ({positions.length})
+          <TreeStructure size={18} weight={activeTab === 'positions' ? 'bold' : 'regular'} /> Tabel 1: Struktur & Hirarki ({positions.length})
         </button>
 
         <button
@@ -403,9 +413,12 @@ export default function AdminStrukturPage() {
             fontSize: '0.875rem',
             cursor: 'pointer',
             minHeight: '44px',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
           }}
         >
-          👤 Tabel 2: Pejabat Pengurus ({officers.length})
+          <Users size={18} weight={activeTab === 'officers' ? 'bold' : 'regular'} /> Tabel 2: Pejabat Pengurus ({officers.length})
         </button>
       </div>
 
@@ -556,7 +569,10 @@ export default function AdminStrukturPage() {
                         </td>
 
                         <td style={{ padding: '0.85rem 1rem', fontWeight: 800, color: 'var(--admin-text-main)' }}>
-                          👤 {off.name}
+                          <span style={{ display: 'inline-flex', alignItems: 'center', gap: '0.45rem' }}>
+                            <User size={16} weight="bold" color="#10b981" />
+                            {off.name}
+                          </span>
                         </td>
 
                         <td style={{ padding: '0.85rem 1rem' }}>
@@ -612,13 +628,15 @@ export default function AdminStrukturPage() {
           >
             <button
               onClick={() => setPosModalOpen(false)}
-              style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Tutup"
             >
-              ✕
+              <X size={16} weight="bold" />
             </button>
 
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 1.25rem 0', color: 'var(--admin-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              🏛️ {editingPos ? 'Edit Struktur Jabatan' : 'Tambah Struktur Jabatan / Komisi Baru'}
+              <TreeStructure size={22} weight="duotone" color="#0284c7" />
+              {editingPos ? 'Edit Struktur Jabatan' : 'Tambah Struktur Jabatan / Komisi Baru'}
             </h2>
 
             <form onSubmit={handleSavePosition}>
@@ -666,7 +684,9 @@ export default function AdminStrukturPage() {
                     required
                   />
                   <div style={{ marginTop: '0.45rem', fontSize: '0.75rem', color: 'var(--admin-text-muted)', lineHeight: '1.45', background: 'rgba(59, 130, 246, 0.08)', border: '1px solid rgba(59, 130, 246, 0.2)', padding: '0.5rem 0.65rem', borderRadius: '4px' }}>
-                    <div style={{ fontWeight: 700, color: 'var(--accent-cyan, #38bdf8)', marginBottom: '0.2rem' }}>💡 Panduan Tingkatan Level:</div>
+                    <div style={{ fontWeight: 700, color: 'var(--accent-cyan, #38bdf8)', marginBottom: '0.2rem', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Lightbulb size={16} weight="bold" /> Panduan Tingkatan Level:
+                    </div>
                     <div><strong>Level 0:</strong> Pembina (Disimpan di sistem, disembunyikan di landing)</div>
                     <div><strong>Level 1:</strong> Pimpinan Tertinggi (Ketua Umum)</div>
                     <div><strong>Level 2:</strong> Pengurus Harian Inti (Sekretaris Umum, Wakil Ketum, Bendahara Umum)</div>
@@ -728,13 +748,15 @@ export default function AdminStrukturPage() {
           >
             <button
               onClick={() => setOffModalOpen(false)}
-              style={{ position: 'absolute', top: '1rem', right: '1rem', background: '#ef4444', color: '#fff', border: 'none', borderRadius: '4px', width: '32px', height: '32px', cursor: 'pointer', fontWeight: 'bold' }}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'rgba(239, 68, 68, 0.15)', color: '#ef4444', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '6px', width: '32px', height: '32px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              aria-label="Tutup"
             >
-              ✕
+              <X size={16} weight="bold" />
             </button>
 
             <h2 style={{ fontSize: '1.2rem', fontWeight: 800, margin: '0 0 1.25rem 0', color: 'var(--admin-text-main)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-              👤 {editingOff ? 'Edit Pejabat Pengurus' : 'Assign / Tambah Pejabat Baru'}
+              <User size={22} weight="duotone" color="#10b981" />
+              {editingOff ? 'Edit Pejabat Pengurus' : 'Assign / Tambah Pejabat Baru'}
             </h2>
 
             <form onSubmit={handleSaveOfficer}>
@@ -789,8 +811,8 @@ export default function AdminStrukturPage() {
                 {/* FOTO 1: UTAMA */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 800 }}>
-                      📸 Foto 1 (Utama / Default)
+                    <label style={{ fontSize: '0.8rem', color: '#38bdf8', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Camera size={16} weight="bold" /> Foto 1 (Utama / Default)
                     </label>
                     <span style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)' }}>Normal</span>
                   </div>
@@ -812,10 +834,14 @@ export default function AdminStrukturPage() {
                         fontWeight: 700,
                         cursor: uploadingPhoto1 ? 'wait' : 'pointer',
                         textAlign: 'center',
-                        display: 'block',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.35rem',
                       }}
                     >
-                      {uploadingPhoto1 ? 'Mengompres...' : '📁 Pilih File Foto 1'}
+                      <UploadSimple size={14} weight="bold" />
+                      {uploadingPhoto1 ? 'Mengompres...' : 'Pilih File Foto 1'}
                       <input
                         type="file"
                         accept="image/*"
@@ -838,8 +864,8 @@ export default function AdminStrukturPage() {
                 {/* FOTO 2: HOVER SWAP */}
                 <div>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '0.4rem' }}>
-                    <label style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 800 }}>
-                      ✨ Foto 2 (Hover / Swap)
+                    <label style={{ fontSize: '0.8rem', color: '#10b981', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <Sparkle size={16} weight="bold" /> Foto 2 (Hover / Swap)
                     </label>
                     <span style={{ fontSize: '0.7rem', color: 'var(--admin-text-muted)' }}>Saat Kursor</span>
                   </div>
@@ -861,10 +887,14 @@ export default function AdminStrukturPage() {
                         fontWeight: 700,
                         cursor: uploadingPhoto2 ? 'wait' : 'pointer',
                         textAlign: 'center',
-                        display: 'block',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.35rem',
                       }}
                     >
-                      {uploadingPhoto2 ? 'Mengompres...' : '📁 Pilih File Foto 2'}
+                      <UploadSimple size={14} weight="bold" />
+                      {uploadingPhoto2 ? 'Mengompres...' : 'Pilih File Foto 2'}
                       <input
                         type="file"
                         accept="image/*"
@@ -897,8 +927,16 @@ export default function AdminStrukturPage() {
                     <div style={{ fontSize: '0.85rem', fontWeight: 800, color: 'var(--admin-text-main)' }}>
                       {offName.trim() || 'Nama Pejabat'}
                     </div>
-                    <div style={{ fontSize: '0.75rem', color: previewHover ? '#10b981' : '#38bdf8', fontWeight: 700 }}>
-                      {previewHover ? '✨ Menampilkan Foto 2 (Hover)' : '📸 Menampilkan Foto 1 (Utama)'}
+                    <div style={{ fontSize: '0.75rem', color: previewHover ? '#10b981' : '#38bdf8', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      {previewHover ? (
+                        <>
+                          <Sparkle size={14} weight="bold" /> Menampilkan Foto 2 (Hover)
+                        </>
+                      ) : (
+                        <>
+                          <Camera size={14} weight="bold" /> Menampilkan Foto 1 (Utama)
+                        </>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -951,7 +989,11 @@ export default function AdminStrukturPage() {
             style={{ background: 'var(--admin-card-bg)', border: '1px solid #ef4444', borderRadius: '8px', width: '100%', maxWidth: '420px', padding: '1.5rem', textAlign: 'center' }}
             onClick={(e) => e.stopPropagation()}
           >
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Warning size={28} weight="bold" color="#ef4444" />
+              </div>
+            </div>
             <h3 style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--admin-text-main)', marginBottom: '0.5rem' }}>
               Hapus {itemToDelete.type === 'position' ? 'Struktur Jabatan' : 'Data Pejabat'}?
             </h3>

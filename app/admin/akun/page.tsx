@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { UsersThree, UserPlus, ShieldCheck, PencilSimple, X } from '@phosphor-icons/react';
 
 interface AdminAccount {
   id: number;
@@ -34,15 +35,13 @@ export default function AdminAkunPage() {
   const [editPassword, setEditPassword] = useState('');
   const [isUpdatingAcc, setIsUpdatingAcc] = useState(false);
 
-  const getAdminUsername = () => {
-    try {
-      const sessionStr = sessionStorage.getItem('cybertech_admin_user');
-      if (sessionStr) {
-        const u = JSON.parse(sessionStr);
-        return u?.username || '';
-      }
-    } catch (e) {}
-    return currentUser?.username || '';
+  const getAuthHeaders = (): Record<string, string> => {
+    const headers: Record<string, string> = {};
+    const token = typeof window !== 'undefined' ? sessionStorage.getItem('cybertech_admin_token') : null;
+    if (token) {
+      headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
   };
 
   useEffect(() => {
@@ -58,9 +57,8 @@ export default function AdminAkunPage() {
   const fetchAccounts = async () => {
     setLoading(true);
     try {
-      const username = getAdminUsername();
       const res = await fetch('/api/admin/accounts', {
-        headers: { 'x-admin-username': username },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (data.success && Array.isArray(data.data)) {
@@ -93,12 +91,11 @@ export default function AdminAkunPage() {
     setStatusMsg(null);
 
     try {
-      const reqUsername = getAdminUsername();
       const res = await fetch('/api/admin/accounts', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': reqUsername,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({ username, password, fullName, role }),
       });
@@ -130,12 +127,11 @@ export default function AdminAkunPage() {
     setStatusMsg(null);
 
     try {
-      const reqUsername = getAdminUsername();
       const res = await fetch('/api/admin/accounts', {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
-          'x-admin-username': reqUsername,
+          ...getAuthHeaders(),
         },
         body: JSON.stringify({
           id: editAccModal.targetAcc.id,
@@ -144,7 +140,6 @@ export default function AdminAkunPage() {
           fullName: editFullName,
           role: editRole,
           newPassword: editPassword || undefined,
-          requesterUsername: reqUsername,
         }),
       });
       const data = await res.json();
@@ -167,10 +162,9 @@ export default function AdminAkunPage() {
     if (!confirm(`Apakah Anda yakin ingin menghapus akun admin @${username}?`)) return;
 
     try {
-      const reqUsername = getAdminUsername();
       const res = await fetch(`/api/admin/accounts?id=${id}`, {
         method: 'DELETE',
-        headers: { 'x-admin-username': reqUsername },
+        headers: getAuthHeaders(),
       });
       const data = await res.json();
       if (res.ok && data.success) {
@@ -189,8 +183,9 @@ export default function AdminAkunPage() {
       {/* Header & Internal Security Banner */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '1rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '1rem' }}>
         <div>
-          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            👤 Kelola Akun Admin
+          <h1 style={{ fontSize: '1.5rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <UsersThree size={26} weight="duotone" color="#38bdf8" />
+            Kelola Akun Admin
           </h1>
           <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0.25rem 0 0 0' }}>
             Pendaftaran akun admin <strong style={{ color: '#10b981' }}>hanya bisa dilakukan di dalam portal ini</strong> (Internal Only).
@@ -211,19 +206,19 @@ export default function AdminAkunPage() {
             fontWeight: 700,
             fontSize: '0.875rem',
             cursor: 'pointer',
-            display: 'flex',
+            display: 'inline-flex',
             alignItems: 'center',
-            gap: '0.5rem',
+            gap: '0.45rem',
             minHeight: '44px',
           }}
         >
-          ➕ Registrasi Akun Admin Baru
+          <UserPlus size={16} weight="bold" /> Registrasi Akun Admin Baru
         </button>
       </div>
 
       {/* Security Badge */}
       <div style={{ background: 'rgba(16, 185, 129, 0.1)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '8px', padding: '0.85rem 1.15rem', marginBottom: '1.5rem', fontSize: '0.85rem', color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-        <span style={{ fontSize: '1.25rem' }}>🔒</span>
+        <ShieldCheck size={22} weight="bold" />
         <div>
           <strong>Akses Terproteksi Intern:</strong> Tidak ada form registrasi publik di luar halaman admin. Pembuatan akun baru sepenuhnya terkontrol dari internal portal ini untuk menjaga keamanan database.
         </div>
@@ -282,9 +277,9 @@ export default function AdminAkunPage() {
                       {(currentUser?.username?.toLowerCase() === 'admin' || currentUser?.role === 'superadmin' || currentUser?.username?.toLowerCase() === acc.username.toLowerCase()) && (
                         <button
                           onClick={() => openEditModal(acc)}
-                          style={{ padding: '0.4rem 0.65rem', background: '#0284c7', border: 'none', color: '#ffffff', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer' }}
+                          style={{ padding: '0.4rem 0.65rem', background: '#0284c7', border: 'none', color: '#ffffff', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '0.3rem' }}
                         >
-                          ✏️ Edit Akun
+                          <PencilSimple size={13} weight="bold" /> Edit Akun
                         </button>
                       )}
 
@@ -310,10 +305,10 @@ export default function AdminAkunPage() {
         <div style={{ position: 'fixed', inset: 0, background: 'var(--admin-modal-overlay)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '1rem', zIndex: 999 }}>
           <div style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-card-border)', borderRadius: '8px', width: '100%', maxWidth: '440px', padding: '1.5rem' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', borderBottom: '1px solid var(--admin-border)', paddingBottom: '0.75rem' }}>
-              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
-                ✏️ Edit Akun @{editAccModal.targetAcc.username}
+              <h2 style={{ fontSize: '1.1rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0, display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                <PencilSimple size={18} weight="bold" color="#0284c7" /> Edit Akun @{editAccModal.targetAcc.username}
               </h2>
-              <button onClick={() => setEditAccModal({ show: false, targetAcc: null })} style={{ background: 'none', border: 'none', color: 'var(--admin-text-muted)', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setEditAccModal({ show: false, targetAcc: null })} style={{ background: 'none', border: 'none', color: 'var(--admin-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} aria-label="Tutup"><X size={18} weight="bold" /></button>
             </div>
 
             <form onSubmit={handleSaveAccountEdit} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
@@ -393,7 +388,7 @@ export default function AdminAkunPage() {
               <h2 style={{ fontSize: '1.15rem', fontWeight: 800, color: 'var(--admin-text-main)', margin: 0 }}>
                 Registrasi Akun Admin Baru (Intern)
               </h2>
-              <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: 'var(--admin-text-muted)', fontSize: '1.25rem', cursor: 'pointer' }}>✕</button>
+              <button onClick={() => setShowAddModal(false)} style={{ background: 'none', border: 'none', color: 'var(--admin-text-muted)', cursor: 'pointer', display: 'flex', alignItems: 'center' }} aria-label="Tutup"><X size={18} weight="bold" /></button>
             </div>
 
             <form onSubmit={handleCreateAccount} style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>

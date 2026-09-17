@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Image from 'next/image';
+import { Calendar, Laptop, ImageSquare, CheckCircle, Warning } from '@phosphor-icons/react';
 
 export default function AdminKontenPage() {
   const [activeTab, setActiveTab] = useState<'events' | 'portfolio' | 'gallery'>('events');
@@ -255,13 +256,13 @@ export default function AdminKontenPage() {
 
       {/* Notifications */}
       {successMsg && (
-        <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600 }}>
-          ✓ {successMsg}
+        <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(16, 185, 129, 0.15)', border: '1px solid #10b981', color: '#10b981', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CheckCircle size={18} weight="bold" /> {successMsg}
         </div>
       )}
       {errorMsg && (
-        <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600 }}>
-          ⚠️ {errorMsg}
+        <div style={{ padding: '0.85rem 1.25rem', background: 'rgba(239, 68, 68, 0.15)', border: '1px solid #ef4444', color: '#f87171', borderRadius: '8px', marginBottom: '1rem', fontSize: '0.875rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Warning size={18} weight="bold" /> {errorMsg}
         </div>
       )}
 
@@ -280,9 +281,12 @@ export default function AdminKontenPage() {
             fontSize: '0.875rem',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
           }}
         >
-          📅 Acara / Events ({events.length})
+          <Calendar size={18} weight={activeTab === 'events' ? 'bold' : 'regular'} /> Acara / Events ({events.length})
         </button>
 
         <button
@@ -298,9 +302,12 @@ export default function AdminKontenPage() {
             fontSize: '0.875rem',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
           }}
         >
-          💻 Portofolio Karya ({portfolios.length})
+          <Laptop size={18} weight={activeTab === 'portfolio' ? 'bold' : 'regular'} /> Portofolio Karya ({portfolios.length})
         </button>
 
         <button
@@ -316,9 +323,12 @@ export default function AdminKontenPage() {
             fontSize: '0.875rem',
             cursor: 'pointer',
             whiteSpace: 'nowrap',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.45rem',
           }}
         >
-          🖼️ Galeri Kegiatan ({gallery.length})
+          <ImageSquare size={18} weight={activeTab === 'gallery' ? 'bold' : 'regular'} /> Galeri Kegiatan ({gallery.length})
         </button>
       </div>
 
@@ -808,7 +818,11 @@ export default function AdminKontenPage() {
       {itemToDelete && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(0, 0, 0, 0.75)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 110, padding: '1rem' }}>
           <div style={{ background: 'var(--admin-card-bg)', border: '1px solid var(--admin-border)', borderRadius: '12px', width: '100%', maxWidth: '400px', padding: '1.5rem', textAlign: 'center' }}>
-            <div style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>⚠️</div>
+            <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '0.75rem' }}>
+              <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: 'rgba(239, 68, 68, 0.15)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <Warning size={28} weight="bold" color="#ef4444" />
+              </div>
+            </div>
             <h3 style={{ margin: '0 0 0.5rem 0', color: 'var(--admin-text-main)', fontSize: '1.1rem' }}>Hapus Konten?</h3>
             <p style={{ color: 'var(--admin-text-muted)', fontSize: '0.875rem', margin: '0 0 1.5rem 0' }}>
               Anda yakin ingin menghapus <strong>"{itemToDelete.title}"</strong>? Perubahan ini akan langsung diperbarui ke database.

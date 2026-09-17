@@ -146,7 +146,7 @@ export default function Chatbot() {
               </button>
             </div>
             <span className={styles.bubbleText}>
-              Halo! Ada yang ingin kamu tanyakan seputar CyberTech PNP? 💬
+              Halo! Ada yang ingin kamu tanyakan seputar CyberTech PNP?
             </span>
           </div>
           <div className={styles.bubbleTail} />

@@ -22,9 +22,8 @@ async function handleVerification(req: NextRequest) {
       user,
     });
   } catch (error) {
-    console.error('Error verifying admin session:', error);
     return NextResponse.json(
-      { success: false, error: 'Gagal memverifikasi sesi admin.' },
+      { success: false, error: 'Sesi tidak valid.' },
       { status: 401 }
     );
   }
