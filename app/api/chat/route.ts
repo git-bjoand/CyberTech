@@ -66,7 +66,16 @@ function analyzeSafety(text: string): SafetyAnalysis {
     return { isBlocked: true, replyMessage: JAILBREAK_RESPONSES[idx] };
   }
 
-  // 3. Blatant Homework / Joki Task Offloading
+  // 3. Pure Code Generation Requests (without asking about organization)
+  const pureCodeGenRegex = /\b(buatkan|bikin|tuliskan|generate|create)\s+(saya\s+)?(kan\s+)?(kodingan?|coding(an)?|kode|script|skrip|program|game|source\s*code|aplikasi|website)\b/i;
+  const isOrgQuestion = /(cybertech|pnp|politeknik|divisi|kegiatan|daftar|recruitment|organisasi|dph|ketua)/i.test(text);
+
+  if (pureCodeGenRegex.test(lower) && !isOrgQuestion) {
+    const idx = Math.abs(text.length) % JOKI_RESPONSES.length;
+    return { isBlocked: true, replyMessage: JOKI_RESPONSES[idx] };
+  }
+
+  // 4. Blatant Homework / Joki Task Offloading
   const jokiRegex = /\b(jokiin|joki\s+tugas|joki\s+koding|kerjakan\s+tugas(ku| saya)?|tolong\s+selesaikan\s+tugas|buatkan\s+full\s+website\s+untuk\s+tugas)\b/i;
   if (jokiRegex.test(lower)) {
     const idx = Math.abs(text.length) % JOKI_RESPONSES.length;
@@ -74,6 +83,17 @@ function analyzeSafety(text: string): SafetyAnalysis {
   }
 
   return { isBlocked: false };
+}
+
+function sanitizeCodeOutput(text: string): string {
+  // If the response contains markdown code blocks with HTML/JS/Python/full programs
+  const codeBlockRegex = /```(?:html|javascript|js|python|css|cpp|c|java)?\s*[\s\S]*?```/gi;
+  if (codeBlockRegex.test(text)) {
+    return text.replace(codeBlockRegex, () => {
+      return '\n*(Catatan: Sebagai asisten resmi UKM CyberTech PNP, aku tidak dapat memberikan source code aplikasi atau game utuh dari nol ya! 😄 Yuk pelajari dan kembangkan kemampuan coding-mu bersama kami di Divisi Programming UKM CyberTech PNP!)*\n';
+    });
+  }
+  return text;
 }
 
 function isGantengQuestion(text: string): boolean {
@@ -158,6 +178,9 @@ export async function POST(req: NextRequest) {
     } else {
       content = FALLBACK_OFFLINE_RESPONSE;
     }
+
+    // Safety Net: sanitize any full code block output
+    content = sanitizeCodeOutput(content);
 
     return NextResponse.json({ content });
   } catch (error) {
