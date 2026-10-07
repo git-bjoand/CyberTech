@@ -61,9 +61,9 @@ const CHECKLIST: React.ReactNode[] = [
 const ERRORS: Array<[React.ReactNode, React.ReactNode]> = [
   [<><code className={styles.code}>node</code> / <code className={styles.code}>npm</code> &quot;is not recognized&quot;</>, 'Tutup & buka ulang terminal, atau restart laptop'],
   [<><code className={styles.code}>code</code> &quot;is not recognized&quot;</>, 'Pastikan centang Add to PATH saat install VS Code, lalu restart'],
-  ['WSL gagal / minta BIOS', 'Aktifkan Virtualization di BIOS, atau tanya di grup WhatsApp / meja teknis saat hari-H'],
+  ['WSL gagal / minta BIOS', 'Aktifkan Virtualization di BIOS, atau tanya di grup WhatsApp / hubungi panitia atau teknisi saat hari-H'],
   ['Docker tidak mau jalan', 'Pastikan WSL 2 aktif dulu, baru Docker Desktop dijalankan'],
-  ['Docker jalan tapi hello-world gagal', 'Restart Docker Desktop, atau restart laptop. Masih gagal → tanya grup WhatsApp (sebelum hari-H) / meja teknis'],
+  ['Docker jalan tapi hello-world gagal', 'Restart Docker Desktop, atau restart laptop. Masih gagal → tanya grup WhatsApp (sebelum hari-H) / hubungi panitia atau teknisi'],
   [<><code className={styles.code}>npm install -g</code> error permission</>, 'Jalankan PowerShell sebagai Administrator'],
   [<><code className={styles.code}>npm install</code> error node-gyp / Python / MSBuild</>, <>Jalankan <code className={styles.code}>npm install --global windows-build-tools</code> (PowerShell Admin)</>],
   ['Paket tidak ketemu (404)', 'Cek ulang ejaan nama paket di situs resminya'],
@@ -585,7 +585,7 @@ git --version`}
                 </table>
               </div>
               <Callout tone="danger" label="Kalau Virtualization: Disabled">
-                <p>Kamu perlu masuk BIOS dan mengaktifkan <strong>Intel VT-x / AMD-V</strong>. Kalau tidak berani, <strong>tanya dulu di grup WhatsApp</strong> (sebelum hari-H), atau bawa ke meja teknis saat hari-H.</p>
+                <p>Kamu perlu masuk BIOS dan mengaktifkan <strong>Intel VT-x / AMD-V</strong>. Kalau tidak berani, <strong>tanya dulu di grup WhatsApp</strong> (sebelum hari-H), atau hubungi panitia atau teknisi saat hari-H.</p>
               </Callout>
             </Step>
 
@@ -773,7 +773,7 @@ docker --version ; docker compose version
               <li><strong>Catat</strong> di tool mana kamu gagal.</li>
               <li><strong>Lapor ke grup WhatsApp</strong> kalau error terjadi <strong>sebelum hari-H</strong> — kirim screenshot + nama tool-nya, tunggu balasan TEKNISI.</li>
               <li><strong>Lanjut</strong> ke langkah berikutnya yang masih bisa dikerjakan.</li>
-              <li>Bawa laptopmu ke <strong>meja teknis</strong> saat hari-H (jam bantuan akan diumumkan).</li>
+              <li>Hubungi <strong>panitia atau teknisi</strong> saat hari-H (jam bantuan akan diumumkan).</li>
             </ol>
             <Callout tone="info" label="Sebelum hari-H? Tanya di grup WhatsApp">
               <p>Error yang muncul saat kamu menyiapkan di rumah <strong>boleh — dan sebaiknya — ditanyakan langsung ke TEKNISI di grup WhatsApp</strong>. Jangan ditahan sampai hari-H. Sertakan <strong>screenshot + nama tool</strong> biar cepat dibantu.</p>
@@ -795,7 +795,7 @@ docker --version ; docker compose version
               </table>
             </div>
             <Callout tone="warn" label="Aturan penting">
-              <p>Kalau satu langkah gagal, <strong>jangan buang waktu berjam-jam di situ</strong>. <strong>Error sebelum hari-H → tanya di grup WhatsApp</strong> (sertakan screenshot + nama tool). Saat hari-H, bawa laptop ke <strong>meja teknis</strong>. Satu laptop yang nyangkut jangan sampai menghabiskan waktumu.</p>
+              <p>Kalau satu langkah gagal, <strong>jangan buang waktu berjam-jam di situ</strong>. <strong>Error sebelum hari-H → tanya di grup WhatsApp</strong> (sertakan screenshot + nama tool). Saat hari-H, hubungi <strong>panitia atau teknisi</strong>. Satu laptop yang nyangkut jangan sampai menghabiskan waktumu.</p>
             </Callout>
           </section>
 

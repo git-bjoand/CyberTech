@@ -118,7 +118,7 @@ function getDynamicSystemPrompt(currentPage?: string): string {
       'Batasan Docker: cukup sampai `docker run hello-world` berhasil (muncul "Hello from Docker!" tanpa error). JANGAN mengajarkan Dockerfile, docker compose, build, atau deploy.',
       'JANGAN pernah membahas pemilihan database (mis. Laragon/Supabase/Neon), karena itu wilayah pemateri inti.',
       'Kalau pengguna bertanya error yang ambigu (mis. "ini kenapa?"), jangan menebak! Tanya dulu: pesan error persisnya apa, di langkah nomor berapa, dan tool apa.',
-      'Jawab ringkas, langkah per langkah (numbered), bahasa Indonesia santai tapi jelas. Kalau masalahnya berat (mis. WSL/BIOS), sarankan screenshot lalu bawa ke meja teknis saat hari-H.',
+      'Jawab ringkas, langkah per langkah (numbered), bahasa Indonesia santai tapi jelas. Kalau masalahnya berat (mis. WSL/BIOS), sarankan screenshot lalu hubungi panitia atau teknisi saat hari-H.',
     ].join(' ');
   } else if (currentPage && currentPage.startsWith('/admin')) {
     pageDesc = `Pengguna saat ini sedang membuka Halaman Portal Admin UKM CyberTech (${currentPage}).`;
