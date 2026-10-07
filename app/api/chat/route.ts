@@ -109,6 +109,17 @@ function getDynamicSystemPrompt(currentPage?: string): string {
 
   if (currentPage === '/register') {
     pageDesc = 'Pengguna saat ini sedang berada di Halaman Form Pendaftaran Anggota Baru UKM CyberTech PNP (/register). Jika pengguna bertanya pertanyaan ambigu seperti "ini kenapa?", jangan menebak-nebak! Berikan pertanyaan follow-up yang sopan menanyakan apa pesan error, kendala, atau isu spesifik di layar pengguna.';
+  } else if (currentPage === '/panduan') {
+    pageDesc = [
+      'Pengguna saat ini sedang membuka Halaman Panduan Instalasi Workshop (Sesi 2) UKM CyberTech PNP (/panduan).',
+      'Halaman ini berisi panduan instalasi 9 alat: GitHub, Git, Node.js 22 LTS, VS Code (+ekstensi Tailwind, Prettier, Docker, ESLint), Docker Desktop + WSL 2, 9Router, OpenCode, OpenSpec, dan akun Vercel.',
+      'TUGAS UTAMAMU di halaman ini: bantu pengguna MEMECAHKAN MASALAH INSTALASI/troubleshooting secara teknis dan ramah pemula.',
+      'Panduan ini HANYA soal instalasi. Instalasi dilakukan di rumah; di ruangan hanya verifikasi & penyambungan (API key dibagikan panitia).',
+      'Batasan Docker: cukup sampai `docker run hello-world` berhasil (muncul "Hello from Docker!" tanpa error). JANGAN mengajarkan Dockerfile, docker compose, build, atau deploy.',
+      'JANGAN pernah membahas pemilihan database (mis. Laragon/Supabase/Neon), karena itu wilayah pemateri inti.',
+      'Kalau pengguna bertanya error yang ambigu (mis. "ini kenapa?"), jangan menebak! Tanya dulu: pesan error persisnya apa, di langkah nomor berapa, dan tool apa.',
+      'Jawab ringkas, langkah per langkah (numbered), bahasa Indonesia santai tapi jelas. Kalau masalahnya berat (mis. WSL/BIOS), sarankan screenshot lalu bawa ke meja teknis saat hari-H.',
+    ].join(' ');
   } else if (currentPage && currentPage.startsWith('/admin')) {
     pageDesc = `Pengguna saat ini sedang membuka Halaman Portal Admin UKM CyberTech (${currentPage}).`;
   } else if (currentPage && currentPage !== '/') {
@@ -134,14 +145,17 @@ function resolveProvider(): 'groq' | 'gemini' | 'openai' | 'offline' {
 }
 
 export async function POST(req: NextRequest) {
-  let body: any;
+  let body: unknown;
   try {
     body = await req.json();
-  } catch (e) {
+  } catch {
     return NextResponse.json({ error: 'Permintaan tidak valid.' }, { status: 400 });
   }
 
-  const { messages, currentPage }: { messages: ChatMessage[]; currentPage?: string } = body || {};
+  const { messages, currentPage } = (body ?? {}) as {
+    messages: ChatMessage[];
+    currentPage?: string;
+  };
 
   if (!messages || !Array.isArray(messages) || messages.length === 0) {
     return NextResponse.json({ error: 'Daftar pesan tidak valid atau kosong.' }, { status: 400 });

@@ -24,5 +24,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
         `${baseUrl}/images/primary/cyberlogo.png`,
       ],
     },
+    {
+      url: `${baseUrl}/panduan`,
+      lastModified: currentDate,
+      changeFrequency: 'monthly',
+      priority: 0.6,
+      images: [
+        `${baseUrl}/images/primary/cyberlogo.png`,
+      ],
+    },
   ];
 }
