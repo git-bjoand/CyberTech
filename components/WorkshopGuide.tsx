@@ -21,7 +21,7 @@ type Tool = {
 const TOOLS: Tool[] = [
   { num: '01', name: 'Akun GitHub', fn: 'Akun developer + pintu login tool lain', href: 'https://github.com/signup', action: 'Buka pendaftaran', file: '— (cukup bikin akun)' },
   { num: '02', name: 'Git', fn: 'Mencatat riwayat perubahan kode', href: 'https://git-scm.com/download/win', action: 'Unduh Git', file: 'Git-x.x.x-64-bit.exe' },
-  { num: '03', name: 'Node.js 22 LTS', fn: 'Mesin untuk menjalankan JS & semua CLI di bawah', href: 'https://nodejs.org/en/download/archive/v22', action: 'Unduh Node.js', file: 'node-v22.x-x64.msi', node: true },
+  { num: '03', name: 'Node.js 22 LTS', fn: 'Mesin untuk menjalankan JS & semua CLI di bawah', href: 'https://nodejs.org/en/download', action: 'Unduh Node.js', file: 'node-v22.x-x64.msi', node: true },
   { num: '04', name: 'VS Code', fn: 'Editor tempat menulis kode', href: 'https://code.visualstudio.com/download', action: 'Unduh VS Code', file: 'VSCodeUserSetup-x64.exe' },
   { num: '05', name: 'Docker Desktop + WSL 2', fn: 'Menjalankan aplikasi di dalam container (UTAMA)', href: 'https://www.docker.com/products/docker-desktop/', action: 'Unduh Docker', file: 'Docker Desktop Installer.exe' },
   { num: '06', name: 'Laragon', fn: 'Web server lokal pendamping (Apache/Nginx + MySQL + PHP)', href: 'https://laragon.org/download/', action: 'Unduh Laragon', file: 'laragon-wamp.exe (± 229 MB)' },
@@ -33,7 +33,6 @@ const TOOLS: Tool[] = [
 
 const NAV = [
   { id: 'alat', num: '—', label: 'Daftar Alat' },
-  { id: 'mengenal', num: 'i', label: 'Mengenal Alat' },
   { id: 'fase0', num: '00', label: 'Akun' },
   { id: 'fase1', num: '01', label: 'Fondasi Lokal' },
   { id: 'fase2', num: '02', label: 'Server Lokal' },
@@ -42,76 +41,6 @@ const NAV = [
   { id: 'checklist', num: '05', label: 'Checklist' },
   { id: 'gagal', num: '06', label: 'Kalau Gagal' },
   { id: 'rumah', num: '07', label: 'Rumah vs Ruangan' },
-];
-
-type Concept = {
-  name: string;
-  what: string;
-  analogy: string;
-  why: string;
-};
-
-const CONCEPTS: Concept[] = [
-  {
-    name: 'GitHub',
-    what: 'Situs tempat menyimpan & berbagi kode secara online.',
-    analogy: 'Seperti "Google Drive khusus kode" — tempat menyimpan proyek biar bisa diakses dari mana saja.',
-    why: 'Jadi etalase portofolio kamu, sekaligus pintu login ke Vercel dan banyak tool lain.',
-  },
-  {
-    name: 'Git',
-    what: 'Program di laptopmu yang mencatat setiap perubahan kode.',
-    analogy: 'Seperti "fitur undo + riwayat" yang tak terbatas. Salah ngoding? Bisa balik ke versi sebelumnya.',
-    why: 'Tanpa Git, kerja tim jadi berantakan. Git adalah standar wajib semua developer.',
-  },
-  {
-    name: 'Node.js 22 LTS',
-    what: 'Mesin yang menjalankan JavaScript di luar browser (di laptopmu).',
-    analogy: 'Seperti "mesin mobil" — tanpa mesin, mobilnya (kode) tidak bisa jalan.',
-    why: 'Semua alat AI di bawah (9Router, OpenCode, OpenSpec) berjalan di atas Node. Wajib dipasang paling awal.',
-  },
-  {
-    name: 'VS Code',
-    what: 'Editor tempat kamu menulis kode.',
-    analogy: 'Seperti "Microsoft Word", tapi khusus untuk kode — ada warna, saran, dan bantuan otomatis.',
-    why: 'Tempat kamu menghabiskan sebagian besar waktu ngoding. Ekstensinya bikin kerja makin cepat.',
-  },
-  {
-    name: 'Docker Desktop + WSL 2',
-    what: 'Menjalankan aplikasi dalam "kotak" (container) yang terisolasi.',
-    analogy: 'Seperti "kapal kontainer" — semua barang (aplikasi + database) dikemas rapi dan bisa jalan di laptop siapa pun dengan hasil sama.',
-    why: 'Aplikasi workshop ini pakai database + frontend + backend yang dijalankan lewat Docker. Ini alat UTAMA.',
-  },
-  {
-    name: 'Laragon',
-    what: 'Paket web server lokal (Apache/Nginx + MySQL + PHP) yang tinggal klik.',
-    analogy: 'Seperti "kompor portable" — cepat nyala, tidak perlu setup ribet. Cocok buat latihan PHP/MySQL.',
-    why: 'Pendamping Docker. Kalau butuh MySQL lokal tanpa container, Laragon bisa langsung dipakai.',
-  },
-  {
-    name: '9Router',
-    what: 'Gateway token AI — perantara yang mengatur akses ke model AI.',
-    analogy: 'Seperti "satpam + operator" yang mengatur lalu lintas permintaan ke AI, biar token/kuota terkelola.',
-    why: 'Tool AI kamu tersambung ke sini. API key-nya dibagikan panitia saat di ruangan.',
-  },
-  {
-    name: 'OpenCode',
-    what: 'Agen AI yang membantu ngoding langsung dari terminal.',
-    analogy: 'Seperti "rekan programmer" yang siap kamu tanyai di dalam terminal — bantu menulis & menjelaskan kode.',
-    why: 'Ini inti dari "AI-Assisted Programming" — biar kamu ngoding dibantu AI, bukan dikerjakan AI.',
-  },
-  {
-    name: 'OpenSpec',
-    what: 'Tool untuk menyusun spesifikasi sebelum AI mengerjakan sesuatu.',
-    analogy: 'Seperti "blueprint/denah" sebelum bangun rumah — biar AI tidak ngasal dan hasilnya terstruktur.',
-    why: 'Bikin kerja bareng AI lebih terarah: kamu tentukan dulu mau apa, baru AI bantu eksekusi.',
-  },
-  {
-    name: 'Akun Vercel',
-    what: 'Platform untuk menerbitkan aplikasi ke internet (deploy).',
-    analogy: 'Seperti "panggung" — aplikasi yang kamu buat di laptop bisa tampil online dan diakses siapa saja.',
-    why: 'Di akhir sesi, aplikasimu akan naik ke internet lewat Vercel. Untuk sekarang cukup punya akun dulu.',
-  },
 ];
 
 const CHECKLIST: React.ReactNode[] = [
@@ -420,7 +349,7 @@ export default function WorkshopGuide() {
 
           {/* Baca dulu */}
           <Callout tone="warn" label="Baca ini dulu">
-            <p>1. Panduan ini fokus ke <strong>instalasi alat</strong>. Di Sesi 2, pemateri juga menjelaskan <strong>kegunaan &amp; konsep</strong> tiap alat (lihat bagian <a href="#mengenal">Mengenal Alat</a>). Konsep arsitektur mendalam dan cara pakai dijelaskan di sesi inti.</p>
+            <p>1. Panduan ini fokus ke <strong>instalasi alat</strong>. Di Sesi 2, pemateri akan menjelaskan <strong>kegunaan &amp; konsep</strong> tiap alat lewat presentasi. Konsep arsitektur mendalam dan cara pakai dijelaskan di sesi inti.</p>
             <p>2. <strong>Instalasi = di rumah. Menyambungkan = di ruangan.</strong> Bagian yang butuh API key dilakukan bersama di ruangan.</p>
             <p>3. Target kamu: semua alat <strong>terpasang</strong> dan <strong>bisa dijalankan</strong> (keluar nomor versi / jalan tanpa error).</p>
             <p>4. Kalau ada langkah yang gagal dan bingung → <strong>jangan buang waktu berjam-jam</strong>. Screenshot errornya, share ke grup resmi atau hubungi TEKNISI, lalu lanjut ke langkah berikutnya.</p>
@@ -469,38 +398,6 @@ export default function WorkshopGuide() {
             <Callout tone="info" label="Catatan">
               <p>Tool <strong>9Router, OpenCode, OpenSpec, Vercel CLI</strong> semuanya butuh <strong>Node.js</strong>. Jadi Node dipasang <strong>paling awal</strong>.</p>
             </Callout>
-          </section>
-
-          {/* ---------- Mengenal alat ---------- */}
-          <section id="mengenal" className={styles.phase}>
-            <div className={styles.phaseHead}>
-              <span className={styles.phaseIndex}>i</span>
-              <div className={styles.phaseTitleWrap}>
-                <p className={styles.phaseKicker}>Pemahaman</p>
-                <h2 className={styles.phaseTitle}>Mengenal Alat — Apa &amp; Kenapa</h2>
-              </div>
-            </div>
-            <p className={styles.body}>
-              Sebelum install, pahami dulu <strong>gunanya masing-masing alat</strong>. Di Sesi 2,
-              pemateri akan menjelaskan bagian ini — jadi kamu tidak sekadar menginstall, tapi
-              mengerti <strong>kenapa</strong> alatnya ada.
-            </p>
-            <div className={styles.conceptGrid}>
-              {CONCEPTS.map((c) => (
-                <div key={c.name} className={styles.conceptCard}>
-                  <h3 className={styles.conceptName}>{c.name}</h3>
-                  <p className={styles.conceptWhat}>{c.what}</p>
-                  <p className={styles.conceptRow}>
-                    <span className={styles.conceptTag}>Analogi</span>
-                    {c.analogy}
-                  </p>
-                  <p className={styles.conceptRow}>
-                    <span className={styles.conceptTag}>Kenapa penting</span>
-                    {c.why}
-                  </p>
-                </div>
-              ))}
-            </div>
           </section>
 
           {/* ---------- Urutan ---------- */}
@@ -604,11 +501,11 @@ git --version`}
             <Step
               num="04"
               name="Node.js 22 LTS"
-              action={{ href: 'https://nodejs.org/en/download/archive/v22', label: 'Unduh Node.js' }}
-              hint={<>Tekan tombol di atas → di halaman <strong>Node.js v22</strong>, di bagian <strong>&quot;Installer Packages&quot;</strong> tekan tautan <code className={styles.code}>node-v22.x-x64.msi</code> (Windows x64). File <strong>.msi</strong> itu penginstalnya.</>}
+              action={{ href: 'https://nodejs.org/en/download', label: 'Unduh Node.js' }}
+              hint={<>Tekan tombol di atas → di halaman <strong>Node.js</strong>, buka <strong>menu versi</strong> dan pilih <strong>v22 LTS</strong>. Di bagian <strong>Windows Installer (.msi)</strong> tekan tautan <code className={styles.code}>node-v22.x-x64.msi</code> (Windows x64). File <strong>.msi</strong> itu penginstalnya.</>}
             >
-              <Callout tone="info" label="Kenapa v22, bukan versi terbaru?">
-                <p>Halaman unduhan Node.js sekarang <strong>default-nya v24</strong>. Workshop ini pakai <strong>v22 LTS</strong>, jadi tombol di atas sengaja mengarah ke <strong>arsip v22</strong> supaya kamu dapat versi yang sama dengan pemateri.</p>
+              <Callout tone="info" label="Pilih versi v22 LTS">
+                <p>Halaman unduhan Node.js menampilkan <strong>versi terbaru sebagai default</strong> (bisa v24). Workshop ini pakai <strong>v22 LTS</strong>, jadi buka <strong>menu versi</strong> di halaman itu dan pilih <strong>v22 LTS</strong> supaya kamu dapat versi yang sama dengan pemateri.</p>
               </Callout>
               <p className={styles.body}><strong>Saat install:</strong> klik Next sampai selesai, tapi baca peringatan di bawah dulu.</p>
               <Callout tone="danger" label="Saat install — tips krusial">

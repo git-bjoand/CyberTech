@@ -477,57 +477,6 @@
   color: var(--text-muted);
 }
 
-/* ---------- Concept cards (mengenal alat) ---------- */
-.conceptGrid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.9rem;
-  margin-top: 1.25rem;
-}
-
-.conceptCard {
-  border: 1px solid var(--hb-rule);
-  border-radius: 10px;
-  padding: 1rem 1.1rem;
-  background: var(--bg-card);
-}
-
-.conceptName {
-  font-family: var(--hb-display);
-  font-size: 1.02rem;
-  font-weight: 700;
-  letter-spacing: -0.01em;
-  margin: 0 0 0.4rem;
-  color: var(--text-primary);
-}
-
-.conceptWhat {
-  font-size: 0.9rem;
-  line-height: 1.6;
-  color: var(--text-muted);
-  margin: 0 0 0.6rem;
-}
-
-.conceptRow {
-  font-size: 0.86rem;
-  line-height: 1.58;
-  color: var(--text-muted);
-  margin: 0.45rem 0 0;
-  padding-left: 0.75rem;
-  border-left: 2px solid var(--hb-rule-strong);
-}
-
-.conceptTag {
-  display: block;
-  font-family: var(--hb-mono);
-  font-size: 0.6rem;
-  font-weight: 700;
-  letter-spacing: 0.1em;
-  text-transform: uppercase;
-  color: var(--text-quaternary);
-  margin-bottom: 0.1rem;
-}
-
 /* ---------- Text helpers ---------- */
 .body {
   font-size: 0.95rem;
@@ -1087,7 +1036,6 @@
     border-color: #dde3ec;
   }
 
-  .conceptCard,
   .hint {
     break-inside: avoid;
   }
