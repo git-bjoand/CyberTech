@@ -437,6 +437,46 @@
   padding: 0.2rem 0.5rem;
 }
 
+/* ---------- Step hint (cara unduh) ---------- */
+.hint {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.55rem;
+  margin: 0.6rem 0 0.2rem;
+  padding: 0.6rem 0.85rem;
+  background: var(--bg-secondary);
+  border: 1px solid var(--hb-rule);
+  border-left: 3px solid var(--accent-cyan);
+  border-radius: 8px;
+  font-size: 0.88rem;
+  line-height: 1.55;
+}
+
+.hintLabel {
+  flex-shrink: 0;
+  font-family: var(--hb-mono);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--accent-cyan);
+}
+
+.hintText {
+  color: var(--text-muted);
+}
+
+.hintText strong {
+  color: var(--text-primary);
+}
+
+.fileName {
+  font-family: var(--hb-mono);
+  font-size: 0.8rem;
+  color: var(--text-muted);
+}
+
 /* ---------- Text helpers ---------- */
 .body {
   font-size: 0.95rem;
@@ -715,7 +755,7 @@
 .tableWrap table {
   border-collapse: collapse;
   width: 100%;
-  min-width: 520px;
+  min-width: 620px;
   font-size: 0.86rem;
 }
 

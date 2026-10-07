@@ -14,26 +14,28 @@ type Tool = {
   fn: string;
   href: string;
   action: string;
+  file: string;
   node?: boolean;
 };
 
 const TOOLS: Tool[] = [
-  { num: '01', name: 'Akun GitHub', fn: 'Akun developer + pintu login tool lain', href: 'https://github.com/signup', action: 'Buka' },
-  { num: '02', name: 'Git', fn: 'Mencatat riwayat perubahan kode', href: 'https://git-scm.com/download/win', action: 'Unduh' },
-  { num: '03', name: 'Node.js 22 LTS', fn: 'Mesin untuk menjalankan JS & semua CLI di bawah', href: 'https://nodejs.org', action: 'Unduh', node: true },
-  { num: '04', name: 'VS Code', fn: 'Editor tempat menulis kode', href: 'https://code.visualstudio.com', action: 'Unduh' },
-  { num: '05', name: 'Docker Desktop + WSL 2', fn: 'Menjalankan aplikasi di dalam container', href: 'https://www.docker.com/products/docker-desktop/', action: 'Unduh' },
-  { num: '06', name: '9Router', fn: 'Gateway token AI (proxy lokal)', href: 'https://www.npmjs.com/package/9router', action: 'Lihat', node: true },
-  { num: '07', name: 'OpenCode', fn: 'Agen koding AI di terminal', href: 'https://www.npmjs.com/package/opencode-ai', action: 'Lihat', node: true },
-  { num: '08', name: 'OpenSpec', fn: 'Menyusun spesifikasi agar kerja AI terstruktur', href: 'https://openspec.dev', action: 'Buka', node: true },
-  { num: '09', name: 'Akun Vercel', fn: 'Menerbitkan aplikasi ke internet', href: 'https://vercel.com/signup', action: 'Buka' },
+  { num: '01', name: 'Akun GitHub', fn: 'Akun developer + pintu login tool lain', href: 'https://github.com/signup', action: 'Buka pendaftaran', file: '— (cukup bikin akun)' },
+  { num: '02', name: 'Git', fn: 'Mencatat riwayat perubahan kode', href: 'https://git-scm.com/download/win', action: 'Unduh Git', file: 'Git-x.x.x-64-bit.exe' },
+  { num: '03', name: 'Node.js 22 LTS', fn: 'Mesin untuk menjalankan JS & semua CLI di bawah', href: 'https://nodejs.org/en/download/archive/v22', action: 'Unduh Node.js', file: 'node-v22.x-x64.msi', node: true },
+  { num: '04', name: 'VS Code', fn: 'Editor tempat menulis kode', href: 'https://code.visualstudio.com/download', action: 'Unduh VS Code', file: 'VSCodeUserSetup-x64.exe' },
+  { num: '05', name: 'Docker Desktop + WSL 2', fn: 'Menjalankan aplikasi di dalam container (UTAMA)', href: 'https://www.docker.com/products/docker-desktop/', action: 'Unduh Docker', file: 'Docker Desktop Installer.exe' },
+  { num: '06', name: 'Laragon', fn: 'Web server lokal pendamping (Apache/Nginx + MySQL + PHP)', href: 'https://laragon.org/download/', action: 'Unduh Laragon', file: 'laragon-wamp.exe (± 229 MB)' },
+  { num: '07', name: '9Router', fn: 'Gateway token AI (proxy lokal)', href: 'https://www.npmjs.com/package/9router', action: 'Lihat paket', file: 'lewat npm (tidak unduh file)', node: true },
+  { num: '08', name: 'OpenCode', fn: 'Agen koding AI di terminal', href: 'https://www.npmjs.com/package/opencode-ai', action: 'Lihat paket', file: 'lewat npm (tidak unduh file)', node: true },
+  { num: '09', name: 'OpenSpec', fn: 'Menyusun spesifikasi agar kerja AI terstruktur', href: 'https://openspec.dev', action: 'Buka situs', file: 'lewat npm (tidak unduh file)', node: true },
+  { num: '10', name: 'Akun Vercel', fn: 'Menerbitkan aplikasi ke internet', href: 'https://vercel.com/signup', action: 'Buka pendaftaran', file: '— (login via GitHub)' },
 ];
 
 const NAV = [
   { id: 'alat', num: '—', label: 'Daftar Alat' },
   { id: 'fase0', num: '00', label: 'Akun' },
   { id: 'fase1', num: '01', label: 'Fondasi Lokal' },
-  { id: 'fase2', num: '02', label: 'Container' },
+  { id: 'fase2', num: '02', label: 'Server Lokal' },
   { id: 'fase3', num: '03', label: 'AI Tooling' },
   { id: 'fase4', num: '04', label: 'Verifikasi' },
   { id: 'checklist', num: '05', label: 'Checklist' },
@@ -49,6 +51,7 @@ const CHECKLIST: React.ReactNode[] = [
   <><strong>VS Code</strong> terpasang + 4 ekstensi (Tailwind, Prettier, Docker, ESLint)</>,
   <><strong>WSL 2</strong> aktif</>,
   <><strong>Docker Desktop</strong> jalan (paus hijau) + <code className={styles.code}>docker run hello-world</code> berhasil tanpa log error</>,
+  <><strong>Laragon</strong> terpasang &amp; bisa dibuka (klik Start All → Apache/Nginx nyala)</>,
   <><strong>9Router</strong> terpasang → <code className={styles.code}>9router --version</code> keluar</>,
   <><strong>OpenCode</strong> terpasang → <code className={styles.code}>opencode --version</code> keluar</>,
   <><strong>OpenSpec</strong> terpasang → <code className={styles.code}>openspec --version</code> keluar</>,
@@ -68,14 +71,14 @@ const ERRORS: Array<[React.ReactNode, React.ReactNode]> = [
 ];
 
 const SPLIT = [
-  ['Semua instalasi di atas', true, false],
+  ['Instalasi semua alat', true, false],
   ['Bikin akun GitHub & Vercel', true, false],
-  ['Coba docker run hello-world', true, false],
-  ['git config (identitas)', false, true],
+  ['git config (nama & email)', true, false],
+  ['Tes docker run hello-world', true, false],
+  ['Verifikasi mandiri (health check)', true, false],
   ['Jalankan 9Router + API key', false, true],
   ['Sambungkan OpenCode → 9Router', false, true],
   ['OpenSpec hands-on', false, true],
-  ['Verifikasi serentak (health check)', false, true],
   ['Deploy pertama ke Vercel', false, true],
 ] as const;
 
@@ -184,11 +187,13 @@ function Step({
   num,
   name,
   action,
+  hint,
   children,
 }: {
   num: string;
   name: string;
   action?: { href: string; label: string };
+  hint?: React.ReactNode;
   children: React.ReactNode;
 }) {
   return (
@@ -200,6 +205,12 @@ function Step({
         </span>
         {action && <ActionButton href={action.href}>{action.label}</ActionButton>}
       </div>
+      {hint && (
+        <p className={styles.hint}>
+          <span className={styles.hintLabel}>Cara unduh</span>
+          <span className={styles.hintText}>{hint}</span>
+        </p>
+      )}
       {children}
     </div>
   );
@@ -279,7 +290,7 @@ export default function WorkshopGuide() {
           </p>
           <div className={styles.heroStats}>
             <div className={styles.stat}>
-              <div className={styles.statValue}>9</div>
+              <div className={styles.statValue}>10</div>
               <div className={styles.statLabel}>Alat wajib</div>
             </div>
             <div className={styles.stat}>
@@ -360,6 +371,7 @@ export default function WorkshopGuide() {
                     <th>No</th>
                     <th>Alat</th>
                     <th>Fungsi</th>
+                    <th>Berkas yang diunduh</th>
                     <th className={styles.center}>Sumber</th>
                   </tr>
                 </thead>
@@ -372,6 +384,7 @@ export default function WorkshopGuide() {
                         {t.node && <span className={styles.toolTag}> · butuh Node</span>}
                       </td>
                       <td>{t.fn}</td>
+                      <td><span className={styles.fileName}>{t.file}</span></td>
                       <td className={styles.center}>
                         <ActionButton href={t.href} ghost>
                           {t.action}
@@ -399,7 +412,8 @@ export default function WorkshopGuide() {
             <ul className={styles.list}>
               <li><strong>GitHub paling awal</strong> → emailnya dipakai buat <code className={styles.code}>git config</code> <strong>dan</strong> jadi pintu login Vercel.</li>
               <li><strong>Node sebelum semua CLI</strong> → 9Router, OpenCode, OpenSpec semuanya <code className={styles.code}>npm install</code>. Gak ada Node = gak ada apa-apa.</li>
-              <li><strong>Docker paling akhir</strong> → ini yang paling rawan (butuh WSL 2, restart, setting BIOS). Kalau macet, fondasi lain sudah aman.</li>
+              <li><strong>Docker di Fase 2</strong> → ini yang paling rawan (butuh WSL 2, restart, setting BIOS). Kalau macet, fondasi lain sudah aman.</li>
+              <li><strong>Laragon menyusul setelah Docker</strong> → pemasangannya ringan, jadi kerjakan setelah bagian yang rawan beres.</li>
             </ul>
             <div className={styles.codeBlock}>
               <div className={styles.codeBlockHead}>
@@ -407,7 +421,7 @@ export default function WorkshopGuide() {
               </div>
               <pre className={styles.codePre}>{`FASE 0  AKUN          ->  GitHub, Vercel
 FASE 1  FONDASI LOKAL ->  Git, Node.js 22, VS Code
-FASE 2  CONTAINER     ->  WSL 2, Docker Desktop
+FASE 2  SERVER LOKAL  ->  WSL 2, Docker Desktop, Laragon
 FASE 3  AI TOOLING    ->  9Router, OpenCode, OpenSpec
 FASE 4  VERIFIKASI    ->  health check`}</pre>
             </div>
@@ -423,7 +437,12 @@ FASE 4  VERIFIKASI    ->  health check`}</pre>
               </div>
             </div>
 
-            <Step num="01" name="Akun GitHub" action={{ href: 'https://github.com/signup', label: 'Buka pendaftaran' }}>
+            <Step
+              num="01"
+              name="Akun GitHub"
+              action={{ href: 'https://github.com/signup', label: 'Buka pendaftaran' }}
+              hint={<>Tekan tombol di atas → halaman pendaftaran GitHub terbuka. Isi <strong>email</strong>, <strong>password</strong>, lalu <strong>username</strong>. Ini bukan unduh file — cukup bikin akun.</>}
+            >
               <ol className={styles.list}>
                 <li>Daftar pakai <strong>email aktif</strong>, lalu verifikasi lewat email.</li>
                 <li><strong>Tips:</strong> pilih username yang profesional — ini bakal kelihatan orang lain (portofolio/CV).</li>
@@ -431,7 +450,12 @@ FASE 4  VERIFIKASI    ->  health check`}</pre>
               </ol>
             </Step>
 
-            <Step num="02" name="Akun Vercel" action={{ href: 'https://vercel.com/signup', label: 'Buka pendaftaran' }}>
+            <Step
+              num="02"
+              name="Akun Vercel"
+              action={{ href: 'https://vercel.com/signup', label: 'Buka pendaftaran' }}
+              hint={<>Tekan tombol di atas → di halaman Vercel, tekan <strong>&quot;Continue with GitHub&quot;</strong>. Ini juga bukan unduh file — cukup bikin akun.</>}
+            >
               <ol className={styles.list}>
                 <li>Klik <strong>&quot;Continue with GitHub&quot;</strong> → login pakai akun GitHub tadi.</li>
                 <li>Selesai. (Cukup punya akun; deploy-nya nanti di ruangan.)</li>
@@ -452,7 +476,12 @@ FASE 4  VERIFIKASI    ->  health check`}</pre>
               </div>
             </div>
 
-            <Step num="03" name="Git" action={{ href: 'https://git-scm.com/download/win', label: 'Unduh Git' }}>
+            <Step
+              num="03"
+              name="Git"
+              action={{ href: 'https://git-scm.com/download/win', label: 'Unduh Git' }}
+              hint={<>Tekan tombol di atas → di halaman <strong>git-scm.com/download/win</strong>, unduhan <code className={styles.code}>Git-x.x.x-64-bit.exe</code> mulai otomatis. Kalau tidak, tekan tautan <strong>&quot;Click here to download&quot;</strong>.</>}
+            >
               <p className={styles.body}><strong>Saat install:</strong> biarkan semua opsi <strong>default</strong>, klik Next sampai selesai.</p>
               <p className={styles.body}><strong>Setelah terpasang — buka PowerShell / CMD dan jalankan</strong> (ganti dengan nama &amp; email GitHub kamu):</p>
               <CodeBlock
@@ -469,8 +498,16 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="04" name="Node.js 22 LTS" action={{ href: 'https://nodejs.org', label: 'Unduh Node.js' }}>
-              <p className={styles.body}>Pilih tab <strong>LTS</strong> (versi <strong>22.x</strong>).</p>
+            <Step
+              num="04"
+              name="Node.js 22 LTS"
+              action={{ href: 'https://nodejs.org/en/download/archive/v22', label: 'Unduh Node.js' }}
+              hint={<>Tekan tombol di atas → di halaman <strong>Node.js v22</strong>, di bagian <strong>&quot;Installer Packages&quot;</strong> tekan tautan <code className={styles.code}>node-v22.x-x64.msi</code> (Windows x64). File <strong>.msi</strong> itu penginstalnya.</>}
+            >
+              <Callout tone="info" label="Kenapa v22, bukan versi terbaru?">
+                <p>Halaman unduhan Node.js sekarang <strong>default-nya v24</strong>. Workshop ini pakai <strong>v22 LTS</strong>, jadi tombol di atas sengaja mengarah ke <strong>arsip v22</strong> supaya kamu dapat versi yang sama dengan pemateri.</p>
+              </Callout>
+              <p className={styles.body}><strong>Saat install:</strong> klik Next sampai selesai, tapi baca peringatan di bawah dulu.</p>
               <Callout tone="danger" label="Saat install — tips krusial">
                 <p><strong>JANGAN centang</strong> opsi <strong>&quot;Tools for Native Modules&quot;</strong> (atau &quot;Automatically install the necessary tools&quot;). Melewati ini menghemat unduhan <strong>3–5 GB</strong> yang bisa makan waktu berjam-jam.</p>
                 <p><strong>Kenapa aman?</strong> Opsi itu cuma untuk meng-<em>compile</em> paket native (C/C++). Stack workshop ini (React + Node + Docker) umumnya <strong>tidak membutuhkannya</strong>.</p>
@@ -487,7 +524,12 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="05" name="VS Code" action={{ href: 'https://code.visualstudio.com', label: 'Unduh VS Code' }}>
+            <Step
+              num="05"
+              name="VS Code"
+              action={{ href: 'https://code.visualstudio.com/download', label: 'Unduh VS Code' }}
+              hint={<>Tekan tombol di atas → di halaman <strong>code.visualstudio.com/download</strong>, di bagian <strong>Windows</strong> tekan tombol <strong>&quot;Windows&quot;</strong> (User Installer) → file <code className={styles.code}>VSCodeUserSetup-x64.exe</code> terunduh.</>}
+            >
               <p className={styles.body}><strong>Saat install — WAJIB centang:</strong></p>
               <ul className={styles.list}>
                 <li><strong>Add to PATH</strong></li>
@@ -514,7 +556,7 @@ git --version`}
               <span className={styles.phaseIndex}>02</span>
               <div className={styles.phaseTitleWrap}>
                 <p className={styles.phaseKicker}>Fase 2</p>
-                <h2 className={styles.phaseTitle}>Container (Docker)</h2>
+                <h2 className={styles.phaseTitle}>Server Lokal (Docker &amp; Laragon)</h2>
               </div>
             </div>
             <Callout tone="warn" label="Perhatian">
@@ -547,7 +589,12 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="07" name="Docker Desktop" action={{ href: 'https://www.docker.com/products/docker-desktop/', label: 'Unduh Docker' }}>
+            <Step
+              num="07"
+              name="Docker Desktop"
+              action={{ href: 'https://www.docker.com/products/docker-desktop/', label: 'Unduh Docker' }}
+              hint={<>Tekan tombol di atas → di halaman Docker Desktop, tekan <strong>&quot;Download for Windows – AMD64&quot;</strong> → file <code className={styles.code}>Docker Desktop Installer.exe</code> terunduh.</>}
+            >
               <p className={styles.body}>Bisa juga cari <strong>Docker Desktop</strong> di Microsoft Store.</p>
               <p className={styles.body}><strong>Setelah terpasang:</strong></p>
               <ol className={styles.list}>
@@ -578,6 +625,31 @@ git --version`}
                 <p>Di sesi inti, aplikasi dijalankan lewat <code className={styles.code}>docker compose</code> yang menarik beberapa image sekaligus (database + frontend + backend). Karena itu <strong>wajib dicoba di rumah</strong> — supaya pas di ruangan tidak ikut mengunduh besar-besaran lewat wifi. Daftar image yang perlu disiapkan akan dibagikan panitia.</p>
               </Callout>
             </Step>
+
+            <Step
+              num="08"
+              name="Laragon"
+              action={{ href: 'https://laragon.org/download/', label: 'Unduh Laragon' }}
+              hint={<>Tekan tombol di atas → di halaman <strong>laragon.org/download</strong>, tekan tombol <strong>&quot;Download Laragon v8.7.0 - Full (229 MB)&quot;</strong> → file <code className={styles.code}>laragon-wamp.exe</code> terunduh.</>}
+            >
+              <Callout tone="info" label="Posisinya di workshop ini">
+                <p><strong>Docker tetap yang utama.</strong> Laragon di sini dipasang sebagai <strong>pendamping</strong> — supaya kamu punya web server lokal (Apache/Nginx) + MySQL yang bisa langsung dipakai tanpa container. Kalau di sesi inti pakai Docker, Laragon tidak mengganggu.</p>
+              </Callout>
+              <p className={styles.body}><strong>Saat install:</strong> buka <code className={styles.code}>laragon-wamp.exe</code>, biarkan opsi <strong>default</strong>, klik Next sampai selesai.</p>
+              <p className={styles.body}><strong>Setelah terpasang:</strong></p>
+              <ol className={styles.list}>
+                <li>Buka <strong>Laragon</strong> dari Start Menu.</li>
+                <li>Klik tombol <strong>&quot;Start All&quot;</strong> (di kanan bawah jendela Laragon).</li>
+                <li>Tunggu sampai layanan <strong>Apache/Nginx</strong> &amp; <strong>MySQL</strong> berstatus jalan (indikator hijau).</li>
+                <li>Uji cepat: klik kanan di area kosong → <strong>Web</strong>, atau buka <code className={styles.code}>http://localhost</code> di browser.</li>
+              </ol>
+              <Callout tone="warn" label="Jangan pakai Node bawaan Laragon">
+                <p>Laragon <strong>Full</strong> ikut membawa Node.js versi sendiri. Untuk workshop ini <strong>tetap pakai Node.js 22</strong> dari installer resmi (langkah 04). <strong>Jangan</strong> tambahkan Node bawaan Laragon ke PATH, supaya <code className={styles.code}>node -v</code> tetap menunjuk ke Node 22 workshop. Kalau butuh menaruh Laragon di PATH, aktifkan hanya untuk PHP/Git.</p>
+              </Callout>
+              <Callout tone="ok" label="Berhasil kalau">
+                <p>Laragon terbuka, tombol <strong>Start All</strong> ditekan, dan Apache/Nginx + MySQL <strong>nyala tanpa error</strong> (bisa buka <code className={styles.code}>http://localhost</code>).</p>
+              </Callout>
+            </Step>
           </section>
 
           {/* ---------- FASE 3 ---------- */}
@@ -593,7 +665,12 @@ git --version`}
               <p>Semua perintah di bawah dijalankan di <strong>PowerShell / CMD</strong>. Kalau <code className={styles.code}>npm</code> belum dikenali → balik ke langkah Node (No. 04).</p>
             </Callout>
 
-            <Step num="08" name="9Router" action={{ href: 'https://www.npmjs.com/package/9router', label: 'Lihat paket' }}>
+            <Step
+              num="09"
+              name="9Router"
+              action={{ href: 'https://www.npmjs.com/package/9router', label: 'Lihat paket' }}
+              hint={<>9Router <strong>tidak punya file installer</strong>. Pemasangannya lewat <code className={styles.code}>npm</code> — jalankan perintah di bawah di PowerShell. Tombol di atas hanya untuk melihat info paketnya.</>}
+            >
               <CodeBlock label="PowerShell" code={`npm install -g 9router\n9router --version`} />
               <Callout tone="ok" label="Berhasil kalau">
                 <p>Muncul nomor versi.</p>
@@ -603,7 +680,12 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="09" name="OpenCode" action={{ href: 'https://www.npmjs.com/package/opencode-ai', label: 'Lihat paket' }}>
+            <Step
+              num="10"
+              name="OpenCode"
+              action={{ href: 'https://www.npmjs.com/package/opencode-ai', label: 'Lihat paket' }}
+              hint={<>Sama seperti 9Router — <strong>tidak ada file installer</strong>. Pasang lewat <code className={styles.code}>npm</code> dengan perintah di bawah.</>}
+            >
               <CodeBlock label="PowerShell" code={`npm install -g opencode-ai\nopencode --version`} />
               <Callout tone="ok" label="Berhasil kalau">
                 <p>Muncul nomor versi.</p>
@@ -613,7 +695,12 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="10" name="OpenSpec" action={{ href: 'https://openspec.dev', label: 'Buka situs' }}>
+            <Step
+              num="11"
+              name="OpenSpec"
+              action={{ href: 'https://openspec.dev', label: 'Buka situs' }}
+              hint={<>OpenSpec <strong>tidak ada file installer</strong>. Pasang lewat <code className={styles.code}>npm</code> dengan perintah di bawah.</>}
+            >
               <CodeBlock label="PowerShell" code={`npm install -g @fission-ai/openspec\nopenspec --version`} />
               <Callout tone="ok" label="Berhasil kalau">
                 <p>Muncul nomor versi.</p>
@@ -623,7 +710,12 @@ git --version`}
               </Callout>
             </Step>
 
-            <Step num="11" name="(Opsional) Vercel CLI" action={{ href: 'https://www.npmjs.com/package/vercel', label: 'Lihat paket' }}>
+            <Step
+              num="12"
+              name="(Opsional) Vercel CLI"
+              action={{ href: 'https://www.npmjs.com/package/vercel', label: 'Lihat paket' }}
+              hint={<>Vercel CLI <strong>tidak ada file installer</strong>. Pasang lewat <code className={styles.code}>npm</code> dengan perintah di bawah.</>}
+            >
               <p className={styles.body}>Kalau mau deploy dari terminal (kalau tidak, versi web sudah cukup):</p>
               <CodeBlock label="PowerShell" code={`npm install -g vercel\nvercel --version`} />
             </Step>
