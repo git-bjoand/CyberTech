@@ -109,9 +109,9 @@ function getDynamicSystemPrompt(currentPage?: string): string {
 
   if (currentPage === '/register') {
     pageDesc = 'Pengguna saat ini sedang berada di Halaman Form Pendaftaran Anggota Baru UKM CyberTech PNP (/register). Jika pengguna bertanya pertanyaan ambigu seperti "ini kenapa?", jangan menebak-nebak! Berikan pertanyaan follow-up yang sopan menanyakan apa pesan error, kendala, atau isu spesifik di layar pengguna.';
-  } else if (currentPage === '/panduan') {
+  } else if (currentPage === '/panduan-workshop') {
     pageDesc = [
-      'Pengguna saat ini sedang membuka Halaman Panduan Instalasi Workshop (Sesi 2) UKM CyberTech PNP (/panduan).',
+      'Pengguna saat ini sedang membuka Halaman Panduan Instalasi Workshop (Sesi 2) UKM CyberTech PNP (/panduan-workshop).',
       'Halaman ini berisi panduan instalasi 9 alat: GitHub, Git, Node.js 22 LTS, VS Code (+ekstensi Tailwind, Prettier, Docker, ESLint), Docker Desktop + WSL 2, 9Router, OpenCode, OpenSpec, dan akun Vercel.',
       'TUGAS UTAMAMU di halaman ini: bantu pengguna MEMECAHKAN MASALAH INSTALASI/troubleshooting secara teknis dan ramah pemula.',
       'Panduan ini HANYA soal instalasi. Instalasi dilakukan di rumah; di ruangan hanya verifikasi & penyambungan (API key dibagikan panitia).',

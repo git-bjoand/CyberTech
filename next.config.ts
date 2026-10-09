@@ -14,6 +14,15 @@ const nextConfig: NextConfig = {
     deviceSizes: [640, 750, 828, 1080, 1200],
     imageSizes: [16, 32, 48, 64, 96, 128, 256, 384],
   },
+  async redirects() {
+    return [
+      {
+        source: '/panduan',
+        destination: '/panduan-workshop',
+        permanent: true,
+      },
+    ];
+  },
   async headers() {
     return [
       {

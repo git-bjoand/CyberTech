@@ -14,7 +14,7 @@ export const metadata: Metadata = {
   },
 };
 
-export default function PanduanPage() {
+export default function PanduanWorkshopPage() {
   return (
     <>
       <WorkshopGuide />

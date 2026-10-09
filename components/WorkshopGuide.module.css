@@ -45,18 +45,12 @@
   min-width: 0;
 }
 
-.brandMark {
-  width: 26px;
-  height: 26px;
+.brandLogo {
+  width: 30px;
+  height: 30px;
   flex-shrink: 0;
-  display: grid;
-  place-items: center;
-  border: 1px solid var(--border-strong);
+  object-fit: contain;
   border-radius: 6px;
-  color: var(--accent-cyan);
-  font-family: var(--hb-mono);
-  font-size: 0.72rem;
-  font-weight: 700;
 }
 
 .brandText {

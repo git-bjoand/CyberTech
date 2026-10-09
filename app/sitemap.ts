@@ -25,7 +25,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
       ],
     },
     {
-      url: `${baseUrl}/panduan`,
+      url: `${baseUrl}/panduan-workshop`,
       lastModified: currentDate,
       changeFrequency: 'monthly',
       priority: 0.6,

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import styles from './WorkshopGuide.module.css';
 
@@ -257,7 +258,14 @@ export default function WorkshopGuide() {
       <div className={styles.topbar}>
         <div className={styles.topbarInner}>
           <Link className={styles.brand} href="/">
-            <span className={styles.brandMark}>&lt;/&gt;</span>
+            <Image
+              src="/images/primary/cyberlogo.png"
+              alt="Logo UKM CyberTech PNP"
+              width={30}
+              height={30}
+              className={styles.brandLogo}
+              priority
+            />
             <span className={styles.brandText}>
               <span className={styles.brandTitle}>Panduan Instalasi</span>
               <span className={styles.brandSub}>UKM Cybertech PNP</span>
